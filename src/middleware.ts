@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"
-const COOKIE_NAME = "admin_session"
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const session = request.cookies.get(COOKIE_NAME)?.value
+
+  const supabaseCookie = Object.keys(request.cookies).find((key) =>
+    key.startsWith("sb-") && key.includes("-auth-token")
+  )
+
+  const hasSession = supabaseCookie
+    ? request.cookies.get(supabaseCookie)?.value
+    : null
 
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    if (session !== "authenticated") {
+    if (!hasSession) {
       return NextResponse.redirect(new URL("/admin/login", request.url))
     }
   }
 
-  if (pathname === "/admin/login" && session === "authenticated") {
+  if (pathname === "/admin/login" && hasSession) {
     return NextResponse.redirect(new URL("/admin", request.url))
   }
 

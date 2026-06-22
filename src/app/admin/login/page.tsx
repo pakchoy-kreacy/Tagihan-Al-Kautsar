@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 import { NavBar } from "@/components/NavBar"
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -16,16 +18,18 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
-      if (res.ok) {
-        router.push("/admin")
+      if (error) {
+        setError(error.message === "Invalid login credentials"
+          ? "Email atau password salah!"
+          : error.message)
       } else {
-        setError("Password salah!")
+        router.push("/admin")
+        router.refresh()
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")
@@ -44,10 +48,27 @@ export default function AdminLoginPage() {
               Login Admin
             </h1>
             <p style={{ color: "#5f6f63", fontSize: 14, marginBottom: 20 }}>
-              Masuk untuk mengelola data sekolah.
+              Masuk dengan email dan password untuk mengelola data sekolah.
             </p>
 
             <form onSubmit={handleSubmit}>
+              <label
+                style={{ fontSize: 13, color: "#5f6f63", display: "block", marginBottom: 6 }}
+                htmlFor="email"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                className="form-input"
+                placeholder="admin@minuruliman.sch.id"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoFocus
+                style={{ marginBottom: 14 }}
+              />
+
               <label
                 style={{ fontSize: 13, color: "#5f6f63", display: "block", marginBottom: 6 }}
                 htmlFor="password"
@@ -58,10 +79,9 @@ export default function AdminLoginPage() {
                 id="password"
                 type="password"
                 className="form-input"
-                placeholder="Masukkan password admin"
+                placeholder="Masukkan password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoFocus
                 style={{ marginBottom: 16 }}
               />
 
@@ -80,7 +100,7 @@ export default function AdminLoginPage() {
                 </div>
               )}
 
-              <button type="submit" className="btn btn-primary" disabled={loading || !password}>
+              <button type="submit" className="btn btn-primary" disabled={loading || !email || !password}>
                 {loading ? "Memeriksa..." : "Masuk"}
               </button>
             </form>

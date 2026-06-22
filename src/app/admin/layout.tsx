@@ -3,6 +3,7 @@ import "./admin.css"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "D" },
@@ -20,8 +21,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   async function handleLogout() {
-    await fetch("/api/admin/login", { method: "DELETE" })
+    await supabase.auth.signOut()
     router.push("/")
+    router.refresh()
   }
 
   return (
