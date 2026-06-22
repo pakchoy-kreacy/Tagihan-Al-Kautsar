@@ -50,12 +50,12 @@ export default function AdminSiswaPage() {
   return (
     <div className="admin-page">
       <div className="admin-page-header">
-        <h1 className="admin-page-title">?? Kelola Siswa</h1>
+        <h1 className="admin-page-title">Kelola Siswa</h1>
         <button className="admin-btn" onClick={() => setShowModal(true)}>+ Tambah</button>
       </div>
 
       <div className="search-box" style={{ marginBottom: 14 }}>
-        <span className="icon">??</span>
+        <span className="icon">🔍</span>
         <input placeholder="Cari NISN atau Nama..." value={search}
           onChange={e => setSearch(e.target.value)} />
       </div>

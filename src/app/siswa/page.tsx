@@ -49,7 +49,7 @@ function DaftarSiswaContent() {
   if (loading) {
     return (
       <div className="content">
-        <div className="screen-label">📱 Halaman 2 — Daftar Siswa</div>
+        <div className="screen-label">Halaman 2 — Daftar Siswa</div>
         <div style={{ padding: "40px 0", textAlign: "center", color: "#9e9e9e" }}>
           Memuat data siswa...
         </div>
@@ -59,7 +59,7 @@ function DaftarSiswaContent() {
 
   return (
     <div className="content">
-      <div className="screen-label">📱 Halaman 2 — Daftar Siswa</div>
+        <div className="screen-label">Halaman 2 — Daftar Siswa</div>
 
       <div className="back-row">
         <button className="back" onClick={() => router.push("/")}>◀</button>
@@ -152,7 +152,7 @@ export default function DaftarSiswaPage() {
 
       <div className="header" style={{ padding: "12px 18px 14px 18px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>🌙 MI Nurul Iman</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div>
           <div style={{ fontSize: 11, opacity: 0.7 }}>Kabo Jaya</div>
         </div>
       </div>

@@ -69,7 +69,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
   if (loading) {
     return (
       <div className="phone-frame min-h-[700px]">
-        <div className="status-bar"><span>?? ????</span><span>?? ?? 12:30</span></div>
+        <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
         <div className="content"><div style={{ textAlign: "center", padding: 40, color: "#9e9e9e" }}>Memuat...</div></div>
       </div>
     )
@@ -78,8 +78,8 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
   if (success) {
     return (
       <div className="phone-frame min-h-[700px]">
-        <div className="status-bar"><span>?? ????</span><span>?? ?? 12:30</span></div>
-        <div className="header"><div style={{ fontSize: 18, fontWeight: 700 }}>?? MI Nurul Iman</div></div>
+        <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
+        <div className="header"><div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div></div>
         <div className="content" style={{ textAlign: "center", padding: "40px 20px" }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>?</div>
           <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Bukti Terkirim!</h2>
@@ -97,20 +97,20 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
 
   return (
     <div className="phone-frame min-h-[700px]">
-      <div className="status-bar"><span>?? ????</span><span>?? ?? 12:30</span></div>
+      <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
       <div className="header" style={{ padding: "12px 18px" }}>
-        <div style={{ fontSize: 18, fontWeight: 700 }}>?? MI Nurul Iman</div>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div>
       </div>
 
       <div className="content">
-        <div className="screen-label">?? Pembayaran SPP</div>
+        <div className="screen-label">Pembayaran SPP</div>
 
         <button className="back" onClick={() => router.back()} style={{ marginBottom: 14 }}>? Kembali</button>
 
         {/* Bank Info */}
         {bank && (
           <div className="card" style={{ background: "#E8F5E9", borderColor: "#A5D6A7" }}>
-            <div className="card-title">?? Transfer ke</div>
+            <div className="card-title">Transfer ke</div>
             <div style={{ marginTop: 4 }}>
               <div style={{ fontSize: 13, color: "#757575" }}>{bank.bank_name}</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "#1B5E20", letterSpacing: 2 }}>
@@ -130,7 +130,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
         {/* Student Info */}
         {siswa && (
           <div className="card">
-            <div className="card-title">????? Siswa</div>
+            <div className="card-title">Data Siswa</div>
             <div style={{ fontSize: 16, fontWeight: 600 }}>{siswa.nama}</div>
             <div style={{ fontSize: 13, color: "#757575" }}>{siswa.nisn} — Kelas {siswa.kelas}</div>
             <div style={{ marginTop: 8, padding: "8px 12px", background: "#FFF8E1", borderRadius: 10 }}>
@@ -144,7 +144,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
 
         {/* Upload Form */}
         <div className="card">
-          <div className="card-title">?? Upload Bukti Transfer</div>
+          <div className="card-title">Upload Bukti Transfer</div>
 
           <input className="form-input" placeholder="Nama Pengirim"
             value={form.nama_pengirim}
@@ -168,7 +168,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
 
           <button className="btn btn-primary" style={{ marginTop: 14 }}
             onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "Mengirim..." : "?? Kirim Bukti Pembayaran"}
+            {submitting ? "Mengirim..." : "Kirim Bukti Pembayaran"}
           </button>
         </div>
 

@@ -73,14 +73,14 @@ export default function AdminPengaturanPage() {
   if (loading) return <div className="admin-page"><div className="loading-text">Memuat...</div></div>
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "sekolah", label: "?? Sekolah" },
-    { key: "pembayaran", label: "?? Pembayaran" },
-    { key: "infaq", label: "?? Infaq" },
+    { key: "sekolah", label: "Sekolah" },
+    { key: "pembayaran", label: "Pembayaran" },
+    { key: "infaq", label: "Infaq" },
   ]
 
   return (
     <div className="admin-page">
-      <h1 className="admin-page-title">?? Pengaturan</h1>
+      <h1 className="admin-page-title">Pengaturan</h1>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         {tabs.map(t => (
@@ -93,7 +93,7 @@ export default function AdminPengaturanPage() {
 
       {tab === "sekolah" && sekolah && (
         <div className="admin-card">
-          <h3 style={{ marginBottom: 14 }}>?? Data Sekolah</h3>
+          <h3 style={{ marginBottom: 14 }}>Data Sekolah</h3>
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>Nama Sekolah</label>
           <input className="admin-input" value={sekolah.nama_sekolah}
             onChange={e => setSekolah({ ...sekolah, nama_sekolah: e.target.value })} />
@@ -106,13 +106,13 @@ export default function AdminPengaturanPage() {
           <input className="admin-input" placeholder="08123456789" value={sekolah.nomor_wa}
             onChange={e => setSekolah({ ...sekolah, nomor_wa: e.target.value })} />
 
-          <button className="admin-btn" onClick={saveSekolah} disabled={saving}>{saving ? "Menyimpan..." : "?? Simpan"}</button>
+          <button className="admin-btn" onClick={saveSekolah} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
         </div>
       )}
 
       {tab === "pembayaran" && bankPayment && (
         <div className="admin-card">
-          <h3 style={{ marginBottom: 14 }}>?? Rekening Pembayaran SPP</h3>
+          <h3 style={{ marginBottom: 14 }}>Rekening Pembayaran SPP</h3>
           <input className="admin-input" placeholder="Nama Bank" value={bankPayment.bank_name}
             onChange={e => setBankPayment({ ...bankPayment, bank_name: e.target.value })} />
           <input className="admin-input" placeholder="Nomor Rekening" value={bankPayment.nomor_rekening}
@@ -122,13 +122,13 @@ export default function AdminPengaturanPage() {
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>QRIS</label>
           {bankPayment.qris_url && <img src={bankPayment.qris_url} alt="QRIS" style={{ width: 120, borderRadius: 10, marginBottom: 8 }} />}
           <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'payment')} style={{ marginBottom: 10, fontSize: 13 }} />
-          <button className="admin-btn" onClick={() => saveBank(bankPayment, "Pembayaran")} disabled={saving}>{saving ? "Menyimpan..." : "?? Simpan"}</button>
+          <button className="admin-btn" onClick={() => saveBank(bankPayment, "Pembayaran")} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
         </div>
       )}
 
       {tab === "infaq" && bankInfaq && (
         <div className="admin-card">
-          <h3 style={{ marginBottom: 14 }}>?? Rekening Infaq</h3>
+          <h3 style={{ marginBottom: 14 }}>Rekening Infaq</h3>
           <input className="admin-input" placeholder="Nama Bank" value={bankInfaq.bank_name}
             onChange={e => setBankInfaq({ ...bankInfaq, bank_name: e.target.value })} />
           <input className="admin-input" placeholder="Nomor Rekening" value={bankInfaq.nomor_rekening}
@@ -138,7 +138,7 @@ export default function AdminPengaturanPage() {
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>QRIS Infaq</label>
           {bankInfaq.qris_url && <img src={bankInfaq.qris_url} alt="QRIS Infaq" style={{ width: 120, borderRadius: 10, marginBottom: 8 }} />}
           <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'infaq')} style={{ marginBottom: 10, fontSize: 13 }} />
-          <button className="admin-btn" onClick={() => saveBank(bankInfaq, "Infaq")} disabled={saving}>{saving ? "Menyimpan..." : "?? Simpan"}</button>
+          <button className="admin-btn" onClick={() => saveBank(bankInfaq, "Infaq")} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
         </div>
       )}
     </div>

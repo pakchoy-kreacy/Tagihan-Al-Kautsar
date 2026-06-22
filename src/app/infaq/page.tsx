@@ -41,10 +41,10 @@ export default function InfaqPage() {
   if (success) {
     return (
       <div className="phone-frame min-h-[700px]">
-        <div className="status-bar"><span>?? ????</span><span>?? ?? 12:30</span></div>
-        <div className="header"><div style={{ fontSize: 18, fontWeight: 700 }}>?? MI Nurul Iman</div></div>
+        <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
+        <div className="header"><div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div></div>
         <div className="content" style={{ textAlign: "center", padding: "40px 20px" }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>??</div>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>MI</div>
           <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
           <p style={{ color: "#757575", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
           <button className="btn btn-primary" onClick={() => router.push("/")}>? Kembali ke Beranda</button>
@@ -56,10 +56,10 @@ export default function InfaqPage() {
 
   return (
     <div className="phone-frame min-h-[700px]">
-      <div className="status-bar"><span>?? ????</span><span>?? ?? 12:30</span></div>
+      <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
       <div className="header">
         <div className="logo-wrap">
-          <div className="logo-circle">??</div>
+          <div className="logo-circle">MI</div>
           <div>
             <div className="logo-text">Infaq</div>
             <div className="logo-sub">MI Nurul Iman Kabo Jaya</div>
@@ -71,14 +71,14 @@ export default function InfaqPage() {
       </div>
 
       <div className="content">
-        <div className="screen-label">?? Halaman Infaq</div>
+        <div className="screen-label">Halaman Infaq</div>
         <button className="back" onClick={() => router.push("/")} style={{ marginBottom: 14 }}>? Beranda</button>
 
         {loading ? (
           <div className="loading-text">Memuat...</div>
         ) : bank ? (
           <div className="card" style={{ background: "#E8F5E9", borderColor: "#A5D6A7" }}>
-            <div className="card-title">?? Rekening Infaq</div>
+            <div className="card-title">Rekening Infaq</div>
             <div style={{ fontSize: 13, color: "#757575" }}>{bank.bank_name}</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "#1B5E20", letterSpacing: 2 }}>
               {bank.nomor_rekening}
@@ -95,7 +95,7 @@ export default function InfaqPage() {
         )}
 
         <div className="card">
-          <div className="card-title">?? Upload Bukti Infaq</div>
+          <div className="card-title">Upload Bukti Infaq</div>
           <input className="form-input" placeholder="Nama Donatur" value={nama}
             onChange={e => setNama(e.target.value)} />
           <input className="form-input" placeholder="Nominal" type="number" value={nominal}
@@ -110,7 +110,7 @@ export default function InfaqPage() {
           {error && <div style={{ color: "#E53935", fontSize: 13, marginTop: 8 }}>{error}</div>}
           <button className="btn btn-primary" style={{ marginTop: 14 }}
             onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "Mengirim..." : "?? Kirim Infaq"}
+             {submitting ? "Mengirim..." : "Kirim Infaq"}
           </button>
         </div>
 

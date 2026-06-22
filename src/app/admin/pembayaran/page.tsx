@@ -14,7 +14,7 @@ export default function AdminPembayaranPage() {
 
   return (
     <div className="admin-page">
-      <h1 className="admin-page-title">?? Riwayat Pembayaran</h1>
+      <h1 className="admin-page-title">Riwayat Pembayaran</h1>
       {loading ? <div className="loading-text">Memuat...</div> : (
         <div className="admin-table-wrap">
           <table className="admin-table">

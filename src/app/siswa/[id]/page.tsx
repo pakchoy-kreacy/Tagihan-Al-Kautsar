@@ -35,8 +35,8 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="phone-frame min-h-[700px]">
         <div className="status-bar">
-          <span>?? ????</span>
-          <span>?? ?? 12:30</span>
+          <span>HH:MM</span>
+          <span>12:30</span>
         </div>
         <div className="content">
           <div style={{ textAlign: "center", padding: 40, color: "#9e9e9e" }}>Memuat data siswa...</div>
@@ -60,15 +60,15 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
 
   const statusLabel =
     siswa.status === "lunas"
-      ? { text: "?? LUNAS", className: "badge-lunas" }
+      ? { text: "LUNAS", className: "badge-lunas" }
       : siswa.status === "belum"
-        ? { text: "?? BELUM BAYAR", className: "badge-belum" }
-        : { text: "?? MENUNGGU", className: "badge-menunggu" }
+        ? { text: "BELUM BAYAR", className: "badge-belum" }
+        : { text: "MENUNGGU", className: "badge-menunggu" }
 
   const statusEmoji = (status: string) => {
     if (status === "lunas") return "?"
     if (status === "belum") return "?"
-    return "??"
+    return "❓"
   }
 
   const statusColor = (status: string) => {
@@ -81,19 +81,19 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="phone-frame min-h-[700px]">
       <div className="status-bar">
-        <span>?? ????</span>
-        <span>?? ?? 12:30</span>
+        <span>HH:MM</span>
+        <span>12:30</span>
       </div>
 
       <div className="header" style={{ padding: "12px 18px 14px 18px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>?? MI Nurul Iman</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div>
           <div style={{ fontSize: 11, opacity: 0.7 }}>Kabo Jaya</div>
         </div>
       </div>
 
       <div className="content">
-        <div className="screen-label">?? Halaman 3 — Detail Siswa</div>
+        <div className="screen-label">Halaman 3 — Detail Siswa</div>
 
         <div className="back-row">
           <button className="back" onClick={() => router.back()}>
@@ -103,7 +103,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="detail-card">
-          <div className="avatar">??</div>
+          <div className="avatar">👤</div>
           <div className="nama">{siswa.nama}</div>
           <div className="info">
             {siswa.nisn}  Kelas {siswa.kelas}
@@ -111,7 +111,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
 
           <hr className="divider" />
 
-          <div className="label">??? Tagihan Aktif</div>
+          <div className="label">?Tagihan Aktif</div>
           <div className="value">{siswa.tagihan}</div>
           <div className="value value-green">{formatRupiah(siswa.nominalTagihan)}</div>
 
@@ -125,12 +125,12 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <button className="btn btn-primary" style={{ marginTop: 14 }}>
-            ?? Bayar Sekarang
+            Bayar Sekarang
           </button>
         </div>
 
         <div className="riwayat">
-          <div className="title">?? Riwayat Pembayaran</div>
+          <div className="title">Riwayat Pembayaran</div>
 
           {siswa.riwayat.length === 0 ? (
             <div

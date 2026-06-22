@@ -36,7 +36,7 @@ export default function AdminVerifikasiInfaqPage() {
 
   return (
     <div className="admin-page">
-      <h1 className="admin-page-title">?? Verifikasi Infaq</h1>
+      <h1 className="admin-page-title">Verifikasi Infaq</h1>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         {["pending", "approved", "rejected", "all"].map(val => (
@@ -44,7 +44,7 @@ export default function AdminVerifikasiInfaqPage() {
             className={`admin-btn ${filter === val ? "" : "admin-btn-outline"}`}
             onClick={() => setFilter(val)}
             style={{ fontSize: 12, padding: "8px 16px" }}>
-            {val === "pending" ? "?? Menunggu" : val === "approved" ? "? Disetujui" : val === "rejected" ? "? Ditolak" : "?? Semua"}
+            {val === "pending" ? "Menunggu" : val === "approved" ? "Disetujui" : val === "rejected" ? "Ditolak" : "Semua"}
           </button>
         ))}
       </div>
@@ -66,7 +66,7 @@ export default function AdminVerifikasiInfaqPage() {
                         {d.pesan || "-"}
                       </td>
                       <td>
-                        {d.bukti_url ? <a href={d.bukti_url} target="_blank" style={{ color: "#43A047" }}>?? Lihat</a> : "-"}
+                        {d.bukti_url ? <a href={d.bukti_url} target="_blank" style={{ color: "#43A047" }}>Lihat</a> : "-"}
                       </td>
                       <td style={{ fontSize: 12 }}>{new Date(d.created_at).toLocaleDateString("id-ID")}</td>
                       <td>

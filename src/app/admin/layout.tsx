@@ -5,13 +5,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: "??" },
-  { href: "/admin/siswa", label: "Siswa", icon: "??" },
-  { href: "/admin/kelas", label: "Kelas", icon: "??" },
-  { href: "/admin/pembayaran", label: "Pembayaran", icon: "??" },
-  { href: "/admin/verifikasi", label: "Verifikasi", icon: "?" },
-  { href: "/admin/verifikasi-infaq", label: "Verifikasi Infaq", icon: "??" },
-  { href: "/admin/pengaturan", label: "Pengaturan", icon: "??" },
+  { href: "/admin", label: "Dashboard", icon: "📊" },
+  { href: "/admin/siswa", label: "Siswa", icon: "📊" },
+  { href: "/admin/kelas", label: "Kelas", icon: "📊" },
+  { href: "/admin/pembayaran", label: "Pembayaran", icon: "📊" },
+  { href: "/admin/verifikasi", label: "Verifikasi", icon: "📋" },
+  { href: "/admin/verifikasi-infaq", label: "Verifikasi Infaq", icon: "📊" },
+  { href: "/admin/pengaturan", label: "Pengaturan", icon: "📊" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,13 +21,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="admin-layout">
       <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        <span>?</span>
+        <span>☰</span>
         <span className="admin-menu-label">Admin Panel</span>
       </button>
 
       <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="admin-sidebar-header">
-          <div className="admin-sidebar-logo">??</div>
+          <div className="admin-sidebar-logo">MI</div>
           <div>
             <div className="admin-sidebar-title">MI Nurul Iman</div>
             <div className="admin-sidebar-sub">Admin Panel</div>

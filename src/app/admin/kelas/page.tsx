@@ -35,7 +35,7 @@ export default function AdminKelasPage() {
   return (
     <div className="admin-page">
       <div className="admin-page-header">
-        <h1 className="admin-page-title">?? Kelola Kelas</h1>
+        <h1 className="admin-page-title">Kelola Kelas</h1>
       </div>
 
       <div className="admin-card">

@@ -40,10 +40,10 @@ export default function AdminVerifikasiPage() {
   }
 
   const tabs = [
-    { value: "pending", label: "?? Menunggu" },
-    { value: "approved", label: "? Disetujui" },
-    { value: "rejected", label: "? Ditolak" },
-    { value: "all", label: "?? Semua" },
+    { value: "pending", label: "Menunggu" },
+    { value: "approved", label: "Disetujui" },
+    { value: "rejected", label: "Ditolak" },
+    { value: "all", label: "Semua" },
   ]
 
   return (
@@ -95,7 +95,7 @@ export default function AdminVerifikasiPage() {
                         {p.bukti_url ? (
                           <a href={p.bukti_url} target="_blank"
                             style={{ color: "#43A047", fontSize: 13 }}>
-                            ?? Lihat
+                            Lihat
                           </a>
                         ) : '-'}
                       </td>
