@@ -7,11 +7,11 @@ import { supabase } from "@/lib/supabase"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "D" },
-  { href: "/admin/siswa", label: "Siswa", icon: "S" },
   { href: "/admin/kelas", label: "Kelas", icon: "K" },
-  { href: "/admin/pembayaran", label: "Pembayaran", icon: "P" },
+  { href: "/admin/siswa", label: "Siswa", icon: "S" },
+  { href: "/admin/tagihan", label: "Tagihan", icon: "T" },
   { href: "/admin/verifikasi", label: "Verifikasi", icon: "V" },
-  { href: "/admin/verifikasi-infaq", label: "Verifikasi Infaq", icon: "I" },
+  { href: "/admin/verifikasi-infaq", label: "Infaq", icon: "I" },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: "G" },
 ]
 
@@ -93,7 +93,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="admin-overlay" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <main className="admin-main">{children}</main>
+      <main className="admin-main">
+        <nav className="breadcrumb">
+          <Link href="/admin" className="breadcrumb-link">Admin</Link>
+          {pathname !== "/admin" && (
+            <>
+              <span className="breadcrumb-sep">/</span>
+              <span className="breadcrumb-current">
+                {navItems.find(n => n.href === pathname)?.label || pathname.replace("/admin/", "")}
+              </span>
+            </>
+          )}
+        </nav>
+        {children}
+      </main>
     </div>
   )
 }

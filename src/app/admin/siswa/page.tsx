@@ -1,14 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { getAllStudentsWithBills, addSiswa, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
-import type { Siswa, KelasData } from "@/lib/db"
+import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Search } from "@/components/Icons"
+import { Search, Upload, Download, Plus, X } from "@/components/Icons"
 
-export default function AdminSiswaPage() {
+function SiswaContent() {
+  const searchParams = useSearchParams()
+  const initialKelas = searchParams.get("kelas") || ""
   const { showToast } = useToast()
+
   const [siswaList, setSiswaList] = useState<Siswa[]>([])
   const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [loading, setLoading] = useState(true)
@@ -18,7 +22,9 @@ export default function AdminSiswaPage() {
   const [formNama, setFormNama] = useState("")
   const [formKelas, setFormKelas] = useState("")
   const [search, setSearch] = useState("")
+  const [selectedKelas, setSelectedKelas] = useState(initialKelas)
   const [deleteTarget, setDeleteTarget] = useState<Siswa | null>(null)
+  const [detailSiswa, setDetailSiswa] = useState<Siswa | null>(null)
 
   useEffect(() => { fetchData() }, [])
 
@@ -33,14 +39,12 @@ export default function AdminSiswaPage() {
   }
 
   function openAdd() {
-    setEditId(null)
-    setFormNisn(""); setFormNama(""); setFormKelas("")
+    setEditId(null); setFormNisn(""); setFormNama(""); setFormKelas("")
     setShowModal(true)
   }
 
   function openEdit(s: Siswa) {
-    setEditId(s.id)
-    setFormNisn(s.nisn); setFormNama(s.nama); setFormKelas(s.kelas)
+    setEditId(s.id); setFormNisn(s.nisn); setFormNama(s.nama); setFormKelas(s.kelas)
     setShowModal(true)
   }
 
@@ -66,65 +70,139 @@ export default function AdminSiswaPage() {
     setDeleteTarget(null)
   }
 
-  const filtered = siswaList.filter(s =>
-    s.nama.toLowerCase().includes(search.toLowerCase()) ||
-    s.nisn.toLowerCase().includes(search.toLowerCase())
-  )
+  function handleDownloadTemplate() {
+    const csv = "NISN,Nama,Kelas\n3A-01,Ahmad Rizki,3A\n3A-02,Aisyah Putri,3A"
+    const blob = new Blob([csv], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "template_siswa.csv"
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImportExcel() {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = ".csv"
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file) return
+      const text = await file.text()
+      const lines = text.split("\n").filter(l => l.trim())
+      let imported = 0
+      for (let i = 1; i < lines.length; i++) {
+        const [nisn, nama, kelas] = lines[i].split(",").map(s => s.trim())
+        if (nisn && nama && kelas) {
+          const ok = await addSiswa(nisn, nama, kelas)
+          if (ok) imported++
+        }
+      }
+      showToast(`${imported} siswa berhasil diimport!`)
+      await fetchData()
+    }
+    input.click()
+  }
+
+  const filtered = siswaList.filter(s => {
+    const matchKelas = !selectedKelas || s.kelas === selectedKelas
+    const matchSearch = !search ||
+      s.nama.toLowerCase().includes(search.toLowerCase()) ||
+      s.nisn.toLowerCase().includes(search.toLowerCase())
+    return matchKelas && matchSearch
+  })
+
+  const statusMap: Record<string, string> = { lunas: "Lunas", belum: "Belum Bayar", menunggu: "Menunggu" }
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <h1 className="admin-page-title">Kelola Siswa</h1>
-        <button className="admin-btn" onClick={openAdd}>+ Tambah</button>
+      <div className="page-title">Kelola Siswa</div>
+      <p className="page-subtitle">Klik kartu siswa untuk melihat detail dan riwayat pembayaran</p>
+
+      {/* TOOLBAR */}
+      <div className="siswa-toolbar">
+        <div className="siswa-toolbar-left">
+          <button className="admin-btn" onClick={openAdd}>
+            <Plus size={14} /> Tambah Siswa
+          </button>
+          <button className="admin-btn admin-btn-outline" onClick={handleImportExcel}>
+            <Upload size={14} /> Import Excel
+          </button>
+          <button className="admin-btn admin-btn-outline" onClick={handleDownloadTemplate}>
+            <Download size={14} /> Template
+          </button>
+        </div>
+        <div className="search-box siswa-search">
+          <span className="icon"><Search size={16} /></span>
+          <input
+            placeholder="Cari nama atau NISN..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
-      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
-        Cari, tambah, edit, dan hapus data siswa dengan cepat.
-      </p>
-
-      <div className="search-box" style={{ marginBottom: 14 }}>
-        <span className="icon"><Search size={18} /></span>
-        <input placeholder="Cari NISN atau Nama..." value={search}
-          onChange={e => setSearch(e.target.value)} aria-label="Cari siswa" />
+      {/* KELAS FILTER */}
+      <div className="filter-chips siswa-filter-chips">
+        <button
+          className={`filter-chip green ${!selectedKelas ? "active" : ""}`}
+          onClick={() => setSelectedKelas("")}
+        >Semua</button>
+        {kelasList.map(k => (
+          <button
+            key={k.id}
+            className={`filter-chip green ${selectedKelas === k.name ? "active" : ""}`}
+            onClick={() => setSelectedKelas(k.name)}
+          >{k.name}</button>
+        ))}
       </div>
 
-      {loading ? <div className="loading-text">Memuat...</div> : (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>NISN</th><th>Nama</th><th>Kelas</th><th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(s => (
-                <tr key={s.id}>
-                  <td>{s.nisn}</td>
-                  <td>{s.nama}</td>
-                  <td>{s.kelas}</td>
-                  <td>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <button className="admin-btn admin-btn-sm admin-btn-outline"
-                        onClick={() => openEdit(s)}>Edit</button>
-                      <button className="admin-btn admin-btn-sm admin-btn-danger"
-                        onClick={() => setDeleteTarget(s)}>Hapus</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={4} style={{ textAlign: "center", color: "#9e9e9e" }}>Tidak ada data</td></tr>
-              )}
-            </tbody>
-          </table>
+      {/* CARD GRID */}
+      {loading ? (
+        <div className="siswa-grid">
+          {[1,2,3,4,5,6].map(i => <div key={i} className="siswa-card-admin skeleton" />)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-icon">👥</span>
+          <p>Tidak ada siswa yang cocok</p>
+        </div>
+      ) : (
+        <div className="siswa-grid">
+          {filtered.map(s => (
+            <div key={s.id} className="siswa-card-admin" onClick={() => setDetailSiswa(s)}>
+              <div className="sca-header">
+                <div className="sca-avatar">MI</div>
+                <div className="sca-info">
+                  <div className="sca-name">{s.nama}</div>
+                  <div className="sca-nisn">NISN {s.nisn}</div>
+                </div>
+                <span className={`badge badge-${s.status}`}>{statusMap[s.status]}</span>
+              </div>
+              <div className="sca-footer">
+                <span className="sca-kelas">🏫 {s.kelas}</span>
+                <span className="sca-tagihan">{s.tagihan !== "-" ? s.tagihan : "—"}</span>
+              </div>
+              <div className="sca-actions">
+                <button className="sca-btn sca-btn-edit" onClick={(e) => { e.stopPropagation(); openEdit(s) }}>Edit</button>
+                <button className="sca-btn sca-btn-delete" onClick={(e) => { e.stopPropagation(); setDeleteTarget(s) }}>Hapus</button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
+      <p className="counter">Menampilkan {filtered.length} dari {siswaList.length} siswa</p>
+
+      {/* ADD/EDIT MODAL */}
       {showModal && (
         <>
           <div className="admin-overlay" onClick={() => setShowModal(false)} />
           <div className="admin-modal">
-            <h3>{editId ? "Edit Siswa" : "Tambah Siswa"}</h3>
+            <div className="modal-header">
+              <h3>{editId ? "Edit Siswa" : "Tambah Siswa"}</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+            </div>
             <input className="admin-input" placeholder="NISN" value={formNisn}
               onChange={e => setFormNisn(e.target.value)} />
             <input className="admin-input" placeholder="Nama Lengkap" value={formNama}
@@ -142,6 +220,46 @@ export default function AdminSiswaPage() {
         </>
       )}
 
+      {/* DETAIL MODAL */}
+      {detailSiswa && (
+        <>
+          <div className="admin-overlay" onClick={() => setDetailSiswa(null)} />
+          <div className="admin-modal" style={{ maxWidth: 500 }}>
+            <div className="modal-header">
+              <h3>Detail Siswa</h3>
+              <button className="modal-close" onClick={() => setDetailSiswa(null)}><X size={18} /></button>
+            </div>
+            <div className="detail-siswa">
+              <div className="detail-avatar">MI</div>
+              <div className="detail-name">{detailSiswa.nama}</div>
+              <div className="detail-nisn">NISN {detailSiswa.nisn} · {detailSiswa.kelas}</div>
+              <div className={`detail-status badge badge-${detailSiswa.status}`}>{statusMap[detailSiswa.status]}</div>
+            </div>
+            {detailSiswa.riwayat.length > 0 ? (
+              <div className="detail-riwayat">
+                <div className="detail-riwayat-title">Riwayat Pembayaran</div>
+                {detailSiswa.riwayat.map(r => (
+                  <div key={r.id} className={`riwayat-row status-${r.status}`}>
+                    <div>
+                      <div className="riwayat-bulan">{r.bulan} {r.tahun}</div>
+                      <div className="riwayat-tanggal">{r.tanggal}</div>
+                    </div>
+                    <div className="riwayat-right">
+                      <div className="riwayat-nominal">{formatRupiah(r.nominal)}</div>
+                      <div className="riwayat-status">{statusMap[r.status]}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", padding: "12px 0" }}>
+                Belum ada riwayat pembayaran
+              </p>
+            )}
+          </div>
+        </>
+      )}
+
       <ConfirmModal
         open={!!deleteTarget}
         title="Hapus Siswa"
@@ -152,5 +270,13 @@ export default function AdminSiswaPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
+  )
+}
+
+export default function AdminSiswaPage() {
+  return (
+    <Suspense fallback={<div className="admin-page"><div className="loading-text">Memuat...</div></div>}>
+      <SiswaContent />
+    </Suspense>
   )
 }

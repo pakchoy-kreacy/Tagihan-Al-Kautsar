@@ -2,9 +2,11 @@ import { supabase } from './supabase'
 
 export interface AdminStats {
   totalSiswa: number
+  totalKelas: number
   lunas: number
   belum: number
   menunggu: number
+  totalInfaq: number
 }
 
 export interface RecentPayment {
@@ -16,6 +18,27 @@ export interface RecentPayment {
   tanggal: string
 }
 
+export interface PendingPayment {
+  id: string
+  student_id: string
+  nama: string
+  nisn: string
+  kelas: string
+  bulan: string
+  nominal: number
+  nama_pengirim: string
+  jumlah_transfer: number
+  created_at: string
+}
+
+export interface PendingDonation {
+  id: string
+  nama_donatur: string
+  nominal: number
+  pesan: string
+  created_at: string
+}
+
 export interface UnpaidStudent {
   id: string
   nisn: string
@@ -25,36 +48,91 @@ export interface UnpaidStudent {
   nominalTagihan: number
 }
 
+export interface KelasWithStats {
+  id: string
+  name: string
+  totalSiswa: number
+  tunggakan: number
+}
+
 // ============================================
-// STATISTICS
+// EXTENDED STATISTICS (6 cards)
 // ============================================
 export async function getAdminStats(): Promise<AdminStats> {
   try {
-    const { count: totalSiswa, error: countErr } = await supabase
-      .from('students').select('*', { count: 'exact', head: true })
-    if (countErr) throw countErr
+    const [{ count: totalSiswa }, { count: totalKelas }, { count: lunas }, { count: belum }, { count: menunggu }] =
+      await Promise.all([
+        supabase.from('students').select('*', { count: 'exact', head: true }),
+        supabase.from('classes').select('*', { count: 'exact', head: true }),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'lunas'),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'belum'),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'menunggu'),
+      ])
 
-    const { count: lunas, error: lunasErr } = await supabase
-      .from('bills').select('*', { count: 'exact', head: true }).eq('status', 'lunas')
-    if (lunasErr) throw lunasErr
+    const { data: infaqData } = await supabase
+      .from('donations').select('nominal').eq('status', 'approved')
+    const totalInfaq = infaqData?.reduce((sum, d) => sum + (d.nominal || 0), 0) || 0
 
-    const { count: belum, error: belumErr } = await supabase
-      .from('bills').select('*', { count: 'exact', head: true }).eq('status', 'belum')
-    if (belumErr) throw belumErr
-
-    const { count: menunggu, error: menungguErr } = await supabase
-      .from('bills').select('*', { count: 'exact', head: true }).eq('status', 'menunggu')
-    if (menungguErr) throw menungguErr
-
-    return { totalSiswa: totalSiswa || 0, lunas: lunas || 0, belum: belum || 0, menunggu: menunggu || 0 }
+    return {
+      totalSiswa: totalSiswa || 0,
+      totalKelas: totalKelas || 0,
+      lunas: lunas || 0,
+      belum: belum || 0,
+      menunggu: menunggu || 0,
+      totalInfaq,
+    }
   } catch (error) {
     console.error('Error fetching admin stats:', error)
-    return { totalSiswa: 0, lunas: 0, belum: 0, menunggu: 0 }
+    return { totalSiswa: 0, totalKelas: 0, lunas: 0, belum: 0, menunggu: 0, totalInfaq: 0 }
   }
 }
 
 // ============================================
-// RECENT PAYMENTS
+// KELAS WITH STATS (for card grid)
+// ============================================
+export async function getKelasWithStats(): Promise<KelasWithStats[]> {
+  try {
+    const { data: classes, error } = await supabase
+      .from('classes')
+      .select('id, name')
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    if (!classes) return []
+
+    const studentCounts = await Promise.all(
+      classes.map(async (c) => {
+        const { count } = await supabase
+          .from('students').select('*', { count: 'exact', head: true })
+          .eq('class_id', c.id)
+        return { id: c.id, count: count || 0 }
+      })
+    )
+
+    const unpaidCounts = await Promise.all(
+      classes.map(async (c) => {
+        const { count } = await supabase
+          .from('bills').select('*', { count: 'exact', head: true })
+          .in('status', ['belum', 'menunggu'])
+          .eq('year', new Date().getFullYear())
+        return { id: c.id, count: count || 0 }
+      })
+    )
+
+    return classes.map((c, i) => ({
+      id: c.id,
+      name: c.name,
+      totalSiswa: studentCounts[i].count,
+      tunggakan: unpaidCounts[i].count,
+    }))
+  } catch (error) {
+    console.error('Error fetching kelas stats:', error)
+    return []
+  }
+}
+
+// ============================================
+// RECENT PAYMENTS (approved bills)
 // ============================================
 export async function getRecentPayments(limit = 10): Promise<RecentPayment[]> {
   try {
@@ -82,6 +160,67 @@ export async function getRecentPayments(limit = 10): Promise<RecentPayment[]> {
     }))
   } catch (error) {
     console.error('Error fetching recent payments:', error)
+    return []
+  }
+}
+
+// ============================================
+// PENDING PAYMENTS (for activity section)
+// ============================================
+export async function getPendingPayments(limit = 5): Promise<PendingPayment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('payments')
+      .select(`
+        id, student_id, nama_pengirim, jumlah_transfer, created_at,
+        students!inner(nisn, name, classes!inner(name)),
+        bills!inner(month, amount)
+      `)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+
+    return (data || []).map((item: Record<string, unknown>) => {
+      const studentInfo = item.students as Record<string, unknown>
+      const classInfo = (studentInfo?.classes as Record<string, unknown>) || {}
+      const billInfo = item.bills as Record<string, unknown>
+      return {
+        id: item.id as string,
+        student_id: item.student_id as string,
+        nama: studentInfo?.name as string || '-',
+        nisn: studentInfo?.nisn as string || '-',
+        kelas: classInfo?.name as string || '-',
+        bulan: billInfo?.month as string || '-',
+        nominal: billInfo?.amount as number || 0,
+        nama_pengirim: item.nama_pengirim as string,
+        jumlah_transfer: item.jumlah_transfer as number,
+        created_at: item.created_at as string,
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending payments:', error)
+    return []
+  }
+}
+
+// ============================================
+// PENDING DONATIONS (for activity section)
+// ============================================
+export async function getPendingDonations(limit = 5): Promise<PendingDonation[]> {
+  try {
+    const { data, error } = await supabase
+      .from('donations')
+      .select('id, nama_donatur, nominal, pesan, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return (data || []) as PendingDonation[]
+  } catch (error) {
+    console.error('Error fetching pending donations:', error)
     return []
   }
 }

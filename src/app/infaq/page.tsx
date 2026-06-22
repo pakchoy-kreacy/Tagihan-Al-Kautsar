@@ -127,7 +127,7 @@ export default function InfaqPage() {
             </div>
           </div>
 
-          <div className="app-footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
         </div>
       </main>
     </div>

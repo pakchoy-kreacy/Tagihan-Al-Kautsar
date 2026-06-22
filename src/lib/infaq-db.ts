@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+export { getAllBillTypes, updateBillType } from './db'
 
 export interface Donation {
   id: string

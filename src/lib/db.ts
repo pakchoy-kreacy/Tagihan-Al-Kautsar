@@ -423,3 +423,67 @@ export async function getSiswaByNisn(nisn: string): Promise<Siswa | undefined> {
     return undefined
   }
 }
+
+// ============================================
+// CRUD BILL TYPES
+// ============================================
+export interface BillType {
+  id: string
+  name: string
+  description: string
+  default_amount: number
+  is_recurring: boolean
+}
+
+export async function getAllBillTypes(): Promise<BillType[]> {
+  try {
+    const { data, error } = await supabase
+      .from('bill_types')
+      .select('*')
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    return (data || []) as BillType[]
+  } catch (error) {
+    console.error('Error fetching bill types:', error)
+    return []
+  }
+}
+
+export async function addBillType(name: string, description: string, default_amount: number, is_recurring: boolean): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('bill_types').insert({
+      name,
+      description,
+      default_amount,
+      is_recurring,
+    })
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error adding bill type:', error)
+    return false
+  }
+}
+
+export async function updateBillType(id: string, data: { name?: string; description?: string; default_amount?: number; is_recurring?: boolean }): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('bill_types').update(data).eq('id', id)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error updating bill type:', error)
+    return false
+  }
+}
+
+export async function deleteBillType(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('bill_types').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error deleting bill type:', error)
+    return false
+  }
+}

@@ -151,7 +151,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
             </section>
           </div>
 
-          <div className="app-footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
         </div>
       </main>
     </div>

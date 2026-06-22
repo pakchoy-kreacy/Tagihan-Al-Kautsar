@@ -1,12 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { NavBar } from "@/components/NavBar"
 
 export default function AdminLoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -108,7 +106,7 @@ export default function AdminLoginPage() {
             </form>
           </section>
 
-          <div className="app-footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
         </div>
       </main>
     </div>

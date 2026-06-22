@@ -1,23 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllClasses, addKelas, deleteKelas } from "@/lib/db"
-import type { KelasData } from "@/lib/db"
+import Link from "next/link"
+import { getKelasWithStats } from "@/lib/admin-db"
+import { addKelas, deleteKelas } from "@/lib/db"
+import type { KelasWithStats } from "@/lib/admin-db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 
 export default function AdminKelasPage() {
   const { showToast } = useToast()
-  const [kelasList, setKelasList] = useState<KelasData[]>([])
+  const [kelasList, setKelasList] = useState<KelasWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [formName, setFormName] = useState("")
-  const [deleteTarget, setDeleteTarget] = useState<KelasData | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<KelasWithStats | null>(null)
 
   useEffect(() => { fetchKelas() }, [])
 
   async function fetchKelas() {
     setLoading(true)
-    const data = await getAllClasses()
+    const data = await getKelasWithStats()
     setKelasList(data)
     setLoading(false)
   }
@@ -39,53 +41,58 @@ export default function AdminKelasPage() {
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <h1 className="admin-page-title">Kelola Kelas</h1>
-      </div>
+      <div className="page-title">Kelola Kelas</div>
+      <p className="page-subtitle">Klik kartu kelas untuk melihat siswa di kelas tersebut</p>
 
-      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
-        Tambah atau hapus kelas sesuai kebutuhan data siswa.
-      </p>
-
-      <div className="admin-card">
-        <h3 style={{ marginBottom: 10 }}>Tambah Kelas Baru</h3>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input className="admin-input" placeholder="Contoh: 3C, 7A"
-            value={formName} onChange={e => setFormName(e.target.value)}
-            style={{ flex: 1 }} />
-          <button className="admin-btn" onClick={handleAdd}>Tambah</button>
+      {/* ADD FORM */}
+      <div className="card-add">
+        <div className="card-add-inner">
+          <span className="card-add-icon">🏫</span>
+          <input
+            className="admin-input card-add-input"
+            placeholder="Nama kelas baru (contoh: 3C)"
+            value={formName}
+            onChange={e => setFormName(e.target.value.toUpperCase())}
+            onKeyDown={e => e.key === "Enter" && handleAdd()}
+          />
+          <button className="admin-btn card-add-btn" onClick={handleAdd}>+ Tambah</button>
         </div>
       </div>
 
-      {loading ? <div className="loading-text">Memuat...</div> : (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Nama Kelas</th><th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kelasList.map(k => (
-                <tr key={k.id}>
-                  <td style={{ fontWeight: 600 }}>{k.name}</td>
-                  <td>
-                    <button className="admin-btn admin-btn-sm admin-btn-danger"
-                      onClick={() => setDeleteTarget(k)}>Hapus</button>
-                  </td>
-                </tr>
-              ))}
-              {kelasList.length === 0 && (
-                <tr><td colSpan={2} style={{ textAlign: "center", color: "#9e9e9e" }}>Belum ada kelas</td></tr>
-              )}
-            </tbody>
-          </table>
+      {/* CARD GRID */}
+      {loading ? (
+        <div className="kelas-grid">
+          {[1, 2, 3, 4].map(i => <div key={i} className="kelas-card skeleton" />)}
+        </div>
+      ) : kelasList.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-icon">🏫</span>
+          <p>Belum ada kelas. Tambahkan kelas baru di atas.</p>
+        </div>
+      ) : (
+        <div className="kelas-grid">
+          {kelasList.map(kelas => (
+            <Link key={kelas.id} href={`/admin/siswa?kelas=${kelas.name}`} className="kelas-card">
+              <div className="kelas-card-header">
+                <span className="kelas-badge">{kelas.name}</span>
+                <span className={`kelas-status ${kelas.tunggakan > 0 ? "has-tunggakan" : "all-paid"}`}>
+                  {kelas.tunggakan > 0 ? `${kelas.tunggakan} tunggakan` : "Semua lunas"}
+                </span>
+              </div>
+              <div className="kelas-card-body">
+                <div className="kelas-student-count">
+                  <span className="kelas-student-icon">👥</span>
+                  <span className="kelas-student-num">{kelas.totalSiswa}</span>
+                  <span className="kelas-student-label"> siswa</span>
+                </div>
+              </div>
+              <div className="kelas-card-footer">
+                <span className="kelas-card-action">Lihat Siswa →</span>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
-
-      <p style={{ fontSize: 12, color: "#6b776d", marginTop: 8 }}>
-        Kelas 1A-6B sudah dibuat otomatis dari database. Tambah kelas tambahan jika diperlukan.
-      </p>
 
       <ConfirmModal
         open={!!deleteTarget}
