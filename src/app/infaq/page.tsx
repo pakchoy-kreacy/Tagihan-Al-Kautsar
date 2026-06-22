@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getBankInfoByType, submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
+import { NavBar } from "@/components/NavBar"
 
 export default function InfaqPage() {
   const router = useRouter()
@@ -18,7 +19,10 @@ export default function InfaqPage() {
   const [file, setFile] = useState<File | null>(null)
 
   useEffect(() => {
-    getBankInfoByType('infaq').then(b => { setBank(b); setLoading(false) })
+    getBankInfoByType("infaq").then((b) => {
+      setBank(b)
+      setLoading(false)
+    })
   }, [])
 
   async function handleSubmit() {
@@ -29,86 +33,99 @@ export default function InfaqPage() {
 
     setSubmitting(true)
     try {
-      const bukti_url = await uploadBuktiInfaq(file, 'infaq')
+      const bukti_url = await uploadBuktiInfaq(file, "infaq")
       const ok = await submitDonasi({ nama_donatur: nama, nominal: parseInt(nominal), pesan, bukti_url })
       if (ok) setSuccess(true)
       else setError("Gagal mengirim!")
     } catch {
       setError("Gagal upload!")
-    } finally { setSubmitting(false) }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (success) {
     return (
-      <main style={{ minHeight: "100vh", background: "#eef2ee", padding: 16 }}>
-        <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
-          <section className="card" style={{ textAlign: "center", padding: 24 }}>
-            <div style={{ fontSize: 48, marginBottom: 12, color: "#1B5E20", fontWeight: 700 }}>OK</div>
-            <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
-            <p style={{ color: "#5f6f63", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
-            <button type="button" className="btn btn-primary" onClick={() => router.push("/")}>Kembali ke Beranda</button>
-          </section>
-          <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
-        </div>
-      </main>
+      <div className="app-shell">
+        <NavBar />
+        <main className="app-main">
+          <div className="app-grid">
+            <section className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
+              <div style={{ fontSize: 48, marginBottom: 12, color: "#1B5E20", fontWeight: 700 }}>OK</div>
+              <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
+              <p style={{ color: "#5f6f63", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
+              <button type="button" className="btn btn-primary" onClick={() => router.push("/")}>
+                Kembali ke Beranda
+              </button>
+            </section>
+          </div>
+        </main>
+      </div>
     )
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#eef2ee", padding: 16 }}>
-      <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
-        <section className="card" style={{ background: "#fff", borderRadius: 18, padding: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
-            <span className="badge badge-lunas">Infaq</span>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#173b1a", marginTop: 12 }}>Infaq Sekolah</div>
-          <div style={{ color: "#5f6f63", fontSize: 13, marginTop: 4 }}>Berbagi itu indah.</div>
-        </section>
-
-        {loading ? (
-          <div className="loading-text">Memuat...</div>
-        ) : bank ? (
-          <div className="card" style={{ background: "#E8F5E9", borderColor: "#A5D6A7" }}>
-            <div className="card-title">Rekening Infaq</div>
-            <div style={{ fontSize: 13, color: "#757575" }}>{bank.bank_name}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#1B5E20", letterSpacing: 2 }}>
-              {bank.nomor_rekening}
+    <div className="app-shell">
+      <NavBar />
+      <main className="app-main">
+        <div className="app-grid">
+          <section className="card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
+              <span className="badge badge-lunas">Infaq</span>
             </div>
-            <div style={{ fontSize: 13, color: "#424242" }}>a.n. {bank.atas_nama}</div>
-            {bank.qris_url && (
-              <div style={{ marginTop: 10, textAlign: "center" }}>
-                <img src={bank.qris_url} alt="QRIS Infaq" style={{ width: 150, borderRadius: 10 }} />
-                <div style={{ fontSize: 11, color: "#757575", marginTop: 4 }}>Scan QRIS</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "#173b1a", marginTop: 12 }}>Infaq Sekolah</div>
+            <div style={{ color: "#5f6f63", fontSize: 14, marginTop: 4 }}>Berbagi itu indah.</div>
+          </section>
+
+          <div className="app-grid-2">
+            <div style={{ display: "grid", gap: 14 }}>
+              {loading ? (
+                <div className="card"><div className="loading-text">Memuat...</div></div>
+              ) : bank ? (
+                <div className="card" style={{ background: "#E8F5E9", borderColor: "#A5D6A7" }}>
+                  <div className="card-title">Rekening Infaq</div>
+                  <div style={{ fontSize: 13, color: "#757575" }}>{bank.bank_name}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#1B5E20", letterSpacing: 2 }}>
+                    {bank.nomor_rekening}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#424242" }}>a.n. {bank.atas_nama}</div>
+                  {bank.qris_url && (
+                    <div style={{ marginTop: 12, textAlign: "center" }}>
+                      <img src={bank.qris_url} alt="QRIS Infaq" style={{ width: 160, borderRadius: 10 }} />
+                      <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>Scan QRIS</div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="card"><p className="empty-text">Info rekening belum tersedia</p></div>
+              )}
+            </div>
+
+            <div className="card">
+              <div className="card-title">Upload Bukti Infaq</div>
+              <input className="form-input" placeholder="Nama Donatur" value={nama}
+                onChange={(e) => setNama(e.target.value)} />
+              <input className="form-input" placeholder="Nominal" type="number" value={nominal}
+                onChange={(e) => setNominal(e.target.value)} />
+              <textarea className="form-input" placeholder="Pesan (opsional)" rows={3} value={pesan}
+                onChange={(e) => setPesan(e.target.value)} />
+              <div className="form-input" style={{ padding: 8, background: "#fafafa" }}>
+                <input type="file" accept="image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                {file && <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>{file.name}</div>}
               </div>
-            )}
+              {error && <div style={{ color: "#E53935", fontSize: 13, marginTop: 8 }}>{error}</div>}
+              <button type="button" className="btn btn-primary" style={{ marginTop: 14 }}
+                onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "Mengirim..." : "Kirim Infaq"}
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className="card"><p className="empty-text">Info rekening belum tersedia</p></div>
-        )}
 
-        <div className="card">
-          <div className="card-title">Upload Bukti Infaq</div>
-          <input className="form-input" placeholder="Nama Donatur" value={nama}
-            onChange={e => setNama(e.target.value)} />
-          <input className="form-input" placeholder="Nominal" type="number" value={nominal}
-            onChange={e => setNominal(e.target.value)} />
-          <textarea className="form-input" placeholder="Pesan (opsional)" rows={3} value={pesan}
-            onChange={e => setPesan(e.target.value)} />
-          <div className="form-input" style={{ padding: 8, background: "#fafafa" }}>
-            <input type="file" accept="image/*"
-              onChange={e => setFile(e.target.files?.[0] || null)} />
-            {file && <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>{file.name}</div>}
-          </div>
-          {error && <div style={{ color: "#E53935", fontSize: 13, marginTop: 8 }}>{error}</div>}
-          <button type="button" className="btn btn-primary" style={{ marginTop: 14 }}
-            onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "Mengirim..." : "Kirim Infaq"}
-          </button>
+          <div className="app-footer">© 2026 MI Nurul Iman Kabo Jaya</div>
         </div>
-
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }
