@@ -173,3 +173,4 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
     </div>
   )
 }
+
