@@ -4,11 +4,16 @@ import { useState, useEffect } from "react"
 import { getDonations, approveDonasi, rejectDonasi } from "@/lib/infaq-db"
 import { formatRupiah } from "@/lib/db"
 import type { Donation } from "@/lib/infaq-db"
+import { useToast } from "@/components/Toast"
+import { ConfirmModal } from "@/components/ConfirmModal"
+import { Check, X } from "@/components/Icons"
 
 export default function AdminVerifikasiInfaqPage() {
+  const { showToast } = useToast()
   const [donations, setDonations] = useState<Donation[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("pending")
+  const [approveTarget, setApproveTarget] = useState<Donation | null>(null)
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
 
   useEffect(() => { fetchDonations() }, [filter])
@@ -20,18 +25,19 @@ export default function AdminVerifikasiInfaqPage() {
     setLoading(false)
   }
 
-  async function handleApprove(id: string) {
-    if (!confirm("Approve infaq ini?")) return
-    const ok = await approveDonasi(id)
-    if (ok) fetchDonations()
-    else alert("Gagal!")
+  async function handleApprove() {
+    if (!approveTarget) return
+    const ok = await approveDonasi(approveTarget.id)
+    if (ok) { showToast("Infaq disetujui!"); fetchDonations() }
+    else showToast("Gagal!", "error")
+    setApproveTarget(null)
   }
 
   async function handleReject(id: string, ket: string) {
     setRejectModal(null)
     const ok = await rejectDonasi(id, ket)
-    if (ok) fetchDonations()
-    else alert("Gagal!")
+    if (ok) { showToast("Infaq ditolak"); fetchDonations() }
+    else showToast("Gagal!", "error")
   }
 
   return (
@@ -69,18 +75,22 @@ export default function AdminVerifikasiInfaqPage() {
                         {d.pesan || "-"}
                       </td>
                       <td>
-                        {d.bukti_url ? <a href={d.bukti_url} target="_blank" style={{ color: "#43A047" }}>Lihat</a> : "-"}
+                        {d.bukti_url ? <a href={d.bukti_url} target="_blank" rel="noopener noreferrer" style={{ color: "#43A047" }}>Lihat</a> : "-"}
                       </td>
                       <td style={{ fontSize: 12 }}>{new Date(d.created_at).toLocaleDateString("id-ID")}</td>
                       <td>
                         {d.status === "pending" ? (
                           <div style={{ display: "flex", gap: 4 }}>
-                            <button className="admin-btn admin-btn-sm" onClick={() => handleApprove(d.id)}>OK</button>
+                            <button className="admin-btn admin-btn-sm" onClick={() => setApproveTarget(d)} title="Setujui">
+                              <Check size={14} color="#fff" />
+                            </button>
                             <button className="admin-btn admin-btn-sm admin-btn-danger"
-                              onClick={() => setRejectModal({ id: d.id, ket: "" })}>X</button>
+                              onClick={() => setRejectModal({ id: d.id, ket: "" })} title="Tolak">
+                              <X size={14} color="#fff" />
+                            </button>
                           </div>
                         ) : d.status === "approved" ? (
-                          <span style={{ color: "#43A047", fontWeight: 600 }}>OK</span>
+                          <span style={{ color: "#43A047", fontWeight: 600 }}>Disetujui</span>
                         ) : (
                           <span style={{ color: "#E53935", fontWeight: 600 }} title={d.keterangan_admin}>Ditolak</span>
                         )}
@@ -93,6 +103,15 @@ export default function AdminVerifikasiInfaqPage() {
           )}
         </div>
       )}
+
+      <ConfirmModal
+        open={!!approveTarget}
+        title="Setujui Infaq"
+        message={`Setujui infaq dari ${approveTarget?.nama_donatur} sebesar ${approveTarget ? formatRupiah(approveTarget.nominal) : ""}?`}
+        confirmLabel="Setujui"
+        onConfirm={handleApprove}
+        onCancel={() => setApproveTarget(null)}
+      />
 
       {rejectModal && (
         <>

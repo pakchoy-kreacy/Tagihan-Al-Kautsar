@@ -1,18 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllStudents, addSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
+import { getAllStudents, addSiswa, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
 import type { Siswa, KelasData } from "@/lib/db"
+import { useToast } from "@/components/Toast"
+import { ConfirmModal } from "@/components/ConfirmModal"
+import { Search } from "@/components/Icons"
 
 export default function AdminSiswaPage() {
+  const { showToast } = useToast()
   const [siswaList, setSiswaList] = useState<Siswa[]>([])
   const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
   const [formNisn, setFormNisn] = useState("")
   const [formNama, setFormNama] = useState("")
   const [formKelas, setFormKelas] = useState("")
   const [search, setSearch] = useState("")
+  const [deleteTarget, setDeleteTarget] = useState<Siswa | null>(null)
 
   useEffect(() => { fetchData() }, [])
 
@@ -26,20 +32,38 @@ export default function AdminSiswaPage() {
     finally { setLoading(false) }
   }
 
-  async function handleSubmit() {
-    if (!formNisn || !formNama || !formKelas) return alert("Isi semua field!")
-    const ok = await addSiswa(formNisn, formNama, formKelas)
-    if (ok) {
-      setShowModal(false); setFormNisn(""); setFormNama(""); setFormKelas("")
-      await fetchData()
-    } else { alert("Gagal menambah siswa!") }
+  function openAdd() {
+    setEditId(null)
+    setFormNisn(""); setFormNama(""); setFormKelas("")
+    setShowModal(true)
   }
 
-  async function handleDelete(id: string, nama: string) {
-    if (!confirm(`Hapus ${nama}?`)) return
-    const ok = await deleteSiswa(id)
-    if (ok) await fetchData()
-    else alert("Gagal menghapus!")
+  function openEdit(s: Siswa) {
+    setEditId(s.id)
+    setFormNisn(s.nisn); setFormNama(s.nama); setFormKelas(s.kelas)
+    setShowModal(true)
+  }
+
+  async function handleSubmit() {
+    if (!formNisn || !formNama || !formKelas) return showToast("Isi semua field!", "error")
+    if (editId) {
+      const classData = kelasList.find(k => k.name === formKelas)
+      const ok = await updateSiswa(editId, { nisn: formNisn, name: formNama, class_id: classData?.id })
+      if (ok) { setShowModal(false); showToast("Siswa diperbarui!"); await fetchData() }
+      else showToast("Gagal memperbarui!", "error")
+    } else {
+      const ok = await addSiswa(formNisn, formNama, formKelas)
+      if (ok) { setShowModal(false); showToast("Siswa ditambahkan!"); await fetchData() }
+      else showToast("Gagal menambah siswa!", "error")
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    const ok = await deleteSiswa(deleteTarget.id)
+    if (ok) { showToast("Siswa dihapus!"); await fetchData() }
+    else showToast("Gagal menghapus!", "error")
+    setDeleteTarget(null)
   }
 
   const filtered = siswaList.filter(s =>
@@ -51,17 +75,17 @@ export default function AdminSiswaPage() {
     <div className="admin-page">
       <div className="admin-page-header">
         <h1 className="admin-page-title">Kelola Siswa</h1>
-        <button className="admin-btn" onClick={() => setShowModal(true)}>+ Tambah</button>
+        <button className="admin-btn" onClick={openAdd}>+ Tambah</button>
       </div>
 
       <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
-        Cari, tambah, dan hapus data siswa dengan cepat.
+        Cari, tambah, edit, dan hapus data siswa dengan cepat.
       </p>
 
       <div className="search-box" style={{ marginBottom: 14 }}>
-        <span className="icon">Cari</span>
+        <span className="icon"><Search size={18} /></span>
         <input placeholder="Cari NISN atau Nama..." value={search}
-          onChange={e => setSearch(e.target.value)} />
+          onChange={e => setSearch(e.target.value)} aria-label="Cari siswa" />
       </div>
 
       {loading ? <div className="loading-text">Memuat...</div> : (
@@ -79,8 +103,12 @@ export default function AdminSiswaPage() {
                   <td>{s.nama}</td>
                   <td>{s.kelas}</td>
                   <td>
-                    <button className="admin-btn admin-btn-sm admin-btn-danger"
-                      onClick={() => handleDelete(s.id, s.nama)}>Hapus</button>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <button className="admin-btn admin-btn-sm admin-btn-outline"
+                        onClick={() => openEdit(s)}>Edit</button>
+                      <button className="admin-btn admin-btn-sm admin-btn-danger"
+                        onClick={() => setDeleteTarget(s)}>Hapus</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -96,7 +124,7 @@ export default function AdminSiswaPage() {
         <>
           <div className="admin-overlay" onClick={() => setShowModal(false)} />
           <div className="admin-modal">
-            <h3>Tambah Siswa</h3>
+            <h3>{editId ? "Edit Siswa" : "Tambah Siswa"}</h3>
             <input className="admin-input" placeholder="NISN" value={formNisn}
               onChange={e => setFormNisn(e.target.value)} />
             <input className="admin-input" placeholder="Nama Lengkap" value={formNama}
@@ -108,11 +136,21 @@ export default function AdminSiswaPage() {
             </select>
             <div className="admin-modal-actions">
               <button className="admin-btn admin-btn-outline" onClick={() => setShowModal(false)}>Batal</button>
-              <button className="admin-btn" onClick={handleSubmit}>Simpan</button>
+              <button className="admin-btn" onClick={handleSubmit}>{editId ? "Update" : "Simpan"}</button>
             </div>
           </div>
         </>
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Hapus Siswa"
+        message={`Yakin hapus ${deleteTarget?.nama}? Data siswa ini akan dihapus permanen.`}
+        confirmLabel="Hapus"
+        danger
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

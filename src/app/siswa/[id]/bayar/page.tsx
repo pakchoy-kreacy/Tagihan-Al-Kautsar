@@ -51,9 +51,10 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
     setSubmitting(true)
     try {
       const bukti_url = await uploadBukti(file, id)
+      const activeBill = siswa?.riwayat.find((r) => r.status !== "lunas")
       const ok = await submitPayment({
         student_id: id,
-        bill_id: siswa?.riwayat.find((r) => r.status !== "lunas")?.bulan || "",
+        bill_id: activeBill?.id || "",
         nama_pengirim: form.nama_pengirim,
         jumlah_transfer: parseInt(form.jumlah_transfer),
         catatan: form.catatan,

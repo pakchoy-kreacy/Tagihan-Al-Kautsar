@@ -22,6 +22,30 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
+/* Accessibility: focus visible */
+*:focus-visible {
+  outline: 3px solid #43A047;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #43A047;
+  outline-offset: 2px;
+}
+
+/* Accessibility: reduce contrast issues */
+.counter,
+.empty-text,
+.more-text,
+.footer {
+  color: #6b776d;
+}
+
 /* =============================================
    WEB LAYOUT (responsive desktop + mobile)
    ============================================= */

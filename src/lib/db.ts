@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 export type StatusBayar = 'lunas' | 'belum' | 'menunggu'
 
 export interface RiwayatPembayaran {
+  id: string
   bulan: string
   tahun: string
   tanggal: string
@@ -54,7 +55,23 @@ export async function getAllClasses(): Promise<KelasData[]> {
   }
 }
 
-// Get students by class name
+// Get active academic year
+export async function getActiveYear(): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('academic_years')
+      .select('name')
+      .eq('is_active', true)
+      .single()
+
+    if (error) throw error
+    return (data as { name: string })?.name || '2025/2026'
+  } catch {
+    return '2025/2026'
+  }
+}
+
+// Get students by class name (optimized: single query with join)
 export async function getStudentsByClass(className: string): Promise<Siswa[]> {
   try {
     const { data: classData, error: classError } = await supabase
@@ -73,24 +90,32 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
       .order('nisn', { ascending: true })
 
     if (studentsError) throw studentsError
+    if (!students || students.length === 0) return []
 
-    const siswaList: Siswa[] = []
+    const studentIds = students.map((s: { id: string }) => s.id)
 
-    for (const student of students || []) {
-      const { data: bills, error: billsError } = await supabase
-        .from('bills')
-        .select('*')
-        .eq('student_id', student.id)
-        .order('year', { ascending: false })
-        .order('month', { ascending: false })
+    const { data: bills, error: billsError } = await supabase
+      .from('bills')
+      .select('*')
+      .in('student_id', studentIds)
+      .order('year', { ascending: false })
+      .order('month', { ascending: false })
 
-      if (billsError) throw billsError
+    if (billsError) throw billsError
 
-      const typedBills = (bills || []) as Bill[]
+    const billsByStudent = new Map<string, Bill[]>()
+    for (const bill of (bills || []) as Bill[]) {
+      const list = billsByStudent.get(bill.student_id) || []
+      list.push(bill)
+      billsByStudent.set(bill.student_id, list)
+    }
+
+    return students.map((student: { id: string; nisn: string; name: string }) => {
+      const typedBills = billsByStudent.get(student.id) || []
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
       const status: StatusBayar = (activeBill?.status as StatusBayar) || 'lunas'
 
-      siswaList.push({
+      return {
         id: student.id,
         nisn: student.nisn,
         nama: student.name,
@@ -99,16 +124,15 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         tagihan: activeBill ? activeBill.month : 'SPP Tidak Ada',
         nominalTagihan: activeBill?.amount || 0,
         riwayat: typedBills.map((b: Bill) => ({
+          id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
-          tanggal: b.paid_date || '–',
+          tanggal: b.paid_date || 'Belum dibayar',
           nominal: b.amount,
           status: b.status as StatusBayar,
         })),
-      })
-    }
-
-    return siswaList
+      }
+    })
   } catch (error) {
     console.error('Error fetching students by class:', error)
     return []
@@ -150,9 +174,10 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       tagihan: activeBill ? activeBill.month : 'SPP Tidak Ada',
       nominalTagihan: activeBill?.amount || 0,
       riwayat: typedBills.map((b: Bill) => ({
+        id: b.id,
         bulan: b.month,
         tahun: b.year.toString(),
-        tanggal: b.paid_date || '–',
+        tanggal: b.paid_date || 'Belum dibayar',
         nominal: b.amount,
         status: b.status as StatusBayar,
       })),
@@ -293,7 +318,6 @@ export async function getAllStudents(): Promise<Siswa[]> {
 
     if (error) throw error
 
-    // noop
     const result: Siswa[] = []
 
     for (const student of students || []) {
@@ -342,5 +366,3 @@ export async function getSiswaByNisn(nisn: string): Promise<Siswa | undefined> {
     return undefined
   }
 }
-
-

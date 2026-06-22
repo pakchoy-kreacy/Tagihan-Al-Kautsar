@@ -2,11 +2,21 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Menu } from "./Icons"
+import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
 
 export function NavBar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [settings, setSettings] = useState<SchoolSettings | null>(null)
+
+  useEffect(() => {
+    getSchoolSettings().then(setSettings)
+  }, [])
+
+  const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
+  const logoUrl = settings?.logo_url
 
   const links = [
     { href: "/", label: "Beranda" },
@@ -17,18 +27,22 @@ export function NavBar() {
   return (
     <nav className="app-nav">
       <Link href="/" className="app-nav-brand" onClick={() => setOpen(false)}>
-        <span className="logo">MI</span>
-        <span>MI Nurul Iman</span>
+        {logoUrl ? (
+          <img src={logoUrl} alt={schoolName} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
+        ) : (
+          <span className="logo">MI</span>
+        )}
+        <span>{schoolName}</span>
       </Link>
 
       <button
         type="button"
         className="app-nav-toggle"
         onClick={() => setOpen(!open)}
-        aria-label="Menu"
+        aria-label="Menu navigasi"
         aria-expanded={open}
       >
-        Menu
+        <Menu size={22} />
       </button>
 
       <div className={`app-nav-links ${open ? "open" : ""}`}>

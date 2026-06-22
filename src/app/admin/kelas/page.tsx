@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react"
 import { getAllClasses, addKelas, deleteKelas } from "@/lib/db"
 import type { KelasData } from "@/lib/db"
+import { useToast } from "@/components/Toast"
+import { ConfirmModal } from "@/components/ConfirmModal"
 
 export default function AdminKelasPage() {
+  const { showToast } = useToast()
   const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [loading, setLoading] = useState(true)
   const [formName, setFormName] = useState("")
+  const [deleteTarget, setDeleteTarget] = useState<KelasData | null>(null)
 
   useEffect(() => { fetchKelas() }, [])
 
@@ -19,17 +23,18 @@ export default function AdminKelasPage() {
   }
 
   async function handleAdd() {
-    if (!formName.trim()) return alert("Isi nama kelas!")
+    if (!formName.trim()) return showToast("Isi nama kelas!", "error")
     const ok = await addKelas(formName.trim().toUpperCase())
-    if (ok) { setFormName(""); await fetchKelas() }
-    else alert("Gagal! Periksa apakah kelas sudah ada.")
+    if (ok) { setFormName(""); showToast("Kelas ditambahkan!"); await fetchKelas() }
+    else showToast("Gagal! Kelas mungkin sudah ada.", "error")
   }
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Hapus kelas ${name}? Semua siswa di kelas ini akan kehilangan kelas.`)) return
-    const ok = await deleteKelas(id)
-    if (ok) await fetchKelas()
-    else alert("Gagal menghapus!")
+  async function handleDelete() {
+    if (!deleteTarget) return
+    const ok = await deleteKelas(deleteTarget.id)
+    if (ok) { showToast("Kelas dihapus!"); await fetchKelas() }
+    else showToast("Gagal menghapus!", "error")
+    setDeleteTarget(null)
   }
 
   return (
@@ -66,7 +71,7 @@ export default function AdminKelasPage() {
                   <td style={{ fontWeight: 600 }}>{k.name}</td>
                   <td>
                     <button className="admin-btn admin-btn-sm admin-btn-danger"
-                      onClick={() => handleDelete(k.id, k.name)}>Hapus</button>
+                      onClick={() => setDeleteTarget(k)}>Hapus</button>
                   </td>
                 </tr>
               ))}
@@ -78,9 +83,19 @@ export default function AdminKelasPage() {
         </div>
       )}
 
-      <p style={{ fontSize: 12, color: "#9e9e9e", marginTop: 8 }}>
+      <p style={{ fontSize: 12, color: "#6b776d", marginTop: 8 }}>
         Kelas 1A-6B sudah dibuat otomatis dari database. Tambah kelas tambahan jika diperlukan.
       </p>
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Hapus Kelas"
+        message={`Yakin hapus kelas ${deleteTarget?.name}? Semua siswa di kelas ini akan kehilangan kelas.`}
+        confirmLabel="Hapus"
+        danger
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

@@ -2,7 +2,7 @@
 import "./admin.css"
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "D" },
@@ -16,7 +16,13 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  async function handleLogout() {
+    await fetch("/api/admin/login", { method: "DELETE" })
+    router.push("/")
+  }
 
   return (
     <div className="admin-layout">
@@ -53,6 +59,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="admin-sidebar-footer">
           <Link href="/" className="admin-back-link">Kembali ke Beranda</Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: 13,
+              cursor: "pointer",
+              marginTop: 8,
+              padding: 0,
+              display: "block",
+            }}
+          >
+            Logout
+          </button>
         </div>
       </aside>
 

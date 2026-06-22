@@ -3,8 +3,9 @@
 import { Suspense, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { getStudentsByClass, getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
+import { getStudentsByClass, getStatKelas, getActiveYear, type Siswa, type StatusBayar } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
+import { Search } from "@/components/Icons"
 
 function DaftarSiswaContent() {
   const router = useRouter()
@@ -14,8 +15,10 @@ function DaftarSiswaContent() {
   const [filter, setFilter] = useState<StatusBayar | "all">("all")
   const [allSiswa, setAllSiswa] = useState<Siswa[]>([])
   const [loading, setLoading] = useState(true)
+  const [tahunAjaran, setTahunAjaran] = useState("2025/2026")
 
   useEffect(() => {
+    getActiveYear().then(setTahunAjaran)
     async function fetchStudents() {
       setLoading(true)
       try {
@@ -86,7 +89,7 @@ function DaftarSiswaContent() {
                   Kelas {kelas}
                 </span>
               </div>
-              <span className="badge badge-lunas">2025/2026</span>
+              <span className="badge badge-lunas">{tahunAjaran}</span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: 16 }}>
@@ -106,7 +109,7 @@ function DaftarSiswaContent() {
           </section>
 
           <div className="search-box">
-            <span className="icon">Cari</span>
+            <span className="icon"><Search size={18} /></span>
             <input
               type="text"
               placeholder="Cari nama atau NISN siswa..."

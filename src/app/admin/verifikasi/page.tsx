@@ -4,12 +4,17 @@ import { useState, useEffect } from "react"
 import { getPayments, approvePayment, rejectPayment } from "@/lib/payments-db"
 import { formatRupiah } from "@/lib/db"
 import type { PaymentWithStudent } from "@/lib/payments-db"
+import { useToast } from "@/components/Toast"
+import { ConfirmModal } from "@/components/ConfirmModal"
+import { Check, X } from "@/components/Icons"
 
 export default function AdminVerifikasiPage() {
+  const { showToast } = useToast()
   const [payments, setPayments] = useState<PaymentWithStudent[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("pending")
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [approveTarget, setApproveTarget] = useState<PaymentWithStudent | null>(null)
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
 
   useEffect(() => { fetchPayments() }, [filter])
@@ -21,21 +26,22 @@ export default function AdminVerifikasiPage() {
     setLoading(false)
   }
 
-  async function handleApprove(payment: PaymentWithStudent) {
-    if (!confirm(`Approve pembayaran dari ${payment.nama}?`)) return
-    setActionLoading(payment.id)
-    const ok = await approvePayment(payment.id, payment.bill_id || "")
-    if (ok) await fetchPayments()
-    else alert("Gagal approve!")
+  async function handleApprove() {
+    if (!approveTarget) return
+    setActionLoading(approveTarget.id)
+    const ok = await approvePayment(approveTarget.id, approveTarget.bill_id || "")
+    if (ok) { showToast("Pembayaran disetujui!"); await fetchPayments() }
+    else showToast("Gagal approve!", "error")
     setActionLoading(null)
+    setApproveTarget(null)
   }
 
   async function handleReject(paymentId: string, ket: string) {
     setRejectModal(null)
     setActionLoading(paymentId)
     const ok = await rejectPayment(paymentId, ket)
-    if (ok) await fetchPayments()
-    else alert("Gagal reject!")
+    if (ok) { showToast("Pembayaran ditolak"); await fetchPayments() }
+    else showToast("Gagal reject!", "error")
     setActionLoading(null)
   }
 
@@ -87,7 +93,7 @@ export default function AdminVerifikasiPage() {
                   {payments.map(p => (
                     <tr key={p.id}>
                       <td style={{ fontWeight: 600 }}>{p.nama}<br />
-                        <span style={{ fontSize: 11, color: "#9e9e9e" }}>{p.nisn}</span>
+                        <span style={{ fontSize: 11, color: "#6b776d" }}>{p.nisn}</span>
                       </td>
                       <td>{p.kelas}</td>
                       <td>{p.bulan}</td>
@@ -95,7 +101,7 @@ export default function AdminVerifikasiPage() {
                       <td style={{ fontWeight: 600 }}>{formatRupiah(p.jumlah_transfer)}</td>
                       <td>
                         {p.bukti_url ? (
-                          <a href={p.bukti_url} target="_blank"
+                          <a href={p.bukti_url} target="_blank" rel="noopener noreferrer"
                             style={{ color: "#43A047", fontSize: 13 }}>
                             Lihat
                           </a>
@@ -106,18 +112,20 @@ export default function AdminVerifikasiPage() {
                         {p.status === "pending" && (
                           <div style={{ display: "flex", gap: 4 }}>
                             <button className="admin-btn admin-btn-sm"
-                              onClick={() => handleApprove(p)}
-                              disabled={actionLoading === p.id}>
-                              OK
+                              onClick={() => setApproveTarget(p)}
+                              disabled={actionLoading === p.id}
+                              title="Setujui">
+                              <Check size={14} color="#fff" />
                             </button>
                             <button className="admin-btn admin-btn-sm admin-btn-danger"
                               onClick={() => setRejectModal({ id: p.id, ket: "" })}
-                              disabled={actionLoading === p.id}>
-                              X
+                              disabled={actionLoading === p.id}
+                              title="Tolak">
+                              <X size={14} color="#fff" />
                             </button>
                           </div>
                         )}
-                        {p.status === "approved" && <span style={{ color: "#43A047", fontWeight: 600 }}>OK</span>}
+                        {p.status === "approved" && <span style={{ color: "#43A047", fontWeight: 600 }}>Disetujui</span>}
                         {p.status === "rejected" && (
                           <span title={p.keterangan_admin} style={{ color: "#E53935", fontWeight: 600 }}>
                             Ditolak {p.keterangan_admin && "(info)"}
@@ -133,12 +141,21 @@ export default function AdminVerifikasiPage() {
         </div>
       )}
 
+      <ConfirmModal
+        open={!!approveTarget}
+        title="Setujui Pembayaran"
+        message={`Setujui pembayaran dari ${approveTarget?.nama} sebesar ${approveTarget ? formatRupiah(approveTarget.jumlah_transfer) : ""}? Tagihan akan ditandai lunas.`}
+        confirmLabel="Setujui"
+        onConfirm={handleApprove}
+        onCancel={() => setApproveTarget(null)}
+      />
+
       {rejectModal && (
         <>
           <div className="admin-overlay" onClick={() => setRejectModal(null)} />
           <div className="admin-modal">
             <h3>Tolak Pembayaran</h3>
-            <p style={{ fontSize: 13, color: "#757575", marginBottom: 12 }}>
+            <p style={{ fontSize: 13, color: "#5f6f63", marginBottom: 12 }}>
               Berikan alasan penolakan (opsional)
             </p>
             <textarea className="admin-input" placeholder="Alasan..."

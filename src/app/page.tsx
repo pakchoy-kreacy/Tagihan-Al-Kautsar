@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getAllClasses, type KelasData } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
+import { ChevronDown } from "@/components/Icons"
 
 export default function BerandaPage() {
   const router = useRouter()
@@ -83,7 +84,7 @@ export default function BerandaPage() {
                   <span className={selectedKelas ? "" : "placeholder"}>
                     {selectedKelas || "-- Pilih Kelas --"}
                   </span>
-                  <span className="arrow">v</span>
+                  <span className="arrow"><ChevronDown size={14} /></span>
                 </button>
                 {dropdownOpen && (
                   <div className="chip-container" style={{ marginTop: 12 }}>
