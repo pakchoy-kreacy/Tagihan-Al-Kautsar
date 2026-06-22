@@ -17,21 +17,28 @@ export default function AdminLoginPage() {
     setError("")
     setLoading(true)
 
+    console.log("DEBUG: handleSubmit called", { email, hasPassword: !!password })
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
+      console.log("DEBUG: signInWithPassword result", { data, error })
+
       if (error) {
+        console.log("DEBUG: login error", error.message)
         setError(error.message === "Invalid login credentials"
           ? "Email atau password salah!"
           : error.message)
       } else {
+        console.log("DEBUG: login success, redirecting...")
         router.push("/admin")
         router.refresh()
       }
-    } catch {
+    } catch (err) {
+      console.error("DEBUG: catch block", err)
       setError("Gagal masuk. Coba lagi.")
     } finally {
       setLoading(false)
