@@ -11,36 +11,31 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (submitted || loading) return
     setError("")
     setLoading(true)
 
-    console.log("DEBUG: handleSubmit called", { email, hasPassword: !!password })
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log("DEBUG: signInWithPassword result", { data, error })
-
       if (error) {
-        console.log("DEBUG: login error", error.message)
         setError(error.message === "Invalid login credentials"
           ? "Email atau password salah!"
           : error.message)
+        setLoading(false)
       } else {
-        console.log("DEBUG: login success, redirecting...")
+        setSubmitted(true)
         router.push("/admin")
-        router.refresh()
       }
-    } catch (err) {
-      console.error("DEBUG: catch block", err)
+    } catch {
       setError("Gagal masuk. Coba lagi.")
-    } finally {
       setLoading(false)
     }
   }
