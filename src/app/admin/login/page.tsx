@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
         setLoading(false)
       } else {
         setSubmitted(true)
-        router.push("/admin")
+        window.location.href = "/admin"
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")
