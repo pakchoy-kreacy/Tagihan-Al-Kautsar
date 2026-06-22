@@ -44,9 +44,10 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-page">
+      <div className="admin-page-header">
         <h1 className="admin-page-title">Dashboard</h1>
+      </div>
 
-      {/* Stats Cards */}
       <div className="admin-stats">
         <div className="stat-card stat-total">
           <div className="stat-number">{stats?.totalSiswa || 0}</div>
@@ -66,7 +67,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Recent Payments */}
       <div className="admin-section">
         <div className="admin-section-header">
           <h2>Pembayaran Terbaru</h2>
@@ -102,14 +102,13 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Unpaid Students */}
       <div className="admin-section">
         <div className="admin-section-header">
           <h2>Siswa Belum Bayar</h2>
           <Link href="/admin/siswa" className="admin-link">Kelola Siswa</Link>
         </div>
         {unpaidStudents.length === 0 ? (
-          <p className="empty-text">Semua siswa sudah bayar ?</p>
+          <p className="empty-text">Semua siswa sudah bayar</p>
         ) : (
           <div className="admin-table-wrap">
             <table className="admin-table">

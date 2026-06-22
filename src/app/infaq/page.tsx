@@ -40,39 +40,31 @@ export default function InfaqPage() {
 
   if (success) {
     return (
-      <div className="phone-frame min-h-[700px]">
-        <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
-        <div className="header"><div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div></div>
-        <div className="content" style={{ textAlign: "center", padding: "40px 20px" }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>MI</div>
-          <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
-          <p style={{ color: "#757575", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
-          <button className="btn btn-primary" onClick={() => router.push("/")}>? Kembali ke Beranda</button>
+      <main style={{ minHeight: "100vh", background: "#eef2ee", padding: 16 }}>
+        <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
+          <section className="card" style={{ textAlign: "center", padding: 24 }}>
+            <div style={{ fontSize: 48, marginBottom: 12, color: "#1B5E20", fontWeight: 700 }}>OK</div>
+            <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
+            <p style={{ color: "#5f6f63", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
+            <button type="button" className="btn btn-primary" onClick={() => router.push("/")}>Kembali ke Beranda</button>
+          </section>
+          <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
         </div>
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="phone-frame min-h-[700px]">
-      <div className="status-bar"><span>HH:MM</span><span>12:30</span></div>
-      <div className="header">
-        <div className="logo-wrap">
-          <div className="logo-circle">MI</div>
-          <div>
-            <div className="logo-text">Infaq</div>
-            <div className="logo-sub">MI Nurul Iman Kabo Jaya</div>
+    <main style={{ minHeight: "100vh", background: "#eef2ee", padding: 16 }}>
+      <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
+        <section className="card" style={{ background: "#fff", borderRadius: 18, padding: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+            <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
+            <span className="badge badge-lunas">Infaq</span>
           </div>
-        </div>
-        <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2, fontStyle: "italic" }}>
-          Berbagi itu Indah
-        </div>
-      </div>
-
-      <div className="content">
-        <div className="screen-label">Halaman Infaq</div>
-        <button className="back" onClick={() => router.push("/")} style={{ marginBottom: 14 }}>? Beranda</button>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#173b1a", marginTop: 12 }}>Infaq Sekolah</div>
+          <div style={{ color: "#5f6f63", fontSize: 13, marginTop: 4 }}>Berbagi itu indah.</div>
+        </section>
 
         {loading ? (
           <div className="loading-text">Memuat...</div>
@@ -87,6 +79,7 @@ export default function InfaqPage() {
             {bank.qris_url && (
               <div style={{ marginTop: 10, textAlign: "center" }}>
                 <img src={bank.qris_url} alt="QRIS Infaq" style={{ width: 150, borderRadius: 10 }} />
+                <div style={{ fontSize: 11, color: "#757575", marginTop: 4 }}>Scan QRIS</div>
               </div>
             )}
           </div>
@@ -108,14 +101,14 @@ export default function InfaqPage() {
             {file && <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>{file.name}</div>}
           </div>
           {error && <div style={{ color: "#E53935", fontSize: 13, marginTop: 8 }}>{error}</div>}
-          <button className="btn btn-primary" style={{ marginTop: 14 }}
+          <button type="button" className="btn btn-primary" style={{ marginTop: 14 }}
             onClick={handleSubmit} disabled={submitting}>
-             {submitting ? "Mengirim..." : "Kirim Infaq"}
+            {submitting ? "Mengirim..." : "Kirim Infaq"}
           </button>
         </div>
 
         <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
-    </div>
+    </main>
   )
 }

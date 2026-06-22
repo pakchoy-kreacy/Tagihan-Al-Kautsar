@@ -37,6 +37,9 @@ export default function AdminVerifikasiInfaqPage() {
   return (
     <div className="admin-page">
       <h1 className="admin-page-title">Verifikasi Infaq</h1>
+      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+        Verifikasi donasi dan bukti transfer infaq.
+      </p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         {["pending", "approved", "rejected", "all"].map(val => (
@@ -72,14 +75,14 @@ export default function AdminVerifikasiInfaqPage() {
                       <td>
                         {d.status === "pending" ? (
                           <div style={{ display: "flex", gap: 4 }}>
-                            <button className="admin-btn admin-btn-sm" onClick={() => handleApprove(d.id)}>?</button>
+                            <button className="admin-btn admin-btn-sm" onClick={() => handleApprove(d.id)}>OK</button>
                             <button className="admin-btn admin-btn-sm admin-btn-danger"
-                              onClick={() => setRejectModal({ id: d.id, ket: "" })}>?</button>
+                              onClick={() => setRejectModal({ id: d.id, ket: "" })}>X</button>
                           </div>
                         ) : d.status === "approved" ? (
-                          <span style={{ color: "#43A047", fontWeight: 600 }}>?</span>
+                          <span style={{ color: "#43A047", fontWeight: 600 }}>OK</span>
                         ) : (
-                          <span style={{ color: "#E53935", fontWeight: 600 }} title={d.keterangan_admin}>?</span>
+                          <span style={{ color: "#E53935", fontWeight: 600 }} title={d.keterangan_admin}>Ditolak</span>
                         )}
                       </td>
                     </tr>

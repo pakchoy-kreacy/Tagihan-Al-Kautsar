@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getSiswaById, formatRupiah, type Siswa } from "@/lib/db"
 
@@ -28,47 +28,40 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
         setLoading(false)
       }
     }
+
     fetchStudent()
   }, [id])
 
-  if (loading) {
-    return (
-      <div className="phone-frame min-h-[700px]">
-        <div className="status-bar">
-          <span>HH:MM</span>
-          <span>12:30</span>
-        </div>
-        <div className="content">
-          <div style={{ textAlign: "center", padding: 40, color: "#9e9e9e" }}>Memuat data siswa...</div>
-        </div>
-      </div>
-    )
+  const shellStyle: React.CSSProperties = {
+    minHeight: "100vh",
+    background: "#eef2ee",
+    padding: 16,
   }
 
-  if (notFound || !siswa) {
-    return (
-      <div className="phone-frame min-h-[700px]">
-        <div className="content">
-          <p>Siswa tidak ditemukan</p>
-          <button className="btn btn-primary" onClick={() => router.back()}>
-            Kembali
-          </button>
-        </div>
-      </div>
-    )
+  const pageStyle: React.CSSProperties = {
+    maxWidth: 560,
+    margin: "0 auto",
+    display: "grid",
+    gap: 14,
+  }
+
+  const cardHeaderStyle: React.CSSProperties = {
+    background: "#fff",
+    borderRadius: 18,
+    padding: 16,
   }
 
   const statusLabel =
-    siswa.status === "lunas"
-      ? { text: "LUNAS", className: "badge-lunas" }
-      : siswa.status === "belum"
-        ? { text: "BELUM BAYAR", className: "badge-belum" }
-        : { text: "MENUNGGU", className: "badge-menunggu" }
+    siswa?.status === "lunas"
+      ? { text: "Lunas", className: "badge-lunas" }
+      : siswa?.status === "belum"
+        ? { text: "Belum Bayar", className: "badge-belum" }
+        : { text: "Menunggu", className: "badge-menunggu" }
 
   const statusEmoji = (status: string) => {
-    if (status === "lunas") return "?"
-    if (status === "belum") return "?"
-    return "❓"
+    if (status === "lunas") return "OK"
+    if (status === "belum") return "!"
+    return "..."
   }
 
   const statusColor = (status: string) => {
@@ -78,69 +71,78 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
     return "#9e9e9e"
   }
 
+  if (loading) {
+    return (
+      <main style={shellStyle}>
+        <div style={pageStyle}>
+          <div className="card" style={cardHeaderStyle}>
+            <div style={{ color: "#5f6f63", fontSize: 13 }}>Memuat data siswa...</div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  if (notFound || !siswa) {
+    return (
+      <main style={shellStyle}>
+        <div style={pageStyle}>
+          <div className="card" style={{ ...cardHeaderStyle, textAlign: "center" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#173b1a" }}>Siswa tidak ditemukan</div>
+            <div className="empty-text" style={{ paddingTop: 8 }}>
+              Data siswa yang dicari tidak ada atau sudah dihapus.
+            </div>
+            <button type="button" className="btn btn-primary" style={{ marginTop: 14 }} onClick={() => router.back()}>
+              Kembali
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
-    <div className="phone-frame min-h-[700px]">
-      <div className="status-bar">
-        <span>HH:MM</span>
-        <span>12:30</span>
-      </div>
-
-      <div className="header" style={{ padding: "12px 18px 14px 18px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div>
-          <div style={{ fontSize: 11, opacity: 0.7 }}>Kabo Jaya</div>
-        </div>
-      </div>
-
-      <div className="content">
-        <div className="screen-label">Halaman 3 — Detail Siswa</div>
-
-        <div className="back-row">
-          <button className="back" onClick={() => router.back()}>
-            ?
-          </button>
-          <h3>Kembali</h3>
-        </div>
-
-        <div className="detail-card">
-          <div className="avatar">👤</div>
-          <div className="nama">{siswa.nama}</div>
-          <div className="info">
-            {siswa.nisn}  Kelas {siswa.kelas}
+    <main style={shellStyle}>
+      <div style={pageStyle}>
+        <section className="card" style={cardHeaderStyle}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+            <button type="button" className="back" onClick={() => router.back()}>
+              Kembali
+            </button>
+            <span className={`badge ${statusLabel.className}`}>{statusLabel.text}</span>
           </div>
+          <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+            <div className="detail-card" style={{ marginBottom: 0, textAlign: "left", padding: 0, boxShadow: "none", border: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div className="avatar">MI</div>
+                <div>
+                  <div className="nama" style={{ fontSize: 22 }}>{siswa.nama}</div>
+                  <div className="info" style={{ marginTop: 4 }}>
+                    NISN {siswa.nisn} | Kelas {siswa.kelas}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <hr className="divider" />
+            <div className="card" style={{ marginBottom: 0, background: "#f8fbf8" }}>
+              <div className="card-title">Tagihan Aktif</div>
+              <div style={{ fontSize: 14, color: "#5f6f63" }}>{siswa.tagihan}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: "#1B5E20", marginTop: 4 }}>
+                {formatRupiah(siswa.nominalTagihan)}
+              </div>
+            </div>
 
-          <div className="label">?Tagihan Aktif</div>
-          <div className="value">{siswa.tagihan}</div>
-          <div className="value value-green">{formatRupiah(siswa.nominalTagihan)}</div>
-
-          <div style={{ marginTop: 10 }}>
-            <span
-              className={`badge ${statusLabel.className}`}
-              style={{ fontSize: 14, padding: "6px 20px" }}
-            >
-              {statusLabel.text}
-            </span>
+            <button type="button" className="btn btn-primary" onClick={() => router.push(`/siswa/${id}/bayar`)}>
+              Bayar Sekarang
+            </button>
           </div>
+        </section>
 
-          <button className="btn btn-primary" style={{ marginTop: 14 }}>
-            Bayar Sekarang
-          </button>
-        </div>
-
-        <div className="riwayat">
+        <section className="riwayat">
           <div className="title">Riwayat Pembayaran</div>
 
           {siswa.riwayat.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "20px 0",
-                fontSize: 13,
-                color: "#9e9e9e",
-              }}
-            >
+            <div className="empty-text" style={{ padding: "18px 0" }}>
               Belum ada riwayat pembayaran
             </div>
           ) : (
@@ -156,21 +158,17 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
                 <div className="right">
                   <div className="nominal">{formatRupiah(item.nominal)}</div>
                   <div className="status-text" style={{ color: statusColor(item.status) }}>
-                    {item.status === "lunas"
-                      ? "Lunas"
-                      : item.status === "belum"
-                        ? "Belum Bayar"
-                        : "Menunggu"}
+                    {item.status === "lunas" ? "Lunas" : item.status === "belum" ? "Belum Bayar" : "Menunggu"}
                   </div>
                 </div>
               </div>
             ))
           )}
-        </div>
+        </section>
 
         <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
-    </div>
+    </main>
   )
 }
 

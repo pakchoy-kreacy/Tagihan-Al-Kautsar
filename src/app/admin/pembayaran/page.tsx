@@ -15,6 +15,9 @@ export default function AdminPembayaranPage() {
   return (
     <div className="admin-page">
       <h1 className="admin-page-title">Riwayat Pembayaran</h1>
+      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+        Daftar pembayaran masuk terbaru untuk verifikasi dan monitoring.
+      </p>
       {loading ? <div className="loading-text">Memuat...</div> : (
         <div className="admin-table-wrap">
           <table className="admin-table">

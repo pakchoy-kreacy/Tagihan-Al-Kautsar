@@ -38,6 +38,10 @@ export default function AdminKelasPage() {
         <h1 className="admin-page-title">Kelola Kelas</h1>
       </div>
 
+      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+        Tambah atau hapus kelas sesuai kebutuhan data siswa.
+      </p>
+
       <div className="admin-card">
         <h3 style={{ marginBottom: 10 }}>Tambah Kelas Baru</h3>
         <div style={{ display: "flex", gap: 8 }}>

@@ -38,13 +38,13 @@ export default function AdminPengaturanPage() {
     if (!sekolah) return
     setSaving(true); setMsg("")
     const ok = await updateSchoolSettings({ id: sekolah.id, nama_sekolah: sekolah.nama_sekolah, logo_url: sekolah.logo_url, nomor_wa: sekolah.nomor_wa })
-    setSaving(false); setMsg(ok ? "? Tersimpan!" : "? Gagal!")
+    setSaving(false); setMsg(ok ? "Tersimpan!" : "Gagal!")
   }
 
   async function saveBank(item: BankInfoSettings, type: string) {
     setSaving(true); setMsg("")
     const ok = await updateBankInfo(item.id, { bank_name: item.bank_name, nomor_rekening: item.nomor_rekening, atas_nama: item.atas_nama, qris_url: item.qris_url })
-    setSaving(false); setMsg(ok ? `? ${type} tersimpan!` : "? Gagal!")
+    setSaving(false); setMsg(ok ? `${type} tersimpan!` : "Gagal!")
   }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -53,8 +53,8 @@ export default function AdminPengaturanPage() {
     try {
       const url = await uploadBuktiInfaq(file, 'logo')
       setSekolah({ ...sekolah, logo_url: url })
-      setMsg("? Logo terupload! Klik simpan.")
-    } catch { setMsg("? Gagal upload logo!") }
+      setMsg("Logo terupload! Klik simpan.")
+    } catch { setMsg("Gagal upload logo!") }
     finally { setSaving(false) }
   }
 
@@ -65,8 +65,8 @@ export default function AdminPengaturanPage() {
       const url = await uploadBuktiInfaq(file, `qris_${type}`)
       if (type === 'payment' && bankPayment) setBankPayment({ ...bankPayment, qris_url: url })
       if (type === 'infaq' && bankInfaq) setBankInfaq({ ...bankInfaq, qris_url: url })
-      setMsg("? QRIS terupload! Klik simpan.")
-    } catch { setMsg("? Gagal upload QRIS!") }
+      setMsg("QRIS terupload! Klik simpan.")
+    } catch { setMsg("Gagal upload QRIS!") }
     finally { setSaving(false) }
   }
 

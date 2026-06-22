@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { Suspense, useState, useMemo, useEffect } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { getStudentsByClass, getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
@@ -26,6 +26,7 @@ function DaftarSiswaContent() {
         setLoading(false)
       }
     }
+
     fetchStudents()
   }, [kelas])
 
@@ -40,130 +41,182 @@ function DaftarSiswaContent() {
   const stat = useMemo(() => getStatKelas(allSiswa), [allSiswa])
 
   const filters: { label: string; value: StatusBayar | "all"; color: string }[] = [
-    { label: "🟢 All", value: "all", color: "green" },
-    { label: "🟢 Lunas", value: "lunas", color: "green" },
-    { label: "🔴 Belum", value: "belum", color: "red" },
-    { label: "🟡 Menunggu", value: "menunggu", color: "yellow" },
+    { label: "Semua", value: "all", color: "green" },
+    { label: "Lunas", value: "lunas", color: "green" },
+    { label: "Belum Bayar", value: "belum", color: "red" },
+    { label: "Menunggu", value: "menunggu", color: "yellow" },
   ]
+
+  const shellStyle: React.CSSProperties = {
+    minHeight: "100vh",
+    background: "#eef2ee",
+    padding: 16,
+  }
+
+  const pageStyle: React.CSSProperties = {
+    maxWidth: 560,
+    margin: "0 auto",
+    display: "grid",
+    gap: 14,
+  }
+
+  const headerStyle: React.CSSProperties = {
+    background: "#fff",
+    borderRadius: 18,
+    padding: 16,
+  }
+
+  const headerRowStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  }
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: 20,
+    fontWeight: 700,
+    color: "#173b1a",
+  }
+
+  const subtitleStyle: React.CSSProperties = {
+    marginTop: 4,
+    color: "#5f6f63",
+    fontSize: 13,
+  }
+
+  const statGridStyle: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 8,
+    marginTop: 14,
+  }
+
+  const statItemStyle: React.CSSProperties = {
+    background: "#f8fbf8",
+    borderRadius: 14,
+    padding: 12,
+    textAlign: "center",
+    border: "1px solid #e5ece5",
+  }
+
+  const statNumberStyle: React.CSSProperties = {
+    fontSize: 22,
+    fontWeight: 700,
+    color: "#1B5E20",
+  }
+
+  const statusMap: Record<StatusBayar, string> = {
+    lunas: "Lunas",
+    belum: "Belum Bayar",
+    menunggu: "Menunggu",
+  }
 
   if (loading) {
     return (
-      <div className="content">
-        <div className="screen-label">Halaman 2 — Daftar Siswa</div>
-        <div style={{ padding: "40px 0", textAlign: "center", color: "#9e9e9e" }}>
-          Memuat data siswa...
+      <main style={shellStyle}>
+        <div style={pageStyle}>
+          <section className="card" style={headerStyle}>
+            <div style={headerRowStyle}>
+              <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
+              <span className="badge badge-lunas">{kelas}</span>
+            </div>
+            <div style={{ marginTop: 12, ...titleStyle }}>Daftar Siswa</div>
+            <div style={subtitleStyle}>Memuat data siswa...</div>
+          </section>
+          <div className="loading-text">Memuat data siswa...</div>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="content">
-        <div className="screen-label">Halaman 2 — Daftar Siswa</div>
-
-      <div className="back-row">
-        <button className="back" onClick={() => router.push("/")}>◀</button>
-        <h3>Kelas {kelas}</h3>
-        <span className="sub">2025/2026</span>
-      </div>
-
-      <div className="card card-green">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 12, color: "#1B5E20", fontWeight: 600 }}>📊 Statistik Kelas</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#1B5E20" }}>{stat.total}</div>
-            <div style={{ fontSize: 11, color: "#616161" }}>Total Siswa</div>
+    <main style={shellStyle}>
+      <div style={pageStyle}>
+        <section className="card" style={headerStyle}>
+          <div style={headerRowStyle}>
+            <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
+            <span className="badge badge-lunas">{kelas}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 11, color: "#43A047" }}>🟢 Lunas</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#43A047" }}>{stat.lunas}</div>
+          <div style={{ marginTop: 12, ...titleStyle }}>Daftar Siswa</div>
+          <div style={subtitleStyle}>Tahun ajaran 2025/2026</div>
+
+          <div style={statGridStyle}>
+            <div style={statItemStyle}>
+              <div style={statNumberStyle}>{stat.total}</div>
+              <div style={{ fontSize: 12, color: "#6b776d" }}>Total</div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 11, color: "#E53935" }}>🔴 Belum</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#E53935" }}>{stat.belum}</div>
+            <div style={statItemStyle}>
+              <div style={{ ...statNumberStyle, color: "#43A047" }}>{stat.lunas}</div>
+              <div style={{ fontSize: 12, color: "#6b776d" }}>Lunas</div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 11, color: "#F9A825" }}>🟡 Menunggu</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#F9A825" }}>{stat.menunggu}</div>
+            <div style={statItemStyle}>
+              <div style={{ ...statNumberStyle, color: "#E53935" }}>{stat.belum + stat.menunggu}</div>
+              <div style={{ fontSize: 12, color: "#6b776d" }}>Perlu Dibayar</div>
             </div>
           </div>
+        </section>
+
+        <div className="search-box">
+          <span className="icon">Search</span>
+          <input
+            type="text"
+            placeholder="Cari nama siswa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      </div>
 
-      <div className="search-box">
-        <span className="icon">🔍</span>
-        <input
-          type="text"
-          placeholder="Cari nama siswa..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="filter-chips">
-        {filters.map((f) => (
-          <span
-            key={f.value}
-            className={`filter-chip ${f.color} ${filter === f.value ? "active" : ""}`}
-            onClick={() => setFilter(f.value)}
-          >
-            {f.label}
-          </span>
-        ))}
-      </div>
-
-      {siswaList.length === 0 ? (
-        <div style={{ padding: "40px 0", textAlign: "center", color: "#9e9e9e" }}>
-          {allSiswa.length === 0 ? "Belum ada data siswa" : "Tidak ada siswa yang cocok"}
+        <div className="filter-chips">
+          {filters.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              className={`filter-chip ${f.color} ${filter === f.value ? "active" : ""}`}
+              onClick={() => setFilter(f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
-      ) : (
-        siswaList.map((siswa) => (
-          <Link key={siswa.id} href={`/siswa/${siswa.id}`} className="block">
-            <div className={`siswa-card border-${siswa.status}`}>
-              <div className="info">
-                <h4>{siswa.nama}</h4>
-                <p>{siswa.nisn}</p>
+
+        {siswaList.length === 0 ? (
+          <div className="card" style={{ textAlign: "center" }}>
+            <div style={{ fontWeight: 600, color: "#173b1a" }}>
+              {allSiswa.length === 0 ? "Belum ada data siswa" : "Tidak ada siswa yang cocok"}
+            </div>
+            <div className="empty-text" style={{ padding: "8px 0 0" }}>
+              Coba ubah kata kunci atau filter kelas.
+            </div>
+          </div>
+        ) : (
+          siswaList.map((siswa) => (
+            <Link key={siswa.id} href={`/siswa/${siswa.id}`} className="block">
+              <div className={`siswa-card border-${siswa.status}`}>
+                <div className="info">
+                  <h4>{siswa.nama}</h4>
+                  <p>{siswa.nisn}</p>
+                </div>
+                <span className={`badge badge-${siswa.status}`}>{statusMap[siswa.status]}</span>
               </div>
-              <span className={`badge badge-${siswa.status}`}>
-                {siswa.status === "lunas" ? "🟢 LUNAS" : siswa.status === "belum" ? "🔴 BELUM BAYAR" : "🟡 MENUNGGU"}
-              </span>
-            </div>
-          </Link>
-        ))
-      )}
+            </Link>
+          ))
+        )}
 
-      <div className="counter">
-        Menampilkan {siswaList.length} dari {stat.total} siswa
+        <div className="counter">
+          Menampilkan {siswaList.length} dari {stat.total} siswa
+        </div>
+
+        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
-
-      <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
-    </div>
+    </main>
   )
 }
 
 export default function DaftarSiswaPage() {
   return (
-    <div className="phone-frame min-h-[700px]">
-      <div className="status-bar">
-        <span>📱 ●●○○</span>
-        <span>📶 🔋 12:30</span>
-      </div>
-
-      <div className="header" style={{ padding: "12px 18px 14px 18px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>MI Nurul Iman</div>
-          <div style={{ fontSize: 11, opacity: 0.7 }}>Kabo Jaya</div>
-        </div>
-      </div>
-
-      <Suspense fallback={
-        <div className="content">
-          <div style={{ textAlign: "center", padding: 40, color: "#9e9e9e" }}>Memuat...</div>
-        </div>
-      }>
-        <DaftarSiswaContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="loading-text">Memuat...</div>}>
+      <DaftarSiswaContent />
+    </Suspense>
   )
 }

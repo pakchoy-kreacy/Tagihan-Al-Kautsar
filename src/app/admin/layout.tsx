@@ -5,13 +5,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: "📊" },
-  { href: "/admin/siswa", label: "Siswa", icon: "📊" },
-  { href: "/admin/kelas", label: "Kelas", icon: "📊" },
-  { href: "/admin/pembayaran", label: "Pembayaran", icon: "📊" },
-  { href: "/admin/verifikasi", label: "Verifikasi", icon: "📋" },
-  { href: "/admin/verifikasi-infaq", label: "Verifikasi Infaq", icon: "📊" },
-  { href: "/admin/pengaturan", label: "Pengaturan", icon: "📊" },
+  { href: "/admin", label: "Dashboard", icon: "D" },
+  { href: "/admin/siswa", label: "Siswa", icon: "S" },
+  { href: "/admin/kelas", label: "Kelas", icon: "K" },
+  { href: "/admin/pembayaran", label: "Pembayaran", icon: "P" },
+  { href: "/admin/verifikasi", label: "Verifikasi", icon: "V" },
+  { href: "/admin/verifikasi-infaq", label: "Verifikasi Infaq", icon: "I" },
+  { href: "/admin/pengaturan", label: "Pengaturan", icon: "G" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="admin-layout">
       <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        <span>☰</span>
+        <span>Menu</span>
         <span className="admin-menu-label">Admin Panel</span>
       </button>
 
@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" className="admin-back-link">? Kembali ke Beranda</Link>
+          <Link href="/" className="admin-back-link">Kembali ke Beranda</Link>
         </div>
       </aside>
 

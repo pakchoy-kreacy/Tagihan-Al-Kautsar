@@ -48,9 +48,11 @@ export default function AdminVerifikasiPage() {
 
   return (
     <div className="admin-page">
-      <h1 className="admin-page-title">? Verifikasi Pembayaran</h1>
+      <h1 className="admin-page-title">Verifikasi Pembayaran</h1>
+      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+        Approve atau tolak bukti pembayaran yang masuk.
+      </p>
 
-      {/* Filter Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         {tabs.map(t => (
           <button key={t.value}
@@ -106,19 +108,19 @@ export default function AdminVerifikasiPage() {
                             <button className="admin-btn admin-btn-sm"
                               onClick={() => handleApprove(p)}
                               disabled={actionLoading === p.id}>
-                              ?
+                              OK
                             </button>
                             <button className="admin-btn admin-btn-sm admin-btn-danger"
                               onClick={() => setRejectModal({ id: p.id, ket: "" })}
                               disabled={actionLoading === p.id}>
-                              ?
+                              X
                             </button>
                           </div>
                         )}
-                        {p.status === "approved" && <span style={{ color: "#43A047", fontWeight: 600 }}>?</span>}
+                        {p.status === "approved" && <span style={{ color: "#43A047", fontWeight: 600 }}>OK</span>}
                         {p.status === "rejected" && (
                           <span title={p.keterangan_admin} style={{ color: "#E53935", fontWeight: 600 }}>
-                            ? {p.keterangan_admin && "(i)"}
+                            Ditolak {p.keterangan_admin && "(info)"}
                           </span>
                         )}
                       </td>
@@ -131,7 +133,6 @@ export default function AdminVerifikasiPage() {
         </div>
       )}
 
-      {/* Reject Modal */}
       {rejectModal && (
         <>
           <div className="admin-overlay" onClick={() => setRejectModal(null)} />

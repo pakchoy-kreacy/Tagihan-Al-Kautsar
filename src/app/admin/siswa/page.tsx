@@ -54,8 +54,12 @@ export default function AdminSiswaPage() {
         <button className="admin-btn" onClick={() => setShowModal(true)}>+ Tambah</button>
       </div>
 
+      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+        Cari, tambah, dan hapus data siswa dengan cepat.
+      </p>
+
       <div className="search-box" style={{ marginBottom: 14 }}>
-        <span className="icon">🔍</span>
+        <span className="icon">Cari</span>
         <input placeholder="Cari NISN atau Nama..." value={search}
           onChange={e => setSearch(e.target.value)} />
       </div>
