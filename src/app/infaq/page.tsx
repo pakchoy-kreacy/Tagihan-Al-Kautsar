@@ -49,7 +49,7 @@ export default function InfaqPage() {
           <p style={{ color: "#757575", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
           <button className="btn btn-primary" onClick={() => router.push("/")}>? Kembali ke Beranda</button>
         </div>
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+        <div className="footer">Â© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
     )
   }
@@ -114,7 +114,7 @@ export default function InfaqPage() {
           </button>
         </div>
 
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+        <div className="footer">Â© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
     </div>
   )

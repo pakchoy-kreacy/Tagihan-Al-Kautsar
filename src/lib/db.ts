@@ -101,7 +101,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         riwayat: typedBills.map((b: Bill) => ({
           bulan: b.month,
           tahun: b.year.toString(),
-          tanggal: b.paid_date || '–',
+          tanggal: b.paid_date || 'â€“',
           nominal: b.amount,
           status: b.status as StatusBayar,
         })),
@@ -152,7 +152,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       riwayat: typedBills.map((b: Bill) => ({
         bulan: b.month,
         tahun: b.year.toString(),
-        tanggal: b.paid_date || '–',
+        tanggal: b.paid_date || 'â€“',
         nominal: b.amount,
         status: b.status as StatusBayar,
       })),

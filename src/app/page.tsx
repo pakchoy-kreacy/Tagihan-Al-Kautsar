@@ -50,7 +50,7 @@ export default function BerandaPage() {
       </div>
 
       <div className="content">
-        <div className="screen-label">?? Halaman 1 — Beranda</div>
+        <div className="screen-label">?? Halaman 1 â€” Beranda</div>
 
         <div className="hero-image">
           <span className="icon">??</span>
@@ -109,7 +109,7 @@ export default function BerandaPage() {
           ?? Login Admin
         </button>
 
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+        <div className="footer">Â© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
     </div>
   )

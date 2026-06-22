@@ -90,7 +90,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
             Kembali ke Detail
           </button>
         </div>
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+        <div className="footer">Â© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
     )
   }
@@ -132,7 +132,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
           <div className="card">
             <div className="card-title">????? Siswa</div>
             <div style={{ fontSize: 16, fontWeight: 600 }}>{siswa.nama}</div>
-            <div style={{ fontSize: 13, color: "#757575" }}>{siswa.nisn} — Kelas {siswa.kelas}</div>
+            <div style={{ fontSize: 13, color: "#757575" }}>{siswa.nisn} â€” Kelas {siswa.kelas}</div>
             <div style={{ marginTop: 8, padding: "8px 12px", background: "#FFF8E1", borderRadius: 10 }}>
               <span style={{ fontSize: 12, color: "#F57F17" }}>Tagihan: {siswa.tagihan}</span>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#E65100" }}>
@@ -172,7 +172,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
           </button>
         </div>
 
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+        <div className="footer">Â© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
     </div>
   )

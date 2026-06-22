@@ -93,7 +93,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="content">
-        <div className="screen-label">?? Halaman 3 — Detail Siswa</div>
+        <div className="screen-label">?? Halaman 3 â€” Detail Siswa</div>
 
         <div className="back-row">
           <button className="back" onClick={() => router.back()}>
@@ -106,7 +106,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
           <div className="avatar">??</div>
           <div className="nama">{siswa.nama}</div>
           <div className="info">
-            {siswa.nisn} • Kelas {siswa.kelas}
+            {siswa.nisn} Â• Kelas {siswa.kelas}
           </div>
 
           <hr className="divider" />
@@ -168,7 +168,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
           )}
         </div>
 
-        <div className="footer">© 2026 MI Nurul Iman Kabo Jaya</div>
+        <div className="footer">Â© 2026 MI Nurul Iman Kabo Jaya</div>
       </div>
     </div>
   )
