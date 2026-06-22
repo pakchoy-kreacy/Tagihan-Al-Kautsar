@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllStudents, addSiswa, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
+import { getAllStudentsWithBills, addSiswa, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
 import type { Siswa, KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
@@ -25,7 +25,7 @@ export default function AdminSiswaPage() {
   async function fetchData() {
     setLoading(true)
     try {
-      const [siswa, kelas] = await Promise.all([getAllStudents(), getAllClasses()])
+      const [siswa, kelas] = await Promise.all([getAllStudentsWithBills(), getAllClasses()])
       setSiswaList(siswa)
       setKelasList(kelas)
     } catch (e) { console.error(e) }

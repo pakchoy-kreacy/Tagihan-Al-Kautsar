@@ -308,7 +308,66 @@ export async function deleteKelas(id: string): Promise<boolean> {
   }
 }
 
-// Get all students (for admin)
+// Get all students with bill info (for admin)
+export async function getAllStudentsWithBills(): Promise<Siswa[]> {
+  try {
+    const { data: students, error } = await supabase
+      .from('students')
+      .select('id, nisn, name, classes(name)')
+      .order('nisn', { ascending: true })
+
+    if (error) throw error
+    if (!students || students.length === 0) return []
+
+    const studentIds = students.map((s: { id: string }) => s.id)
+
+    const { data: bills, error: billsError } = await supabase
+      .from('bills')
+      .select('*')
+      .in('student_id', studentIds)
+      .order('year', { ascending: false })
+      .order('month', { ascending: false })
+
+    if (billsError) throw billsError
+
+    const billsByStudent = new Map<string, Bill[]>()
+    for (const bill of (bills || []) as Bill[]) {
+      const list = billsByStudent.get(bill.student_id) || []
+      list.push(bill)
+      billsByStudent.set(bill.student_id, list)
+    }
+
+    return students.map((student: { id: string; nisn: string; name: string }) => {
+      const typedBills = billsByStudent.get(student.id) || []
+      const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
+      const status: StatusBayar = (activeBill?.status as StatusBayar) || 'lunas'
+      const kelas = (student as Record<string, unknown>['classes'] as { name: string })?.name || 'N/A'
+
+      return {
+        id: student.id,
+        nisn: student.nisn,
+        nama: student.name,
+        kelas,
+        status,
+        tagihan: activeBill ? activeBill.month : 'SPP Tidak Ada',
+        nominalTagihan: activeBill?.amount || 0,
+        riwayat: typedBills.map((b: Bill) => ({
+          id: b.id,
+          bulan: b.month,
+          tahun: b.year.toString(),
+          tanggal: b.paid_date || 'Belum dibayar',
+          nominal: b.amount,
+          status: b.status as StatusBayar,
+        })),
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching all students:', error)
+    return []
+  }
+}
+
+// Get all students without bills (legacy admin list)
 export async function getAllStudents(): Promise<Siswa[]> {
   try {
     const { data: students, error } = await supabase
@@ -319,7 +378,6 @@ export async function getAllStudents(): Promise<Siswa[]> {
     if (error) throw error
 
     const result: Siswa[] = []
-
     for (const student of students || []) {
       const kelas = (student.classes as unknown as { name: string })?.name as string || 'N/A'
       result.push({
@@ -333,7 +391,6 @@ export async function getAllStudents(): Promise<Siswa[]> {
         riwayat: [],
       })
     }
-
     return result
   } catch (error) {
     console.error('Error fetching all students:', error)

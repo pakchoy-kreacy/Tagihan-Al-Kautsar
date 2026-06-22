@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDonations, approveDonasi, rejectDonasi } from "@/lib/infaq-db"
+import { getDonations } from "@/lib/infaq-db"
 import { formatRupiah } from "@/lib/db"
 import type { Donation } from "@/lib/infaq-db"
 

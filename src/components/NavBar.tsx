@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Menu } from "./Icons"
@@ -28,7 +29,7 @@ export function NavBar() {
     <nav className="app-nav">
       <Link href="/" className="app-nav-brand" onClick={() => setOpen(false)}>
         {logoUrl ? (
-          <img src={logoUrl} alt={schoolName} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
+          <Image src={logoUrl} alt={schoolName} width={36} height={36} style={{ borderRadius: "50%", objectFit: "cover" }} />
         ) : (
           <span className="logo">MI</span>
         )}

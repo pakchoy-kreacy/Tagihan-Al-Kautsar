@@ -1,12 +1,14 @@
 "use client"
 
 import { use, useEffect, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { getSiswaById, formatRupiah } from "@/lib/db"
+import { getSiswaById, formatRupiah, type RiwayatPembayaran } from "@/lib/db"
 import { getBankInfo, submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { Siswa } from "@/lib/db"
 import type { BankInfo } from "@/lib/payments-db"
 import { NavBar } from "@/components/NavBar"
+import { Check } from "@/components/Icons"
 
 export default function BayarPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -24,13 +26,23 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
     catatan: "",
   })
   const [file, setFile] = useState<File | null>(null)
+  const [selectedBill, setSelectedBill] = useState<string>("")
+
+  const unpaidBills = (siswa?.riwayat || []).filter((r: RiwayatPembayaran) => r.status !== "lunas")
 
   useEffect(() => {
     async function init() {
       setLoading(true)
       try {
         const [s, b] = await Promise.all([getSiswaById(id), getBankInfo()])
-        if (s) setSiswa(s)
+        if (s) {
+          setSiswa(s)
+          const firstUnpaid = s.riwayat.find((r: RiwayatPembayaran) => r.status !== "lunas")
+          if (firstUnpaid) {
+            setSelectedBill(firstUnpaid.id)
+            setForm((f) => ({ ...f, jumlah_transfer: firstUnpaid.nominal.toString() }))
+          }
+        }
         if (b) setBank(b)
       } catch (e) {
         console.error(e)
@@ -47,21 +59,21 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
     if (!file) return setError("Pilih file bukti transfer!")
     if (!form.nama_pengirim) return setError("Isi nama pengirim!")
     if (!form.jumlah_transfer) return setError("Isi jumlah transfer!")
+    if (!selectedBill) return setError("Pilih tagihan yang ingin dibayar!")
 
     setSubmitting(true)
     try {
       const bukti_url = await uploadBukti(file, id)
-      const activeBill = siswa?.riwayat.find((r) => r.status !== "lunas")
-      const ok = await submitPayment({
+      const result = await submitPayment({
         student_id: id,
-        bill_id: activeBill?.id || "",
+        bill_id: selectedBill,
         nama_pengirim: form.nama_pengirim,
         jumlah_transfer: parseInt(form.jumlah_transfer),
         catatan: form.catatan,
         bukti_url,
       })
-      if (ok) setSuccess(true)
-      else setError("Gagal mengirim. Coba lagi.")
+      if (result.success) setSuccess(true)
+      else setError(result.error || "Gagal mengirim. Coba lagi.")
     } catch {
       setError("Gagal upload. Coba lagi.")
     } finally {
@@ -87,7 +99,9 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
         <main className="app-main">
           <div className="app-grid">
             <section className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
-              <div style={{ fontSize: 48, marginBottom: 12, color: "#1B5E20", fontWeight: 700 }}>OK</div>
+              <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}>
+                  <Check size={48} color="#1B5E20" />
+                </div>
               <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Bukti Terkirim</h2>
               <p style={{ color: "#5f6f63", marginBottom: 18 }}>
                 Pembayaran Anda sedang diverifikasi oleh admin.
@@ -132,7 +146,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
                   </div>
                   {bank.qris_url && (
                     <div style={{ marginTop: 12, textAlign: "center" }}>
-                      <img src={bank.qris_url} alt="QRIS" style={{ width: 160, borderRadius: 10 }} />
+                      <Image src={bank.qris_url} alt="QRIS" width={160} height={160} style={{ borderRadius: 10 }} />
                       <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>Scan QRIS</div>
                     </div>
                   )}
@@ -156,6 +170,25 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
 
             <div className="card">
               <div className="card-title">Upload Bukti Transfer</div>
+
+              {unpaidBills.length > 1 && (
+                <select
+                  className="form-input"
+                  value={selectedBill}
+                  onChange={(e) => {
+                    setSelectedBill(e.target.value)
+                    const bill = unpaidBills.find((b) => b.id === e.target.value)
+                    if (bill) setForm((f) => ({ ...f, jumlah_transfer: bill.nominal.toString() }))
+                  }}
+                  style={{ marginBottom: 10 }}
+                >
+                  {unpaidBills.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.bulan} {b.tahun} — {formatRupiah(b.nominal)}
+                    </option>
+                  ))}
+                </select>
+              )}
 
               <input
                 className="form-input"

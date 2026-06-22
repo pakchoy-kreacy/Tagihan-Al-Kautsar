@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { getBankInfoByType, submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { NavBar } from "@/components/NavBar"
+import { Check } from "@/components/Icons"
 
 export default function InfaqPage() {
   const router = useRouter()
@@ -51,7 +53,9 @@ export default function InfaqPage() {
         <main className="app-main">
           <div className="app-grid">
             <section className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
-              <div style={{ fontSize: 48, marginBottom: 12, color: "#1B5E20", fontWeight: 700 }}>OK</div>
+              <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}>
+                  <Check size={48} color="#1B5E20" />
+                </div>
               <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
               <p style={{ color: "#5f6f63", marginBottom: 24 }}>Infaq Anda sedang diverifikasi.</p>
               <button type="button" className="btn btn-primary" onClick={() => router.push("/")}>
@@ -92,7 +96,7 @@ export default function InfaqPage() {
                   <div style={{ fontSize: 13, color: "#424242" }}>a.n. {bank.atas_nama}</div>
                   {bank.qris_url && (
                     <div style={{ marginTop: 12, textAlign: "center" }}>
-                      <img src={bank.qris_url} alt="QRIS Infaq" style={{ width: 160, borderRadius: 10 }} />
+                      <Image src={bank.qris_url} alt="QRIS Infaq" width={160} height={160} style={{ borderRadius: 10 }} />
                       <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>Scan QRIS</div>
                     </div>
                   )}

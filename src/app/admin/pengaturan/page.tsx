@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { getSchoolSettings, updateSchoolSettings, getBankInfoByType, updateBankInfo, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { SchoolSettings, BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
@@ -22,8 +23,6 @@ export default function AdminPengaturanPage() {
   // Bank Infaq
   const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     setLoading(true)
     const [s, bp, bi] = await Promise.all([
@@ -34,6 +33,8 @@ export default function AdminPengaturanPage() {
     setBankInfaq(bi)
     setLoading(false)
   }
+
+  useEffect(() => { loadData() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   async function saveSekolah() {
     if (!sekolah) return
@@ -98,7 +99,7 @@ export default function AdminPengaturanPage() {
             onChange={e => setSekolah({ ...sekolah, nama_sekolah: e.target.value })} />
 
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>Logo</label>
-          {sekolah.logo_url && <img src={sekolah.logo_url} alt="logo" style={{ width: 80, height: 80, borderRadius: 12, objectFit: "cover", marginBottom: 8 }} />}
+          {sekolah.logo_url && <Image src={sekolah.logo_url} alt="logo" width={80} height={80} style={{ borderRadius: 12, objectFit: "cover", marginBottom: 8 }} />}
           <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ marginBottom: 10, fontSize: 13 }} />
 
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>Nomor WhatsApp</label>
@@ -119,7 +120,7 @@ export default function AdminPengaturanPage() {
           <input className="admin-input" placeholder="Atas Nama" value={bankPayment.atas_nama}
             onChange={e => setBankPayment({ ...bankPayment, atas_nama: e.target.value })} />
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>QRIS</label>
-          {bankPayment.qris_url && <img src={bankPayment.qris_url} alt="QRIS" style={{ width: 120, borderRadius: 10, marginBottom: 8 }} />}
+          {bankPayment.qris_url && <Image src={bankPayment.qris_url} alt="QRIS" width={120} height={120} style={{ borderRadius: 10, marginBottom: 8 }} />}
           <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'payment')} style={{ marginBottom: 10, fontSize: 13 }} />
           <button className="admin-btn" onClick={() => saveBank(bankPayment, "Pembayaran")} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
         </div>
@@ -135,7 +136,7 @@ export default function AdminPengaturanPage() {
           <input className="admin-input" placeholder="Atas Nama" value={bankInfaq.atas_nama}
             onChange={e => setBankInfaq({ ...bankInfaq, atas_nama: e.target.value })} />
           <label style={{ fontSize: 12, color: "#757575", display: "block", marginBottom: 4 }}>QRIS Infaq</label>
-          {bankInfaq.qris_url && <img src={bankInfaq.qris_url} alt="QRIS Infaq" style={{ width: 120, borderRadius: 10, marginBottom: 8 }} />}
+          {bankInfaq.qris_url && <Image src={bankInfaq.qris_url} alt="QRIS Infaq" width={120} height={120} style={{ borderRadius: 10, marginBottom: 8 }} />}
           <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'infaq')} style={{ marginBottom: 10, fontSize: 13 }} />
           <button className="admin-btn" onClick={() => saveBank(bankInfaq, "Infaq")} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
         </div>

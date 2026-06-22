@@ -17,6 +17,7 @@ export default function AdminVerifikasiPage() {
   const [approveTarget, setApproveTarget] = useState<PaymentWithStudent | null>(null)
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchPayments() }, [filter])
 
   async function fetchPayments() {

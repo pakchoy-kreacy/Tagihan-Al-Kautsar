@@ -16,6 +16,7 @@ export default function AdminVerifikasiInfaqPage() {
   const [approveTarget, setApproveTarget] = useState<Donation | null>(null)
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchDonations() }, [filter])
 
   async function fetchDonations() {

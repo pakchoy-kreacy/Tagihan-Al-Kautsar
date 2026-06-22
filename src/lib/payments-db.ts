@@ -85,8 +85,29 @@ export async function submitPayment(data: {
   jumlah_transfer: number
   catatan: string
   bukti_url: string
-}): Promise<boolean> {
+}): Promise<{ success: boolean; error?: string }> {
   try {
+    const { data: existing } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('bill_id', data.bill_id)
+      .eq('status', 'pending')
+      .maybeSingle()
+
+    if (existing) {
+      return { success: false, error: 'Pembayaran untuk tagihan ini sudah menunggu verifikasi.' }
+    }
+
+    const { data: bill } = await supabase
+      .from('bills')
+      .select('amount')
+      .eq('id', data.bill_id)
+      .single()
+
+    if (bill && data.jumlah_transfer < (bill as { amount: number }).amount) {
+      return { success: false, error: 'Jumlah transfer kurang dari nominal tagihan.' }
+    }
+
     const { error } = await supabase.from('payments').insert({
       student_id: data.student_id,
       bill_id: data.bill_id,
@@ -98,10 +119,10 @@ export async function submitPayment(data: {
     })
 
     if (error) throw error
-    return true
+    return { success: true }
   } catch (error) {
     console.error('Error submitting payment:', error)
-    return false
+    return { success: false, error: 'Gagal mengirim. Coba lagi.' }
   }
 }
 

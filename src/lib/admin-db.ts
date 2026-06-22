@@ -30,19 +30,23 @@ export interface UnpaidStudent {
 // ============================================
 export async function getAdminStats(): Promise<AdminStats> {
   try {
-    const { data: bills, error } = await supabase
-      .from('bills')
-      .select('status')
+    const { count: totalSiswa, error: countErr } = await supabase
+      .from('students').select('*', { count: 'exact', head: true })
+    if (countErr) throw countErr
 
-    if (error) throw error
+    const { count: lunas, error: lunasErr } = await supabase
+      .from('bills').select('*', { count: 'exact', head: true }).eq('status', 'lunas')
+    if (lunasErr) throw lunasErr
 
-    const totalSiswa = (await supabase.from('students').select('id', { count: 'exact', head: true })).count || 0
+    const { count: belum, error: belumErr } = await supabase
+      .from('bills').select('*', { count: 'exact', head: true }).eq('status', 'belum')
+    if (belumErr) throw belumErr
 
-    const lunas = bills?.filter(b => b.status === 'lunas').length || 0
-    const belum = bills?.filter(b => b.status === 'belum').length || 0
-    const menunggu = bills?.filter(b => b.status === 'menunggu').length || 0
+    const { count: menunggu, error: menungguErr } = await supabase
+      .from('bills').select('*', { count: 'exact', head: true }).eq('status', 'menunggu')
+    if (menungguErr) throw menungguErr
 
-    return { totalSiswa, lunas, belum, menunggu }
+    return { totalSiswa: totalSiswa || 0, lunas: lunas || 0, belum: belum || 0, menunggu: menunggu || 0 }
   } catch (error) {
     console.error('Error fetching admin stats:', error)
     return { totalSiswa: 0, lunas: 0, belum: 0, menunggu: 0 }
