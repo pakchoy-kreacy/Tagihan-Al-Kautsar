@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 import { getDonations } from "@/lib/infaq-db"
 import { formatRupiah } from "@/lib/db"
 import type { Donation } from "@/lib/infaq-db"
-import { Heart, Eye, Inbox } from "lucide-react"
+import { Heart, Eye, Inbox, X } from "lucide-react"
 
 export default function AdminInfaqPage() {
   const [donations, setDonations] = useState<Donation[]>([])
   const [loading, setLoading] = useState(true)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   async function fetchDonations() {
     setLoading(true)
@@ -26,7 +27,6 @@ export default function AdminInfaqPage() {
       <div className="page-title">Riwayat Infaq</div>
       <p className="page-subtitle">Daftar infaq yang masuk dari orang tua dan masyarakat</p>
 
-      {/* TOTAL CARD */}
       <div className="infaq-total-card">
         <div className="infaq-total-icon">
           <Heart size={28} color="var(--emerald)" />
@@ -41,7 +41,6 @@ export default function AdminInfaqPage() {
         </div>
       </div>
 
-      {/* DONATION LIST */}
       {loading ? (
         <div className="loading-text">Memuat...</div>
       ) : donations.length === 0 ? (
@@ -64,14 +63,31 @@ export default function AdminInfaqPage() {
               </div>
               {d.bukti_url && (
                 <div className="ic-bukti">
-                  <a href={d.bukti_url} target="_blank" rel="noopener noreferrer" className="ic-bukti-link">
+                  <button type="button" className="ic-bukti-link" onClick={() => setPreviewUrl(d.bukti_url)}>
                     <Eye size={14} /> Lihat Bukti Transfer
-                  </a>
+                  </button>
                 </div>
               )}
             </div>
           ))}
         </div>
+      )}
+
+      {/* IMAGE PREVIEW MODAL */}
+      {previewUrl && (
+        <>
+          <div className="admin-overlay" onClick={() => setPreviewUrl(null)} />
+          <div className="image-preview-modal">
+            <div className="image-preview-header">
+              <h3>Bukti Transfer</h3>
+              <button className="modal-close" onClick={() => setPreviewUrl(null)}><X size={20} /></button>
+            </div>
+            <div className="image-preview-body">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewUrl} alt="Bukti Transfer" className="image-preview-img" />
+            </div>
+          </div>
+        </>
       )}
     </div>
   )

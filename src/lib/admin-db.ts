@@ -70,7 +70,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       ])
 
     const { data: infaqData } = await supabase
-      .from('donations').select('nominal').eq('status', 'approved')
+      .from('donations').select('nominal')
     const totalInfaq = infaqData?.reduce((sum, d) => sum + (d.nominal || 0), 0) || 0
 
     return {

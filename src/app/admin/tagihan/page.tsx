@@ -57,14 +57,15 @@ export default function AdminTagihanPage() {
     const amount = parseInt(formAmount)
     if (amount < 0) return showToast("Nominal tidak boleh negatif!", "error")
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: formName.trim(),
       description: formDesc.trim(),
       default_amount: amount,
       is_recurring: formRecurring,
-      batas_waktu: formBatasWaktu || null,
-      berlaku_untuk_kelas: formBerlakuKelas.length > 0 ? formBerlakuKelas : null,
     }
+    // Only include new fields if they have values (avoids errors if columns don't exist yet)
+    if (formBatasWaktu) payload.batas_waktu = formBatasWaktu
+    if (formBerlakuKelas.length > 0) payload.berlaku_untuk_kelas = formBerlakuKelas
 
     if (editId) {
       const ok = await updateBillType(editId, payload)

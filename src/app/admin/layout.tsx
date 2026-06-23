@@ -11,7 +11,7 @@ const navItems = [
   { href: "/admin/kelas", label: "Kelas", icon: Building2 },
   { href: "/admin/siswa", label: "Siswa", icon: Users },
   { href: "/admin/tagihan", label: "Kelola Tagihan", icon: Receipt },
-  { href: "/admin/verifikasi", label: "Verifikasi", icon: ClipboardList },
+  { href: "/admin/verifikasi", label: "Verifikasi", icon: ClipboardList, hasBadge: true },
   { href: "/admin/infaq", label: "Infaq", icon: Heart },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
 ]
@@ -20,6 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,6 +29,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    async function fetchPendingCount() {
+      const { count } = await supabase
+        .from('payments')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+      setPendingCount(count || 0)
+    }
+    fetchPendingCount()
+    const interval = setInterval(fetchPendingCount, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   async function handleLogout() {
@@ -66,30 +80,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               >
                 <span className="admin-nav-icon"><Icon size={18} /></span>
                 <span>{item.label}</span>
+                {item.hasBadge && pendingCount > 0 && (
+                  <span className="admin-nav-badge">{pendingCount}</span>
+                )}
               </Link>
             )
           })}
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" className="admin-back-link" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Link href="/" className="admin-back-link">
             <House size={14} /> Kembali ke Beranda
           </Link>
           <button
             type="button"
             onClick={handleLogout}
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.6)",
-              fontSize: 13,
-              cursor: "pointer",
-              marginTop: 8,
-              padding: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
+            className="admin-logout-btn"
           >
             <LogOut size={14} /> Logout
           </button>

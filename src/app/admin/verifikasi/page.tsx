@@ -16,6 +16,7 @@ export default function AdminVerifikasiPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [approveTarget, setApproveTarget] = useState<PaymentWithStudent | null>(null)
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchPayments() }, [filter])
@@ -102,10 +103,10 @@ export default function AdminVerifikasiPage() {
                       <td style={{ fontWeight: 600 }}>{formatRupiah(p.jumlah_transfer)}</td>
                       <td>
                         {p.bukti_url ? (
-                          <a href={p.bukti_url} target="_blank" rel="noopener noreferrer"
-                            style={{ color: "var(--emerald)", fontSize: 13 }}>
+                          <button type="button" onClick={() => setPreviewUrl(p.bukti_url!)}
+                            style={{ color: "var(--emerald)", fontSize: 13, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
                             Lihat
-                          </a>
+                          </button>
                         ) : '-'}
                       </td>
                       <td style={{ fontSize: 12 }}>{new Date(p.created_at).toLocaleDateString("id-ID")}</td>
@@ -168,6 +169,22 @@ export default function AdminVerifikasiPage() {
                 onClick={() => handleReject(rejectModal.id, rejectModal.ket)}>
                 Tolak
               </button>
+            </div>
+          </div>
+        </>
+      )}
+      {/* IMAGE PREVIEW MODAL */}
+      {previewUrl && (
+        <>
+          <div className="admin-overlay" onClick={() => setPreviewUrl(null)} />
+          <div className="image-preview-modal">
+            <div className="image-preview-header">
+              <h3>Bukti Transfer</h3>
+              <button className="modal-close" onClick={() => setPreviewUrl(null)}><X size={20} /></button>
+            </div>
+            <div className="image-preview-body">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewUrl} alt="Bukti Transfer" className="image-preview-img" />
             </div>
           </div>
         </>

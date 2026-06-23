@@ -177,7 +177,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
     } else {
       status = 'lunas'
     }
-    const kelas = (student as Record<string, unknown>['classes'] as { name: string })?.name || 'N/A'
+    const kelas = (student.classes as unknown as { name: string })?.name as string || 'N/A'
 
     return {
       id: student.id,
@@ -411,7 +411,8 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
       billsByStudent.set(bill.student_id, list)
     }
 
-    return students.map((student: { id: string; nisn: string; name: string }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return students.map((student: any) => {
       const typedBills = billsByStudent.get(student.id) || []
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
       let status: StatusBayar
@@ -422,7 +423,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
       } else {
         status = 'lunas'
       }
-      const kelas = (student as Record<string, unknown>['classes'] as { name: string })?.name || 'N/A'
+      const kelas = student.classes?.name || student.classes?.[0]?.name || 'N/A'
 
       return {
         id: student.id,
@@ -460,7 +461,7 @@ export async function getAllStudents(): Promise<Siswa[]> {
 
     const result: Siswa[] = []
     for (const student of students || []) {
-      const kelas = (student.classes as unknown as { name: string })?.name as string || 'N/A'
+    const kelas = (student as unknown as { classes?: { name?: string } })?.classes?.name || 'N/A'
       result.push({
         id: student.id,
         nisn: student.nisn,
@@ -553,8 +554,20 @@ export async function addBillType(name: string, description: string, default_amo
 
 export async function updateBillType(id: string, data: { name?: string; description?: string; default_amount?: number; is_recurring?: boolean; batas_waktu?: string | null; berlaku_untuk_kelas?: string[] | null }): Promise<boolean> {
   try {
-    const { error } = await supabase.from('bill_types').update(data).eq('id', id)
-    if (error) throw error
+    // Only include fields that are defined to avoid errors if columns don't exist yet
+    const payload: Record<string, unknown> = {}
+    if (data.name !== undefined) payload.name = data.name
+    if (data.description !== undefined) payload.description = data.description
+    if (data.default_amount !== undefined) payload.default_amount = data.default_amount
+    if (data.is_recurring !== undefined) payload.is_recurring = data.is_recurring
+    if (data.batas_waktu !== undefined) payload.batas_waktu = data.batas_waktu
+    if (data.berlaku_untuk_kelas !== undefined) payload.berlaku_untuk_kelas = data.berlaku_untuk_kelas
+
+    const { error } = await supabase.from('bill_types').update(payload).eq('id', id)
+    if (error) {
+      console.error('Supabase update bill type error:', error.message, error.details)
+      throw error
+    }
     return true
   } catch (error) {
     console.error('Error updating bill type:', error)

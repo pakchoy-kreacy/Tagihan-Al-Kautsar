@@ -43,7 +43,7 @@ export async function submitDonasi(data: {
       nominal: data.nominal,
       pesan: data.pesan,
       bukti_url: data.bukti_url,
-      status: 'pending',
+      status: 'approved',
     })
     if (error) throw error
     return true
