@@ -7,7 +7,7 @@ import { addKelas, deleteKelas } from "@/lib/db"
 import type { KelasWithStats } from "@/lib/admin-db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Building2, Users, Plus, Inbox } from "lucide-react"
+import { Building2, Users, Plus, Inbox, Trash2 } from "lucide-react"
 
 export default function AdminKelasPage() {
   const { showToast } = useToast()
@@ -39,6 +39,12 @@ export default function AdminKelasPage() {
     else showToast("Gagal menghapus!", "error")
     setDeleteTarget(null)
   }
+
+  const deleteMessage = deleteTarget
+    ? deleteTarget.totalSiswa > 0
+      ? `Kelas "${deleteTarget.name}" masih punya ${deleteTarget.totalSiswa} siswa. Siswa akan kehilangan kelasnya. Yakin lanjut?`
+      : `Yakin hapus kelas "${deleteTarget.name}"?`
+    : ""
 
   return (
     <div className="admin-page">
@@ -76,24 +82,33 @@ export default function AdminKelasPage() {
       ) : (
         <div className="kelas-grid">
           {kelasList.map(kelas => (
-            <Link key={kelas.id} href={`/admin/siswa?kelas=${kelas.name}`} className="kelas-card">
-              <div className="kelas-card-header">
-                <span className="kelas-badge">{kelas.name}</span>
-                <span className={`kelas-status ${kelas.tunggakan > 0 ? "has-tunggakan" : "all-paid"}`}>
-                  {kelas.tunggakan > 0 ? `${kelas.tunggakan} tunggakan` : "Semua lunas"}
-                </span>
-              </div>
-              <div className="kelas-card-body">
-                <div className="kelas-student-count">
-                  <Users size={18} color="var(--emerald)" />
-                  <span className="kelas-student-num">{kelas.totalSiswa}</span>
-                  <span className="kelas-student-label"> siswa</span>
+            <div key={kelas.id} className="kelas-card-wrapper">
+              <Link href={`/admin/siswa?kelas=${kelas.name}`} className="kelas-card">
+                <div className="kelas-card-header">
+                  <span className="kelas-badge">{kelas.name}</span>
+                  <span className={`kelas-status ${kelas.tunggakan > 0 ? "has-tunggakan" : "all-paid"}`}>
+                    {kelas.tunggakan > 0 ? `${kelas.tunggakan} tunggakan` : "Semua lunas"}
+                  </span>
                 </div>
-              </div>
-              <div className="kelas-card-footer">
-                <span className="kelas-card-action">Lihat Siswa →</span>
-              </div>
-            </Link>
+                <div className="kelas-card-body">
+                  <div className="kelas-student-count">
+                    <Users size={18} color="var(--emerald)" />
+                    <span className="kelas-student-num">{kelas.totalSiswa}</span>
+                    <span className="kelas-student-label"> siswa</span>
+                  </div>
+                </div>
+                <div className="kelas-card-footer">
+                  <span className="kelas-card-action">Lihat Siswa →</span>
+                </div>
+              </Link>
+              <button
+                className="kelas-card-delete"
+                onClick={() => setDeleteTarget(kelas)}
+                title="Hapus kelas"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -101,7 +116,7 @@ export default function AdminKelasPage() {
       <ConfirmModal
         open={!!deleteTarget}
         title="Hapus Kelas"
-        message={`Yakin hapus kelas ${deleteTarget?.name}? Semua siswa di kelas ini akan kehilangan kelas.`}
+        message={deleteMessage}
         confirmLabel="Hapus"
         danger
         onConfirm={handleDelete}

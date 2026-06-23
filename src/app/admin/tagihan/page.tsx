@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllBillTypes, addBillType, updateBillType, deleteBillType, formatRupiah, type BillType } from "@/lib/db"
+import { getAllBillTypes, getAllClasses, addBillType, updateBillType, deleteBillType, formatRupiah, type BillType, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox } from "lucide-react"
+import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox, CalendarDays } from "lucide-react"
 
 export default function AdminTagihanPage() {
   const { showToast } = useToast()
   const [billTypes, setBillTypes] = useState<BillType[]>([])
+  const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -16,26 +17,38 @@ export default function AdminTagihanPage() {
   const [formDesc, setFormDesc] = useState("")
   const [formAmount, setFormAmount] = useState("")
   const [formRecurring, setFormRecurring] = useState(true)
+  const [formBatasWaktu, setFormBatasWaktu] = useState("")
+  const [formBerlakuKelas, setFormBerlakuKelas] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
 
   useEffect(() => { fetchData() }, [])
 
   async function fetchData() {
     setLoading(true)
-    const data = await getAllBillTypes()
+    const [data, kelas] = await Promise.all([getAllBillTypes(), getAllClasses()])
     setBillTypes(data)
+    setKelasList(kelas)
     setLoading(false)
   }
 
   function openAdd() {
     setEditId(null); setFormName(""); setFormDesc(""); setFormAmount(""); setFormRecurring(true)
+    setFormBatasWaktu(""); setFormBerlakuKelas([])
     setShowModal(true)
   }
 
   function openEdit(b: BillType) {
     setEditId(b.id); setFormName(b.name); setFormDesc(b.description)
     setFormAmount(b.default_amount.toString()); setFormRecurring(b.is_recurring)
+    setFormBatasWaktu(b.batas_waktu || "")
+    setFormBerlakuKelas(b.berlaku_untuk_kelas || [])
     setShowModal(true)
+  }
+
+  function toggleKelas(name: string) {
+    setFormBerlakuKelas(prev =>
+      prev.includes(name) ? prev.filter(k => k !== name) : [...prev, name]
+    )
   }
 
   async function handleSubmit() {
@@ -44,17 +57,25 @@ export default function AdminTagihanPage() {
     const amount = parseInt(formAmount)
     if (amount < 0) return showToast("Nominal tidak boleh negatif!", "error")
 
+    const payload = {
+      name: formName.trim(),
+      description: formDesc.trim(),
+      default_amount: amount,
+      is_recurring: formRecurring,
+      batas_waktu: formBatasWaktu || null,
+      berlaku_untuk_kelas: formBerlakuKelas.length > 0 ? formBerlakuKelas : null,
+    }
+
     if (editId) {
-      const ok = await updateBillType(editId, {
-        name: formName.trim(),
-        description: formDesc.trim(),
-        default_amount: amount,
-        is_recurring: formRecurring,
-      })
+      const ok = await updateBillType(editId, payload)
       if (ok) { setShowModal(false); showToast("Tagihan diperbarui!"); await fetchData() }
       else showToast("Gagal memperbarui!", "error")
     } else {
-      const ok = await addBillType(formName.trim(), formDesc.trim(), amount, formRecurring)
+      const ok = await addBillType(
+        formName.trim(), formDesc.trim(), amount, formRecurring,
+        formBatasWaktu || undefined,
+        formBerlakuKelas.length > 0 ? formBerlakuKelas : undefined
+      )
       if (ok) { setShowModal(false); showToast("Tagihan ditambahkan!"); await fetchData() }
       else showToast("Gagal menambah tagihan!", "error")
     }
@@ -66,6 +87,15 @@ export default function AdminTagihanPage() {
     if (ok) { showToast("Tagihan dihapus!"); await fetchData() }
     else showToast("Gagal menghapus!", "error")
     setDeleteTarget(null)
+  }
+
+  function formatTanggal(tgl: string) {
+    if (!tgl) return ""
+    try {
+      return new Date(tgl).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+    } catch {
+      return tgl
+    }
   }
 
   return (
@@ -111,7 +141,22 @@ export default function AdminTagihanPage() {
                 <span className={`tc-badge ${b.is_recurring ? "recurring" : "one-time"}`}>
                   {b.is_recurring ? "Bulanan" : "Satu Kali"}
                 </span>
+                {b.batas_waktu && (
+                  <span className="tc-badge tc-badge-deadline">
+                    <CalendarDays size={11} style={{ verticalAlign: "middle" }} /> {formatTanggal(b.batas_waktu)}
+                  </span>
+                )}
               </div>
+              {b.berlaku_untuk_kelas && b.berlaku_untuk_kelas.length > 0 && (
+                <div className="tc-kelas-tags">
+                  {b.berlaku_untuk_kelas.map(k => (
+                    <span key={k} className="tc-kelas-tag">{k}</span>
+                  ))}
+                </div>
+              )}
+              {(!b.berlaku_untuk_kelas || b.berlaku_untuk_kelas.length === 0) && (
+                <div className="tc-kelas-all">Semua Kelas</div>
+              )}
             </div>
           ))}
         </div>
@@ -121,7 +166,7 @@ export default function AdminTagihanPage() {
       {showModal && (
         <>
           <div className="admin-overlay" onClick={() => setShowModal(false)} />
-          <div className="admin-modal">
+          <div className="admin-modal" style={{ maxWidth: 540 }}>
             <div className="modal-header">
               <h3>{editId ? "Edit Tagihan" : "Tambah Tagihan Baru"}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
@@ -143,6 +188,33 @@ export default function AdminTagihanPage() {
               <input type="checkbox" checked={formRecurring} onChange={e => setFormRecurring(e.target.checked)} />
               Tagihan bulanan (berulang setiap bulan)
             </label>
+
+            <label className="form-label">Batas Waktu Bayar (opsional)</label>
+            <input className="admin-input" type="date"
+              value={formBatasWaktu} onChange={e => setFormBatasWaktu(e.target.value)} />
+            <p style={{ fontSize: 12, color: "var(--neutral)", marginTop: -4, marginBottom: 12 }}>
+              Kosongkan jika tidak ada deadline
+            </p>
+
+            <label className="form-label">Berlaku untuk Kelas (opsional)</label>
+            <div className="kelas-checkbox-list">
+              {kelasList.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--neutral)" }}>Belum ada kelas. Jika dikosongkan, tagihan berlaku untuk semua kelas.</p>
+              ) : (
+                <>
+                  {kelasList.map(k => (
+                    <label key={k.id} className="kelas-checkbox-item">
+                      <input type="checkbox" checked={formBerlakuKelas.includes(k.name)}
+                        onChange={() => toggleKelas(k.name)} />
+                      <span>{k.name}</span>
+                    </label>
+                  ))}
+                  <p style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>
+                    Tidak dipilih = berlaku untuk semua kelas
+                  </p>
+                </>
+              )}
+            </div>
 
             <div className="admin-modal-actions">
               <button className="admin-btn admin-btn-outline" onClick={() => setShowModal(false)}>Batal</button>

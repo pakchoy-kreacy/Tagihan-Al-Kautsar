@@ -44,8 +44,10 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-page">
-      <div className="page-title">Dashboard</div>
-      <p className="page-subtitle">Ringkasan data sekolah dan aktivitas terbaru</p>
+      <div className="dashboard-header-strip">
+        <div className="page-title">Dashboard</div>
+        <p className="page-subtitle">Ringkasan data sekolah dan aktivitas terbaru</p>
+      </div>
 
       {/* 6 STAT CARDS */}
       <div className="stats-grid">

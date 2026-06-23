@@ -6,6 +6,10 @@
 -- 0. ADD ALAMAT COLUMN TO school_settings (if not exists)
 ALTER TABLE school_settings ADD COLUMN IF NOT EXISTS alamat text DEFAULT '';
 
+-- 0b. ADD BATAS_WAKTU + BERLAKU_UNTUK_KELAS TO bill_types (if not exists)
+ALTER TABLE bill_types ADD COLUMN IF NOT EXISTS batas_waktu date;
+ALTER TABLE bill_types ADD COLUMN IF NOT EXISTS berlaku_untuk_kelas text[];
+
 -- 1. ENABLE RLS DI SEMUA TABEL
 ALTER TABLE academic_years ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;

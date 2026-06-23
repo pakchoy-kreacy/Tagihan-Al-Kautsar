@@ -225,25 +225,84 @@ export function getStatKelas(siswaList: Siswa[]) {
 // ============================================
 // CRUD SISWA
 // ============================================
-export async function addSiswa(nisn: string, nama: string, kelas: string): Promise<boolean> {
+
+// Ensure a class exists by name, create if missing. Returns class id or null.
+export async function ensureKelas(name: string): Promise<string | null> {
   try {
-    const { data: classData } = await supabase
+    const { data: existing } = await supabase
       .from('classes')
       .select('id')
-      .eq('name', kelas)
+      .eq('name', name)
+      .maybeSingle()
+
+    if (existing) return existing.id
+
+    // Auto-create the class
+    const grade = parseInt(name.charAt(0)) || 0
+    const section = name.charAt(1)?.toUpperCase() || ''
+
+    const { data: yearData } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('is_active', true)
       .single()
 
-    if (!classData) return false
+    const { data: newClass, error } = await supabase
+      .from('classes')
+      .insert({
+        name,
+        grade,
+        section,
+        academic_year_id: yearData?.id || null,
+      })
+      .select('id')
+      .single()
+
+    if (error) throw error
+    return newClass?.id || null
+  } catch (error) {
+    console.error('Error ensuring class:', error)
+    return null
+  }
+}
+
+export async function addSiswa(nisn: string, nama: string, kelas: string): Promise<boolean> {
+  try {
+    const classId = await ensureKelas(kelas)
+    if (!classId) return false
 
     const { error } = await supabase
       .from('students')
-      .insert({ nisn, name: nama, class_id: classData.id })
+      .insert({ nisn, name: nama, class_id: classId })
 
     if (error) throw error
     return true
   } catch (error) {
     console.error('Error adding student:', error)
     return false
+  }
+}
+
+// Returns detailed result for import: { success, error? }
+export async function addSiswaDetailed(nisn: string, nama: string, kelas: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!nisn || !nama || !kelas) return { success: false, error: "Data tidak lengkap" }
+
+    const classId = await ensureKelas(kelas)
+    if (!classId) return { success: false, error: "Gagal membuat/menemukan kelas" }
+
+    const { error } = await supabase
+      .from('students')
+      .insert({ nisn, name: nama, class_id: classId })
+
+    if (error) {
+      if (error.code === '23505') return { success: false, error: "NISN sudah terdaftar" }
+      throw error
+    }
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding student:', error)
+    return { success: false, error: "Error database" }
   }
 }
 
@@ -455,6 +514,8 @@ export interface BillType {
   description: string
   default_amount: number
   is_recurring: boolean
+  batas_waktu: string | null
+  berlaku_untuk_kelas: string[] | null
 }
 
 export async function getAllBillTypes(): Promise<BillType[]> {
@@ -472,13 +533,15 @@ export async function getAllBillTypes(): Promise<BillType[]> {
   }
 }
 
-export async function addBillType(name: string, description: string, default_amount: number, is_recurring: boolean): Promise<boolean> {
+export async function addBillType(name: string, description: string, default_amount: number, is_recurring: boolean, batas_waktu?: string, berlaku_untuk_kelas?: string[]): Promise<boolean> {
   try {
     const { error } = await supabase.from('bill_types').insert({
       name,
       description,
       default_amount,
       is_recurring,
+      batas_waktu: batas_waktu || null,
+      berlaku_untuk_kelas: berlaku_untuk_kelas && berlaku_untuk_kelas.length > 0 ? berlaku_untuk_kelas : null,
     })
     if (error) throw error
     return true
@@ -488,7 +551,7 @@ export async function addBillType(name: string, description: string, default_amo
   }
 }
 
-export async function updateBillType(id: string, data: { name?: string; description?: string; default_amount?: number; is_recurring?: boolean }): Promise<boolean> {
+export async function updateBillType(id: string, data: { name?: string; description?: string; default_amount?: number; is_recurring?: boolean; batas_waktu?: string | null; berlaku_untuk_kelas?: string[] | null }): Promise<boolean> {
   try {
     const { error } = await supabase.from('bill_types').update(data).eq('id', id)
     if (error) throw error

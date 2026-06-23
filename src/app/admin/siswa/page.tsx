@@ -2,11 +2,12 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { getAllStudentsWithBills, addSiswa, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
+import { getAllStudentsWithBills, addSiswa, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
 import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox } from "lucide-react"
+import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox, FileSpreadsheet } from "lucide-react"
+import * as XLSX from "xlsx"
 
 function SiswaContent() {
   const searchParams = useSearchParams()
@@ -25,6 +26,7 @@ function SiswaContent() {
   const [selectedKelas, setSelectedKelas] = useState(initialKelas)
   const [deleteTarget, setDeleteTarget] = useState<Siswa | null>(null)
   const [detailSiswa, setDetailSiswa] = useState<Siswa | null>(null)
+  const [importing, setImporting] = useState(false)
 
   useEffect(() => { fetchData() }, [])
 
@@ -71,37 +73,110 @@ function SiswaContent() {
   }
 
   function handleDownloadTemplate() {
-    const csv = "NISN,Nama,Kelas\n3A-01,Ahmad Rizki,3A\n3A-02,Aisyah Putri,3A"
-    const blob = new Blob([csv], { type: "text/csv" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "template_siswa.csv"
-    a.click()
-    URL.revokeObjectURL(url)
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["NISN", "Nama", "Kelas"],
+      ["3A-01", "Ahmad Rizki", "3A"],
+      ["3A-02", "Aisyah Putri", "3A"],
+    ])
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Siswa")
+    XLSX.writeFile(wb, "template_siswa.xlsx")
   }
 
   function handleImportExcel() {
     const input = document.createElement("input")
     input.type = "file"
-    input.accept = ".csv"
+    input.accept = ".xlsx,.xls,.csv"
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]
       if (!file) return
-      const text = await file.text()
-      const lines = text.split("\n").filter(l => l.trim())
-      let imported = 0
-      for (let i = 1; i < lines.length; i++) {
-        const [nisn, nama, kelas] = lines[i].split(",").map(s => s.trim())
-        if (nisn && nama && kelas) {
-          const ok = await addSiswa(nisn, nama, kelas)
-          if (ok) imported++
+      setImporting(true)
+      try {
+        const rows: { nisn: string; nama: string; kelas: string }[] = []
+
+        if (file.name.endsWith(".csv")) {
+          const text = await file.text()
+          const lines = text.split("\n").filter(l => l.trim())
+          for (let i = 1; i < lines.length; i++) {
+            const parts = parseCSVLine(lines[i])
+            if (parts.length >= 3) {
+              rows.push({ nisn: parts[0].trim(), nama: parts[1].trim(), kelas: parts[2].trim() })
+            }
+          }
+        } else {
+          const buf = await file.arrayBuffer()
+          const wb = XLSX.read(buf, { type: "array" })
+          const ws = wb.Sheets[wb.SheetNames[0]]
+          const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as unknown[][]
+          for (let i = 1; i < data.length; i++) {
+            const row = data[i]
+            const nisn = String(row[0] || "").trim()
+            const nama = String(row[1] || "").trim()
+            const kelas = String(row[2] || "").trim()
+            if (nisn && nama && kelas) rows.push({ nisn, nama, kelas })
+          }
         }
+
+        if (rows.length === 0) {
+          showToast("Tidak ada data valid di file!", "error")
+          setImporting(false)
+          return
+        }
+
+        let success = 0
+        let failed = 0
+        const errors: string[] = []
+
+        for (const row of rows) {
+          const result = await addSiswaDetailed(row.nisn, row.nama, row.kelas)
+          if (result.success) {
+            success++
+          } else {
+            failed++
+            errors.push(`${row.nama} (${row.nisn}): ${result.error}`)
+          }
+        }
+
+        if (failed === 0) {
+          showToast(`${success} siswa berhasil diimport!`)
+        } else if (success === 0) {
+          showToast(`Semua ${failed} baris gagal diimport`, "error")
+        } else {
+          showToast(`${success} berhasil, ${failed} gagal`, "error")
+        }
+
+        if (errors.length > 0) {
+          console.error("Import errors:", errors)
+        }
+
+        await fetchData()
+      } catch (err) {
+        console.error("Import error:", err)
+        showToast("Gagal membaca file! Pastikan format benar.", "error")
+      } finally {
+        setImporting(false)
       }
-      showToast(`${imported} siswa berhasil diimport!`)
-      await fetchData()
     }
     input.click()
+  }
+
+  function parseCSVLine(line: string): string[] {
+    const result: string[] = []
+    let current = ""
+    let inQuotes = false
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (ch === '"') {
+        inQuotes = !inQuotes
+      } else if (ch === "," && !inQuotes) {
+        result.push(current)
+        current = ""
+      } else {
+        current += ch
+      }
+    }
+    result.push(current)
+    return result
   }
 
   const filtered = siswaList.filter(s => {
@@ -130,8 +205,8 @@ function SiswaContent() {
           <button className="admin-btn" onClick={openAdd}>
             <Plus size={15} /> Tambah Siswa
           </button>
-          <button className="admin-btn admin-btn-outline" onClick={handleImportExcel}>
-            <Upload size={15} /> Import Excel
+          <button className="admin-btn admin-btn-outline" onClick={handleImportExcel} disabled={importing}>
+            {importing ? <><FileSpreadsheet size={15} /> Mengimpor...</> : <><Upload size={15} /> Import Excel</>}
           </button>
           <button className="admin-btn admin-btn-outline" onClick={handleDownloadTemplate}>
             <Download size={15} /> Template
