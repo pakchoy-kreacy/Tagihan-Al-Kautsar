@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Menu } from "./Icons"
+import { Menu } from "lucide-react"
 import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
 
 export function NavBar() {
@@ -26,12 +26,12 @@ export function NavBar() {
   ]
 
   return (
-    <nav className="app-nav">
+    <nav className="app-nav rub-el-hizb">
       <Link href="/" className="app-nav-brand" onClick={() => setOpen(false)}>
         {logoUrl ? (
           <Image src={logoUrl} alt={schoolName} width={36} height={36} style={{ borderRadius: "50%", objectFit: "cover" }} />
         ) : (
-          <span className="logo">MI</span>
+          <span className="logo">{schoolName.charAt(0)}</span>
         )}
         <span>{schoolName}</span>
       </Link>

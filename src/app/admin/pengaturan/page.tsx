@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import Link from "next/link"
-import { getSchoolSettings, updateSchoolSettings, getBankInfoByType, updateBankInfo, uploadBuktiInfaq, getAllBillTypes, updateBillType } from "@/lib/infaq-db"
+import { getSchoolSettings, updateSchoolSettings, getBankInfoByType, updateBankInfo, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { SchoolSettings, BankInfoSettings } from "@/lib/infaq-db"
-import type { BillType } from "@/lib/db"
 import { useToast } from "@/components/Toast"
+import { GraduationCap, CreditCard, Heart, Palette, Upload, Save } from "lucide-react"
 
-type Tab = "sekolah" | "pembayaran" | "infaq" | "tagihan" | "tampilan"
+type Tab = "sekolah" | "pembayaran" | "infaq" | "tampilan"
 
 export default function AdminPengaturanPage() {
   const { showToast } = useToast()
@@ -19,23 +18,17 @@ export default function AdminPengaturanPage() {
   const [sekolah, setSekolah] = useState<SchoolSettings | null>(null)
   const [bankPayment, setBankPayment] = useState<BankInfoSettings | null>(null)
   const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
-  const [billTypes, setBillTypes] = useState<BillType[]>([])
-  const [primaryColor, setPrimaryColor] = useState("#1B5E20")
+  const [primaryColor, setPrimaryColor] = useState("#0E5C4A")
   const [bannerUrl, setBannerUrl] = useState("")
-  const [alamat, setAlamat] = useState("")
 
   async function loadData() {
     setLoading(true)
-    const [s, bp, bi, bt] = await Promise.all([
-      getSchoolSettings(), getBankInfoByType('payment'), getBankInfoByType('infaq'), getAllBillTypes()
+    const [s, bp, bi] = await Promise.all([
+      getSchoolSettings(), getBankInfoByType('payment'), getBankInfoByType('infaq')
     ])
     setSekolah(s)
     setBankPayment(bp)
     setBankInfaq(bi)
-    setBillTypes(bt)
-    if (s) {
-      setAlamat(s.nomor_wa || "")
-    }
     setLoading(false)
   }
 
@@ -44,7 +37,13 @@ export default function AdminPengaturanPage() {
   async function saveSekolah() {
     if (!sekolah) return
     setSaving(true)
-    const ok = await updateSchoolSettings({ id: sekolah.id, nama_sekolah: sekolah.nama_sekolah, logo_url: sekolah.logo_url, nomor_wa: sekolah.nomor_wa })
+    const ok = await updateSchoolSettings({
+      id: sekolah.id,
+      nama_sekolah: sekolah.nama_sekolah,
+      logo_url: sekolah.logo_url,
+      nomor_wa: sekolah.nomor_wa,
+      alamat: sekolah.alamat,
+    })
     setSaving(false); showToast(ok ? "Tersimpan!" : "Gagal!", ok ? "success" : "error")
   }
 
@@ -52,12 +51,6 @@ export default function AdminPengaturanPage() {
     setSaving(true)
     const ok = await updateBankInfo(item.id, { bank_name: item.bank_name, nomor_rekening: item.nomor_rekening, atas_nama: item.atas_nama, qris_url: item.qris_url })
     setSaving(false); showToast(ok ? `${type} tersimpan!` : "Gagal!", ok ? "success" : "error")
-  }
-
-  async function saveTagihan(b: BillType) {
-    setSaving(true)
-    const ok = await updateBillType(b.id, { default_amount: b.default_amount })
-    setSaving(false); showToast(ok ? "Tagihan diperbarui!" : "Gagal!", ok ? "success" : "error")
   }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -102,24 +95,29 @@ export default function AdminPengaturanPage() {
 
   if (loading) return <div className="admin-page"><div className="loading-text">Memuat...</div></div>
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "sekolah", label: "🏫 Sekolah" },
-    { key: "pembayaran", label: "💳 Pembayaran" },
-    { key: "infaq", label: "💚 Infaq" },
-    { key: "tagihan", label: "📋 Tagihan" },
-    { key: "tampilan", label: "🎨 Tampilan" },
+  const tabs: { key: Tab; label: string; icon: typeof GraduationCap }[] = [
+    { key: "sekolah", label: "Sekolah", icon: GraduationCap },
+    { key: "pembayaran", label: "Pembayaran", icon: CreditCard },
+    { key: "infaq", label: "Infaq", icon: Heart },
+    { key: "tampilan", label: "Tampilan", icon: Palette },
   ]
 
   return (
     <div className="admin-page">
       <div className="page-title">Pengaturan</div>
-      <p className="page-subtitle">Kelola data sekolah, rekening, tagihan, dan tampilan aplikasi</p>
+      <p className="page-subtitle">Kelola data sekolah, rekening, dan tampilan aplikasi</p>
 
       <div className="pengaturan-tabs">
-        {tabs.map(t => (
-          <button key={t.key} className={`pengaturan-tab ${tab === t.key ? "active" : ""}`}
-            onClick={() => setTab(t.key)}>{t.label}</button>
-        ))}
+        {tabs.map(t => {
+          const Icon = t.icon
+          return (
+            <button key={t.key} className={`pengaturan-tab ${tab === t.key ? "active" : ""}`}
+              onClick={() => setTab(t.key)}>
+              <Icon size={15} style={{ verticalAlign: "middle", marginRight: 6 }} />
+              {t.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* TAB: SEKOLAH */}
@@ -141,8 +139,8 @@ export default function AdminPengaturanPage() {
           <div>
             <label className="form-label">Alamat Sekolah</label>
             <textarea className="admin-input" placeholder="Jl. Masjid No. 1, Kabo Jaya..."
-              rows={3} value={alamat}
-              onChange={e => setAlamat(e.target.value)}
+              rows={3} value={sekolah.alamat || ""}
+              onChange={e => setSekolah({ ...sekolah, alamat: e.target.value })}
               style={{ resize: "vertical" }} />
           </div>
           <div>
@@ -153,16 +151,22 @@ export default function AdminPengaturanPage() {
                   style={{ borderRadius: 12, objectFit: "cover" }} />
               </div>
             )}
-            <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ fontSize: 13 }} />
+            <label className="file-upload-btn">
+              <Upload size={16} />
+              <span>Pilih Logo Sekolah</span>
+              <input type="file" accept="image/*" onChange={handleLogoUpload} hidden />
+            </label>
           </div>
-          <button className="admin-btn" onClick={saveSekolah} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
+          <button className="admin-btn" onClick={saveSekolah} disabled={saving}>
+            <Save size={15} /> {saving ? "Menyimpan..." : "Simpan"}
+          </button>
         </div>
       )}
 
       {/* TAB: PEMBAYARAN */}
       {tab === "pembayaran" && bankPayment && (
         <div className="pengaturan-card">
-          <h3 className="pengaturan-section-title">💳 Rekening Pembayaran SPP</h3>
+          <h3 className="pengaturan-section-title">Rekening Pembayaran SPP</h3>
           <div className="pengaturan-row">
             <div>
               <label className="form-label">Nama Bank</label>
@@ -191,16 +195,22 @@ export default function AdminPengaturanPage() {
                   style={{ borderRadius: 10 }} />
               </div>
             )}
-            <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'payment')} style={{ fontSize: 13 }} />
+            <label className="file-upload-btn">
+              <Upload size={16} />
+              <span>Pilih QRIS Pembayaran</span>
+              <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'payment')} hidden />
+            </label>
           </div>
-          <button className="admin-btn" onClick={() => saveBank(bankPayment, "Pembayaran")} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
+          <button className="admin-btn" onClick={() => saveBank(bankPayment, "Pembayaran")} disabled={saving}>
+            <Save size={15} /> {saving ? "Menyimpan..." : "Simpan"}
+          </button>
         </div>
       )}
 
       {/* TAB: INFAQ */}
       {tab === "infaq" && bankInfaq && (
         <div className="pengaturan-card">
-          <h3 className="pengaturan-section-title">💚 Rekening Infaq Sekolah</h3>
+          <h3 className="pengaturan-section-title">Rekening Infaq Sekolah</h3>
           <div className="pengaturan-row">
             <div>
               <label className="form-label">Nama Bank</label>
@@ -229,57 +239,22 @@ export default function AdminPengaturanPage() {
                   style={{ borderRadius: 10 }} />
               </div>
             )}
-            <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'infaq')} style={{ fontSize: 13 }} />
+            <label className="file-upload-btn">
+              <Upload size={16} />
+              <span>Pilih QRIS Infaq</span>
+              <input type="file" accept="image/*" onChange={e => handleQrisUpload(e, 'infaq')} hidden />
+            </label>
           </div>
-          <button className="admin-btn" onClick={() => saveBank(bankInfaq, "Infaq")} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
-        </div>
-      )}
-
-      {/* TAB: TAGIHAN */}
-      {tab === "tagihan" && (
-        <div className="pengaturan-card">
-          <div className="pengaturan-section-header">
-            <h3 className="pengaturan-section-title">📋 Jenis Tagihan</h3>
-            <Link href="/admin/tagihan" className="admin-link">+ Kelola Lengkap</Link>
-          </div>
-          <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-            Edit nominal default tagihan. Untuk menambah/hapus jenis tagihan, klik &#8220;Kelola Lengkap&#8221;.
-          </p>
-          <div className="tagihan-list">
-            {billTypes.map(b => (
-              <div key={b.id} className="tagihan-item">
-                <div className="tagihan-item-left">
-                  <div className="tagihan-item-name">{b.name}</div>
-                  <div className="tagihan-item-desc">{b.description || "—"}</div>
-                </div>
-                <div className="tagihan-item-right">
-                  <input
-                    className="admin-input tagihan-amount-input"
-                    type="number"
-                    defaultValue={b.default_amount}
-                    onBlur={(e) => {
-                      const updated = [...billTypes]
-                      const idx = updated.findIndex(x => x.id === b.id)
-                      updated[idx] = { ...updated[idx], default_amount: parseInt(e.target.value) }
-                      setBillTypes(updated)
-                    }}
-                  />
-                  <button className="admin-btn admin-btn-sm" onClick={() => {
-                    const updated = [...billTypes]
-                    const idx = updated.findIndex(x => x.id === b.id)
-                    saveTagihan(updated[idx])
-                  }}>Simpan</button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <button className="admin-btn" onClick={() => saveBank(bankInfaq, "Infaq")} disabled={saving}>
+            <Save size={15} /> {saving ? "Menyimpan..." : "Simpan"}
+          </button>
         </div>
       )}
 
       {/* TAB: TAMPILAN */}
       {tab === "tampilan" && (
         <div className="pengaturan-card">
-          <h3 className="pengaturan-section-title">🎨 Tampilan Aplikasi</h3>
+          <h3 className="pengaturan-section-title">Tampilan Aplikasi</h3>
           <div>
             <label className="form-label">Warna Utama</label>
             <div className="tampilan-color-row">
@@ -289,7 +264,7 @@ export default function AdminPengaturanPage() {
                 onChange={e => setPrimaryColor(e.target.value)}
                 style={{ flex: 1, fontFamily: "monospace" }} />
             </div>
-            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+            <p style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>
               Warna ini digunakan untuk tombol utama, navbar, dan aksen di seluruh aplikasi.
             </p>
           </div>
@@ -300,13 +275,17 @@ export default function AdminPengaturanPage() {
                 <Image src={bannerUrl} alt="Banner" width={400} height={160} style={{ objectFit: "cover" }} />
               </div>
             )}
-            <input type="file" accept="image/*" onChange={handleBannerUpload} style={{ fontSize: 13 }} />
-            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+            <label className="file-upload-btn">
+              <Upload size={16} />
+              <span>Pilih Banner Sekolah</span>
+              <input type="file" accept="image/*" onChange={handleBannerUpload} hidden />
+            </label>
+            <p style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>
               Banner akan ditampilkan di halaman beranda (opsional).
             </p>
           </div>
           <button className="admin-btn" onClick={saveTampilan} style={{ marginTop: 20 }}>
-            Simpan Tampilan
+            <Save size={15} /> Simpan Tampilan
           </button>
         </div>
       )}

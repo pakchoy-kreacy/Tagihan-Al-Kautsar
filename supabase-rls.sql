@@ -3,6 +3,9 @@
 -- Jalankan di SQL Editor Supabase
 -- ============================================
 
+-- 0. ADD ALAMAT COLUMN TO school_settings (if not exists)
+ALTER TABLE school_settings ADD COLUMN IF NOT EXISTS alamat text DEFAULT '';
+
 -- 1. ENABLE RLS DI SEMUA TABEL
 ALTER TABLE academic_years ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;

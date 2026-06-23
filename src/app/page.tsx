@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getAllClasses, type KelasData } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
-import { ChevronDown } from "@/components/Icons"
+import { ChevronDown } from "lucide-react"
+import { GraduationCap } from "lucide-react"
 
 export default function BerandaPage() {
   const router = useRouter()
@@ -43,21 +44,19 @@ export default function BerandaPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: 999,
-                  background: "#1B5E20",
+                  background: "var(--emerald)",
                   color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 20,
                   flexShrink: 0,
                 }}
               >
-                MI
+                <GraduationCap size={28} />
               </div>
               <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: "#173b1a" }}>MI Nurul Iman</div>
-                <div style={{ color: "#5f6f63", fontSize: 14, marginTop: 2 }}>Kabo Jaya</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>MI Nurul Iman</div>
+                <div style={{ color: "var(--neutral)", fontSize: 14, marginTop: 2 }}>Kabo Jaya</div>
               </div>
             </div>
-            <p style={{ marginTop: 16, color: "#5f6f63", lineHeight: 1.7, fontSize: 15 }}>
+            <p style={{ marginTop: 16, color: "var(--neutral)", lineHeight: 1.7, fontSize: 15 }}>
               Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua. Pilih kelas
               untuk melihat data siswa, atau kirim infaq sekolah.
             </p>

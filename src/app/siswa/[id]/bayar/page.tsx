@@ -8,7 +8,7 @@ import { getBankInfo, submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { Siswa } from "@/lib/db"
 import type { BankInfo } from "@/lib/payments-db"
 import { NavBar } from "@/components/NavBar"
-import { Check } from "@/components/Icons"
+import { Check } from "lucide-react"
 
 export default function BayarPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -100,10 +100,10 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
           <div className="app-grid">
             <section className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}>
-                  <Check size={48} color="#1B5E20" />
+                  <Check size={48} color="var(--emerald)" />
                 </div>
-              <h2 style={{ color: "#1B5E20", marginBottom: 8 }}>Bukti Terkirim</h2>
-              <p style={{ color: "#5f6f63", marginBottom: 18 }}>
+              <h2 style={{ color: "var(--emerald)", marginBottom: 8 }}>Bukti Terkirim</h2>
+              <p style={{ color: "var(--neutral)", marginBottom: 18 }}>
                 Pembayaran Anda sedang diverifikasi oleh admin.
               </p>
               <button type="button" className="btn btn-primary" onClick={() => router.push(`/siswa/${id}`)}>
@@ -126,8 +126,8 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
               <button type="button" className="back" onClick={() => router.back()}>Kembali</button>
               <span className="badge badge-lunas">Pembayaran</span>
             </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#173b1a", marginTop: 12 }}>Pembayaran SPP</div>
-            <div style={{ color: "#5f6f63", fontSize: 14, marginTop: 4 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "var(--ink)", marginTop: 12, fontFamily: "var(--font-heading)" }}>Pembayaran SPP</div>
+            <div style={{ color: "var(--neutral)", fontSize: 14, marginTop: 4 }}>
               Transfer ke rekening atau scan QRIS, lalu upload bukti.
             </div>
           </section>
@@ -135,19 +135,19 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
           <div className="app-grid-2">
             <div style={{ display: "grid", gap: 14 }}>
               {bank && (
-                <div className="card" style={{ background: "#E8F5E9", borderColor: "#A5D6A7" }}>
+                <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5" }}>
                   <div className="card-title">Transfer ke</div>
                   <div style={{ marginTop: 4 }}>
-                    <div style={{ fontSize: 13, color: "#757575" }}>{bank.bank_name}</div>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "#1B5E20", letterSpacing: 2 }}>
+                    <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "var(--emerald)", letterSpacing: 2, fontVariantNumeric: "tabular-nums" }}>
                       {bank.nomor_rekening}
                     </div>
-                    <div style={{ fontSize: 13, color: "#424242" }}>a.n. {bank.atas_nama}</div>
+                    <div style={{ fontSize: 13, color: "var(--ink)" }}>a.n. {bank.atas_nama}</div>
                   </div>
                   {bank.qris_url && (
                     <div style={{ marginTop: 12, textAlign: "center" }}>
                       <Image src={bank.qris_url} alt="QRIS" width={160} height={160} style={{ borderRadius: 10 }} />
-                      <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>Scan QRIS</div>
+                      <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Scan QRIS</div>
                     </div>
                   )}
                 </div>
@@ -157,10 +157,10 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
                 <div className="card">
                   <div className="card-title">Data Siswa</div>
                   <div style={{ fontSize: 16, fontWeight: 600 }}>{siswa.nama}</div>
-                  <div style={{ fontSize: 13, color: "#757575", marginTop: 2 }}>NISN {siswa.nisn} | Kelas {siswa.kelas}</div>
-                  <div style={{ marginTop: 10, padding: "10px 14px", background: "#FFF8E1", borderRadius: 10 }}>
-                    <span style={{ fontSize: 12, color: "#F57F17" }}>Tagihan: {siswa.tagihan}</span>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "#E65100" }}>
+                  <div style={{ fontSize: 13, color: "var(--neutral)", marginTop: 2 }}>NISN {siswa.nisn} | Kelas {siswa.kelas}</div>
+                  <div style={{ marginTop: 10, padding: "10px 14px", background: "var(--gold-soft)", borderRadius: 10 }}>
+                    <span style={{ fontSize: 12, color: "var(--gold)" }}>Tagihan: {siswa.tagihan}</span>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#a87a20", fontVariantNumeric: "tabular-nums" }}>
                       {formatRupiah(siswa.nominalTagihan)}
                     </div>
                   </div>
@@ -215,10 +215,10 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
 
               <div className="form-input" style={{ padding: 8, background: "#fafafa" }}>
                 <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                {file && <div style={{ fontSize: 12, color: "#757575", marginTop: 4 }}>{file.name}</div>}
+                {file && <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>{file.name}</div>}
               </div>
 
-              {error && <div style={{ color: "#E53935", fontSize: 13, marginTop: 8 }}>{error}</div>}
+              {error && <div style={{ color: "var(--terracotta)", fontSize: 13, marginTop: 8 }}>{error}</div>}
 
               <button className="btn btn-primary" style={{ marginTop: 14 }} onClick={handleSubmit} disabled={submitting}>
                 {submitting ? "Mengirim..." : "Kirim Bukti Pembayaran"}

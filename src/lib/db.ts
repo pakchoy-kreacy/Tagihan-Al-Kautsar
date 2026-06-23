@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export type StatusBayar = 'lunas' | 'belum' | 'menunggu'
+export type StatusBayar = 'lunas' | 'belum' | 'menunggu' | 'tidak_ada_tagihan'
 
 export interface RiwayatPembayaran {
   id: string
@@ -113,7 +113,14 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
     return students.map((student: { id: string; nisn: string; name: string }) => {
       const typedBills = billsByStudent.get(student.id) || []
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
-      const status: StatusBayar = (activeBill?.status as StatusBayar) || 'lunas'
+      let status: StatusBayar
+      if (typedBills.length === 0) {
+        status = 'tidak_ada_tagihan'
+      } else if (activeBill) {
+        status = activeBill.status as StatusBayar
+      } else {
+        status = 'lunas'
+      }
 
       return {
         id: student.id,
@@ -121,7 +128,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         nama: student.name,
         kelas: className,
         status,
-        tagihan: activeBill ? activeBill.month : 'SPP Tidak Ada',
+        tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
         riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
@@ -162,7 +169,14 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
 
     const typedBills = (bills || []) as Bill[]
     const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
-    const status: StatusBayar = (activeBill?.status as StatusBayar) || 'lunas'
+    let status: StatusBayar
+    if (typedBills.length === 0) {
+      status = 'tidak_ada_tagihan'
+    } else if (activeBill) {
+      status = activeBill.status as StatusBayar
+    } else {
+      status = 'lunas'
+    }
     const kelas = (student as Record<string, unknown>['classes'] as { name: string })?.name || 'N/A'
 
     return {
@@ -171,7 +185,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       nama: student.name,
       kelas,
       status,
-      tagihan: activeBill ? activeBill.month : 'SPP Tidak Ada',
+      tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
       nominalTagihan: activeBill?.amount || 0,
       riwayat: typedBills.map((b: Bill) => ({
         id: b.id,
@@ -204,7 +218,8 @@ export function getStatKelas(siswaList: Siswa[]) {
   const lunas = siswaList.filter((s: Siswa) => s.status === 'lunas').length
   const belum = siswaList.filter((s: Siswa) => s.status === 'belum').length
   const menunggu = siswaList.filter((s: Siswa) => s.status === 'menunggu').length
-  return { total, lunas, belum, menunggu }
+  const tidakAdaTagihan = siswaList.filter((s: Siswa) => s.status === 'tidak_ada_tagihan').length
+  return { total, lunas, belum, menunggu, tidakAdaTagihan }
 }
 
 // ============================================
@@ -340,7 +355,14 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
     return students.map((student: { id: string; nisn: string; name: string }) => {
       const typedBills = billsByStudent.get(student.id) || []
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
-      const status: StatusBayar = (activeBill?.status as StatusBayar) || 'lunas'
+      let status: StatusBayar
+      if (typedBills.length === 0) {
+        status = 'tidak_ada_tagihan'
+      } else if (activeBill) {
+        status = activeBill.status as StatusBayar
+      } else {
+        status = 'lunas'
+      }
       const kelas = (student as Record<string, unknown>['classes'] as { name: string })?.name || 'N/A'
 
       return {
@@ -349,7 +371,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
         nama: student.name,
         kelas,
         status,
-        tagihan: activeBill ? activeBill.month : 'SPP Tidak Ada',
+        tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
         riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
@@ -385,8 +407,8 @@ export async function getAllStudents(): Promise<Siswa[]> {
         nisn: student.nisn,
         nama: student.name,
         kelas,
-        status: 'lunas',
-        tagihan: '-',
+        status: 'tidak_ada_tagihan',
+        tagihan: 'Tidak Ada Tagihan',
         nominalTagihan: 0,
         riwayat: [],
       })
@@ -413,8 +435,8 @@ export async function getSiswaByNisn(nisn: string): Promise<Siswa | undefined> {
       nisn: student.nisn,
       nama: student.name,
       kelas: (student.classes as unknown as { name: string })?.name as string || 'N/A',
-      status: 'lunas',
-      tagihan: '-',
+      status: 'tidak_ada_tagihan',
+      tagihan: 'Tidak Ada Tagihan',
       nominalTagihan: 0,
       riwayat: [],
     }

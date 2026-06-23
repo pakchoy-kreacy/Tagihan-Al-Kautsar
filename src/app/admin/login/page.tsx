@@ -44,16 +44,16 @@ export default function AdminLoginPage() {
       <main className="app-main">
         <div className="app-grid" style={{ maxWidth: 440, margin: "0 auto" }}>
           <section className="card" style={{ padding: 28 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: "#173b1a", marginBottom: 8 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--emerald)", marginBottom: 8, fontFamily: "var(--font-heading)" }}>
               Login Admin
             </h1>
-            <p style={{ color: "#5f6f63", fontSize: 14, marginBottom: 20 }}>
+            <p style={{ color: "var(--neutral)", fontSize: 14, marginBottom: 20 }}>
               Masuk dengan email dan password untuk mengelola data sekolah.
             </p>
 
             <form onSubmit={handleSubmit}>
               <label
-                style={{ fontSize: 13, color: "#5f6f63", display: "block", marginBottom: 6 }}
+                style={{ fontSize: 13, color: "var(--neutral)", display: "block", marginBottom: 6 }}
                 htmlFor="email"
               >
                 Email
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
               />
 
               <label
-                style={{ fontSize: 13, color: "#5f6f63", display: "block", marginBottom: 6 }}
+                style={{ fontSize: 13, color: "var(--neutral)", display: "block", marginBottom: 6 }}
                 htmlFor="password"
               >
                 Password
@@ -88,11 +88,11 @@ export default function AdminLoginPage() {
               {error && (
                 <div
                   style={{
-                    color: "#E53935",
+                    color: "var(--terracotta)",
                     fontSize: 14,
                     marginBottom: 12,
                     padding: "10px 14px",
-                    background: "#FFEBEE",
+                    background: "var(--terracotta-soft)",
                     borderRadius: 10,
                   }}
                 >

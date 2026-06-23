@@ -6,7 +6,7 @@ import { getAllStudentsWithBills, addSiswa, updateSiswa, deleteSiswa, getAllClas
 import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Search, Upload, Download, Plus, X } from "@/components/Icons"
+import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox } from "lucide-react"
 
 function SiswaContent() {
   const searchParams = useSearchParams()
@@ -112,28 +112,33 @@ function SiswaContent() {
     return matchKelas && matchSearch
   })
 
-  const statusMap: Record<string, string> = { lunas: "Lunas", belum: "Belum Bayar", menunggu: "Menunggu" }
+  const statusMap: Record<string, string> = {
+    lunas: "Lunas",
+    belum: "Belum Bayar",
+    menunggu: "Menunggu",
+    tidak_ada_tagihan: "Tidak Ada Tagihan",
+  }
 
   return (
     <div className="admin-page">
       <div className="page-title">Kelola Siswa</div>
-      <p className="page-subtitle">Klik kartu siswa untuk melihat detail dan riwayat pembayaran</p>
+      <p className="page-subtitle">Klik siswa untuk melihat detail dan riwayat pembayaran</p>
 
       {/* TOOLBAR */}
       <div className="siswa-toolbar">
         <div className="siswa-toolbar-left">
           <button className="admin-btn" onClick={openAdd}>
-            <Plus size={14} /> Tambah Siswa
+            <Plus size={15} /> Tambah Siswa
           </button>
           <button className="admin-btn admin-btn-outline" onClick={handleImportExcel}>
-            <Upload size={14} /> Import Excel
+            <Upload size={15} /> Import Excel
           </button>
           <button className="admin-btn admin-btn-outline" onClick={handleDownloadTemplate}>
-            <Download size={14} /> Template
+            <Download size={15} /> Template
           </button>
         </div>
         <div className="search-box siswa-search">
-          <span className="icon"><Search size={16} /></span>
+          <span className="icon"><Search size={16} color="var(--neutral)" /></span>
           <input
             placeholder="Cari nama atau NISN..."
             value={search}
@@ -157,39 +162,75 @@ function SiswaContent() {
         ))}
       </div>
 
-      {/* CARD GRID */}
+      {/* DESKTOP TABLE (>=1024px) */}
       {loading ? (
         <div className="siswa-grid">
           {[1,2,3,4,5,6].map(i => <div key={i} className="siswa-card-admin skeleton" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">👥</span>
+          <Inbox size={48} color="var(--neutral)" style={{ opacity: 0.4, marginBottom: 12 }} />
           <p>Tidak ada siswa yang cocok</p>
+          <p className="empty-state-sub">Coba ubah filter atau kata kunci pencarian</p>
         </div>
       ) : (
-        <div className="siswa-grid">
-          {filtered.map(s => (
-            <div key={s.id} className="siswa-card-admin" onClick={() => setDetailSiswa(s)}>
-              <div className="sca-header">
-                <div className="sca-avatar">MI</div>
-                <div className="sca-info">
-                  <div className="sca-name">{s.nama}</div>
-                  <div className="sca-nisn">NISN {s.nisn}</div>
+        <>
+          <div className="siswa-table-wrap">
+            <table className="siswa-table">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>NISN</th>
+                  <th>Kelas</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(s => (
+                  <tr key={s.id} onClick={() => setDetailSiswa(s)}>
+                    <td className="st-name">{s.nama}</td>
+                    <td className="st-nisn">{s.nisn}</td>
+                    <td>{s.kelas}</td>
+                    <td><span className={`badge badge-${s.status}`}>{statusMap[s.status]}</span></td>
+                    <td className="st-actions" onClick={e => e.stopPropagation()}>
+                      <button className="sca-btn sca-btn-edit" onClick={() => openEdit(s)}>
+                        <Pencil size={13} style={{ verticalAlign: "middle" }} />
+                      </button>
+                      <button className="sca-btn sca-btn-delete" onClick={() => setDeleteTarget(s)}>
+                        <Trash2 size={13} style={{ verticalAlign: "middle" }} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MOBILE CARD GRID (<1024px) */}
+          <div className="siswa-grid">
+            {filtered.map(s => (
+              <div key={s.id} className="siswa-card-admin" onClick={() => setDetailSiswa(s)}>
+                <div className="sca-header">
+                  <div className="sca-avatar">{s.nama.charAt(0).toUpperCase()}</div>
+                  <div className="sca-info">
+                    <div className="sca-name">{s.nama}</div>
+                    <div className="sca-nisn">NISN {s.nisn}</div>
+                  </div>
+                  <span className={`badge badge-${s.status}`}>{statusMap[s.status]}</span>
                 </div>
-                <span className={`badge badge-${s.status}`}>{statusMap[s.status]}</span>
+                <div className="sca-footer">
+                  <span className="sca-kelas">{s.kelas}</span>
+                  <span className="sca-tagihan">{s.tagihan !== "Tidak Ada Tagihan" ? s.tagihan : "—"}</span>
+                </div>
+                <div className="sca-actions">
+                  <button className="sca-btn sca-btn-edit" onClick={(e) => { e.stopPropagation(); openEdit(s) }}>Edit</button>
+                  <button className="sca-btn sca-btn-delete" onClick={(e) => { e.stopPropagation(); setDeleteTarget(s) }}>Hapus</button>
+                </div>
               </div>
-              <div className="sca-footer">
-                <span className="sca-kelas">🏫 {s.kelas}</span>
-                <span className="sca-tagihan">{s.tagihan !== "-" ? s.tagihan : "—"}</span>
-              </div>
-              <div className="sca-actions">
-                <button className="sca-btn sca-btn-edit" onClick={(e) => { e.stopPropagation(); openEdit(s) }}>Edit</button>
-                <button className="sca-btn sca-btn-delete" onClick={(e) => { e.stopPropagation(); setDeleteTarget(s) }}>Hapus</button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
       <p className="counter">Menampilkan {filtered.length} dari {siswaList.length} siswa</p>
@@ -230,7 +271,7 @@ function SiswaContent() {
               <button className="modal-close" onClick={() => setDetailSiswa(null)}><X size={18} /></button>
             </div>
             <div className="detail-siswa">
-              <div className="detail-avatar">MI</div>
+              <div className="detail-avatar">{detailSiswa.nama.charAt(0).toUpperCase()}</div>
               <div className="detail-name">{detailSiswa.nama}</div>
               <div className="detail-nisn">NISN {detailSiswa.nisn} · {detailSiswa.kelas}</div>
               <div className={`detail-status badge badge-${detailSiswa.status}`}>{statusMap[detailSiswa.status]}</div>
@@ -252,7 +293,7 @@ function SiswaContent() {
                 ))}
               </div>
             ) : (
-              <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", padding: "12px 0" }}>
+              <p style={{ color: "var(--neutral)", fontSize: 13, textAlign: "center", padding: "12px 0" }}>
                 Belum ada riwayat pembayaran
               </p>
             )}

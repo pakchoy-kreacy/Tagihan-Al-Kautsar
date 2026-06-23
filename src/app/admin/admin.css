@@ -5,7 +5,7 @@
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--sand);
 }
 
 /* Mobile menu button */
@@ -16,7 +16,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: #1B5E20;
+  background: var(--emerald);
   color: white;
   border: none;
   padding: 14px 18px;
@@ -36,7 +36,7 @@
 .admin-sidebar {
   width: 240px;
   min-width: 240px;
-  background: #1B5E20;
+  background: var(--emerald);
   color: white;
   display: flex;
   flex-direction: column;
@@ -68,6 +68,7 @@
 }
 
 .admin-sidebar-title {
+  font-family: var(--font-heading);
   font-size: 16px;
   font-weight: 700;
 }
@@ -104,8 +105,8 @@
 }
 
 .admin-nav-item.active {
-  background: rgba(255,255,255,0.18);
-  color: white;
+  background: var(--emerald-soft);
+  color: var(--emerald);
   font-weight: 600;
 }
 
@@ -113,6 +114,9 @@
   font-size: 18px;
   width: 24px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-sidebar-footer {
@@ -139,14 +143,15 @@
 }
 
 .admin-page {
-  max-width: 960px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
 .admin-page-title {
+  font-family: var(--font-heading);
   font-size: 24px;
   font-weight: 700;
-  color: #212121;
+  color: var(--ink);
   margin-bottom: 20px;
 }
 
@@ -198,10 +203,10 @@
   font-weight: 500;
 }
 
-.stat-total .stat-number { color: #1B5E20; }
-.stat-lunas .stat-number { color: #43A047; }
-.stat-belum .stat-number { color: #E53935; }
-.stat-menunggu .stat-number { color: #F9A825; }
+.stat-total .stat-number { color: var(--emerald); }
+.stat-lunas .stat-number { color: var(--emerald); }
+.stat-belum .stat-number { color: var(--terracotta); }
+.stat-menunggu .stat-number { color: var(--gold); }
 
 /* Sections */
 .admin-section {
@@ -227,7 +232,7 @@
 }
 
 .admin-link {
-  color: #43A047;
+  color: var(--emerald);
   text-decoration: none;
   font-size: 13px;
   font-weight: 600;
@@ -290,13 +295,13 @@
   font-weight: 600;
   border: none;
   cursor: pointer;
-  background: #43A047;
+  background: var(--emerald);
   color: white;
   transition: all 0.2s;
 }
 
 .admin-btn:hover {
-  background: #388E3C;
+  background: #0a4a3c;
 }
 
 .admin-btn:active {
@@ -309,11 +314,11 @@
 }
 
 .admin-btn-danger {
-  background: #E53935;
+  background: var(--terracotta);
 }
 
 .admin-btn-danger:hover {
-  background: #C62828;
+  background: #a54440;
 }
 
 .admin-btn-outline {
@@ -341,7 +346,7 @@
 }
 
 .admin-input:focus {
-  border-color: #43A047;
+  border-color: var(--emerald);
 }
 
 select.admin-input {
@@ -436,15 +441,16 @@ select.admin-input {
    ============================================= */
 
 .page-title {
+  font-family: var(--font-heading);
   font-size: 26px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
 .page-subtitle {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-bottom: 24px;
 }
 
@@ -484,42 +490,44 @@ select.admin-input {
   flex-shrink: 0;
 }
 
-.stat-total .stat-icon { background: #EEF2FF; }
-.stat-kelas .stat-icon { background: #F0FDF4; }
-.stat-lunas .stat-icon { background: #DCFCE7; }
-.stat-belum .stat-icon { background: #FEE2E2; }
-.stat-menunggu .stat-icon { background: #FEF9C3; }
-.stat-infaq .stat-icon { background: #DCFCE7; }
+.stat-total .stat-icon { background: var(--emerald-soft); }
+.stat-kelas .stat-icon { background: var(--neutral-soft); }
+.stat-lunas .stat-icon { background: var(--emerald-soft); }
+.stat-belum .stat-icon { background: var(--terracotta-soft); }
+.stat-menunggu .stat-icon { background: var(--gold-soft); }
+.stat-infaq .stat-icon { background: var(--emerald-soft); }
 
 .stat-content {
   flex: 1;
 }
 
 .stat-number {
+  font-family: var(--font-heading);
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-top: 2px;
   font-weight: 500;
 }
 
-.stat-total .stat-number { color: #4F46E5; }
-.stat-kelas .stat-number { color: #059669; }
-.stat-lunas .stat-number { color: #16a34a; }
-.stat-belum .stat-number { color: #dc2626; }
-.stat-menunggu .stat-number { color: #ca8a04; }
-.stat-infaq .stat-number { color: #059669; font-size: 18px; }
+.stat-total .stat-number { color: var(--emerald); }
+.stat-kelas .stat-number { color: var(--ink); }
+.stat-lunas .stat-number { color: var(--emerald); }
+.stat-belum .stat-number { color: var(--terracotta); }
+.stat-menunggu .stat-number { color: var(--gold); }
+.stat-infaq .stat-number { color: var(--emerald); font-size: 18px; }
 
 /* PENDING ALERT */
 .pending-alert {
-  background: #FEF9C3;
-  border: 1px solid #FDE047;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
   border-radius: 14px;
   padding: 16px 20px;
   margin-bottom: 24px;
@@ -539,7 +547,7 @@ select.admin-input {
 .pending-alert-text {
   font-size: 14px;
   font-weight: 600;
-  color: #713f12;
+  color: #6b5310;
   flex: 1;
 }
 
@@ -549,7 +557,7 @@ select.admin-input {
 }
 
 .btn-pending {
-  background: #F59E0B;
+  background: var(--gold);
   color: white;
   padding: 6px 16px;
   border-radius: 8px;
@@ -560,7 +568,7 @@ select.admin-input {
 }
 
 .btn-pending:hover {
-  background: #D97706;
+  background: #a87a20;
 }
 
 /* ACTIVITY GRID */
@@ -589,12 +597,12 @@ select.admin-input {
 .activity-title {
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
 }
 
 .activity-link {
   font-size: 12px;
-  color: #4F46E5;
+  color: var(--emerald);
   text-decoration: none;
   font-weight: 600;
 }
@@ -606,7 +614,7 @@ select.admin-input {
 .activity-empty {
   text-align: center;
   padding: 24px;
-  color: #9ca3af;
+  color: var(--neutral);
   font-size: 13px;
 }
 
@@ -634,7 +642,7 @@ select.admin-input {
 .activity-item-name {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -642,7 +650,7 @@ select.admin-input {
 
 .activity-item-sub {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -657,12 +665,13 @@ select.admin-input {
 .activity-item-amount {
   font-size: 13px;
   font-weight: 700;
-  color: #059669;
+  color: var(--emerald);
+  font-variant-numeric: tabular-nums;
 }
 
 .activity-item-date {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--neutral);
   margin-top: 2px;
 }
 
@@ -691,7 +700,7 @@ select.admin-input {
 .quick-action-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-  border-color: #4F46E5;
+  border-color: var(--emerald);
 }
 
 .qa-icon {
@@ -701,7 +710,7 @@ select.admin-input {
 .qa-label {
   font-size: 11px;
   font-weight: 600;
-  color: #374151;
+  color: var(--ink);
   text-align: center;
 }
 
@@ -841,7 +850,7 @@ select.admin-input {
 .kelas-card:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-  border-color: #4F46E5;
+  border-color: var(--emerald);
 }
 
 .kelas-card.skeleton {
@@ -859,7 +868,7 @@ select.admin-input {
 .kelas-badge {
   font-size: 22px;
   font-weight: 800;
-  color: #1a1a2e;
+  color: var(--ink);
 }
 
 .kelas-status {
@@ -870,13 +879,13 @@ select.admin-input {
 }
 
 .kelas-status.has-tunggakan {
-  background: #FEE2E2;
-  color: #dc2626;
+  background: var(--terracotta-soft);
+  color: var(--terracotta);
 }
 
 .kelas-status.all-paid {
-  background: #DCFCE7;
-  color: #16a34a;
+  background: var(--emerald-soft);
+  color: var(--emerald);
 }
 
 .kelas-card-body {
@@ -896,12 +905,13 @@ select.admin-input {
 .kelas-student-num {
   font-size: 28px;
   font-weight: 700;
-  color: #4F46E5;
+  color: var(--emerald);
+  font-variant-numeric: tabular-nums;
 }
 
 .kelas-student-label {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--neutral);
 }
 
 .kelas-card-footer {
@@ -912,14 +922,14 @@ select.admin-input {
 .kelas-card-action {
   font-size: 12px;
   font-weight: 600;
-  color: #4F46E5;
+  color: var(--emerald);
 }
 
 /* EMPTY STATE */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #9ca3af;
+  color: var(--neutral);
 }
 
 .empty-icon {
@@ -1000,7 +1010,7 @@ select.admin-input {
 .siswa-card-admin:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-  border-color: #4F46E5;
+  border-color: var(--emerald);
 }
 
 .siswa-card-admin.skeleton {
@@ -1020,8 +1030,8 @@ select.admin-input {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: var(--emerald-soft);
+  color: var(--emerald);
   font-weight: 700;
   font-size: 14px;
   display: flex;
@@ -1038,7 +1048,7 @@ select.admin-input {
 .sca-name {
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1046,7 +1056,7 @@ select.admin-input {
 
 .sca-nisn {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-top: 2px;
 }
 
@@ -1058,13 +1068,13 @@ select.admin-input {
 
 .sca-kelas {
   font-size: 12px;
-  color: #374151;
+  color: var(--ink);
   font-weight: 500;
 }
 
 .sca-tagihan {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--neutral);
 }
 
 .sca-actions {
@@ -1087,18 +1097,18 @@ select.admin-input {
 }
 
 .sca-btn-edit {
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: var(--emerald-soft);
+  color: var(--emerald);
 }
 
-.sca-btn-edit:hover { background: #E0E7FF; }
+.sca-btn-edit:hover { background: #d4e6da; }
 
 .sca-btn-delete {
-  background: #FEE2E2;
-  color: #dc2626;
+  background: var(--terracotta-soft);
+  color: var(--terracotta);
 }
 
-.sca-btn-delete:hover { background: #FECACA; }
+.sca-btn-delete:hover { background: #eccfcc; }
 
 /* MODAL ENHANCEMENT */
 .modal-header {
@@ -1112,11 +1122,11 @@ select.admin-input {
   background: none;
   border: none;
   cursor: pointer;
-  color: #9ca3af;
+  color: var(--neutral);
   padding: 4px;
 }
 
-.modal-close:hover { color: #374151; }
+.modal-close:hover { color: var(--ink); }
 
 /* DETAIL SISWA */
 .detail-siswa {
@@ -1128,8 +1138,8 @@ select.admin-input {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: var(--emerald-soft);
+  color: var(--emerald);
   font-weight: 700;
   font-size: 28px;
   display: flex;
@@ -1141,13 +1151,13 @@ select.admin-input {
 .detail-name {
   font-size: 20px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
 .detail-nisn {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-bottom: 8px;
 }
 
@@ -1165,7 +1175,7 @@ select.admin-input {
 .detail-riwayat-title {
   font-size: 13px;
   font-weight: 700;
-  color: #374151;
+  color: var(--ink);
   margin-bottom: 10px;
 }
 
@@ -1182,12 +1192,12 @@ select.admin-input {
 .riwayat-bulan {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--ink);
 }
 
 .riwayat-tanggal {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--neutral);
   margin-top: 2px;
 }
 
@@ -1198,12 +1208,13 @@ select.admin-input {
 .riwayat-nominal {
   font-size: 13px;
   font-weight: 700;
-  color: #059669;
+  color: var(--emerald);
+  font-variant-numeric: tabular-nums;
 }
 
 .riwayat-status {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--neutral);
   margin-top: 2px;
 }
 
@@ -1287,26 +1298,27 @@ select.admin-input {
 }
 
 .tc-btn:hover { background: #e5e7eb; }
-.tc-btn-delete { background: #FEE2E2; }
-.tc-btn-delete:hover { background: #FECACA; }
+.tc-btn-delete { background: var(--terracotta-soft); }
+.tc-btn-delete:hover { background: #eccfcc; }
 
 .tc-name {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
 }
 
 .tc-desc {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-top: -4px;
 }
 
 .tc-amount {
   font-size: 22px;
   font-weight: 700;
-  color: #059669;
+  color: var(--emerald);
   margin-top: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .tc-footer {
@@ -1322,20 +1334,20 @@ select.admin-input {
 }
 
 .tc-badge.recurring {
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: var(--emerald-soft);
+  color: var(--emerald);
 }
 
 .tc-badge.one-time {
-  background: #F0FDF4;
-  color: #059669;
+  background: var(--neutral-soft);
+  color: var(--neutral);
 }
 
 .form-label {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
@@ -1373,18 +1385,18 @@ select.admin-input {
   background: none;
   font-size: 13px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--neutral);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .pengaturan-tab:hover {
   background: #f3f4f6;
-  color: #374151;
+  color: var(--ink);
 }
 
 .pengaturan-tab.active {
-  background: #1B5E20;
+  background: var(--emerald);
   color: white;
 }
 
@@ -1402,7 +1414,7 @@ select.admin-input {
 .pengaturan-section-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
@@ -1443,12 +1455,12 @@ select.admin-input {
 .tagihan-item-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--ink);
 }
 
 .tagihan-item-desc {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--neutral);
   margin-top: 2px;
 }
 
@@ -1509,23 +1521,24 @@ select.admin-input {
 }
 
 .infaq-stat-card.pending {
-  background: #FEF9C3;
-  border-color: #FDE047;
+  background: var(--gold-soft);
+  border-color: var(--gold);
 }
 
 .infaq-stat-num {
   font-size: 24px;
   font-weight: 700;
-  color: #059669;
+  color: var(--emerald);
+  font-variant-numeric: tabular-nums;
 }
 
 .infaq-stat-card.pending .infaq-stat-num {
-  color: #ca8a04;
+  color: var(--gold);
 }
 
 .infaq-stat-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--neutral);
   margin-top: 4px;
 }
 
@@ -1554,26 +1567,27 @@ select.admin-input {
 .ic-donatur {
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--ink);
 }
 
 .ic-amount {
   font-size: 20px;
   font-weight: 700;
-  color: #059669;
+  color: var(--emerald);
   margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .ic-pesan {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--neutral);
   font-style: italic;
   margin-bottom: 6px;
 }
 
 .ic-date {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--neutral);
   margin-bottom: 10px;
 }
 
@@ -1608,7 +1622,7 @@ select.admin-input {
 }
 
 .breadcrumb-link {
-  color: #4F46E5;
+  color: var(--emerald);
   text-decoration: none;
   font-weight: 600;
 }
@@ -1618,10 +1632,214 @@ select.admin-input {
 }
 
 .breadcrumb-sep {
-  color: #9ca3af;
+  color: var(--neutral);
 }
 
 .breadcrumb-current {
-  color: #6b7280;
+  color: var(--neutral);
   font-weight: 500;
+}
+
+/* =============================================
+   FILE UPLOAD BUTTON (custom styled)
+   ============================================= */
+
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px dashed var(--neutral);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neutral);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--neutral-soft);
+}
+
+.file-upload-btn:hover {
+  border-color: var(--emerald);
+  color: var(--emerald);
+  background: var(--emerald-soft);
+}
+
+/* =============================================
+   INFAQ TOTAL CARD (prominent)
+   ============================================= */
+
+.infaq-total-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.infaq-total-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--emerald-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.infaq-total-content {
+  flex: 1;
+}
+
+.infaq-total-label {
+  font-size: 13px;
+  color: var(--neutral);
+  font-weight: 500;
+}
+
+.infaq-total-amount {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--emerald);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.infaq-total-count {
+  text-align: center;
+  padding-left: 16px;
+  border-left: 1px solid #f0f0f0;
+}
+
+.infaq-total-count-num {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.infaq-total-count-label {
+  font-size: 11px;
+  color: var(--neutral);
+  margin-top: 2px;
+}
+
+.ic-bukti-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--emerald);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ic-bukti-link:hover {
+  text-decoration: underline;
+}
+
+/* =============================================
+   EMPTY STATE (improved)
+   ============================================= */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--neutral);
+}
+
+.empty-state-sub {
+  font-size: 13px;
+  color: var(--neutral);
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* =============================================
+   SISWA DESKTOP TABLE (>=1024px)
+   ============================================= */
+
+.siswa-table-wrap {
+  display: none;
+}
+
+.siswa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+}
+
+.siswa-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--neutral);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #f0f0f0;
+  background: var(--neutral-soft);
+}
+
+.siswa-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  color: var(--ink);
+}
+
+.siswa-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.siswa-table tbody tr:hover {
+  background: var(--emerald-soft);
+}
+
+.siswa-table .st-name {
+  font-weight: 600;
+  font-family: var(--font-heading);
+}
+
+.siswa-table .st-nisn {
+  font-variant-numeric: tabular-nums;
+  color: var(--neutral);
+  font-size: 13px;
+}
+
+.siswa-table .st-actions {
+  display: flex;
+  gap: 6px;
+}
+
+@media (min-width: 1024px) {
+  .siswa-table-wrap { display: block; }
+  .siswa-grid { display: none; }
+}
+
+/* =============================================
+   STATS GRID — 6 cols on wide desktop
+   ============================================= */
+
+@media (min-width: 1280px) {
+  .stats-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }

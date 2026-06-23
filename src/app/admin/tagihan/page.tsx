@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { getAllBillTypes, addBillType, updateBillType, deleteBillType, formatRupiah, type BillType } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Plus, Edit2, Trash2, X } from "@/components/Icons"
+import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox } from "lucide-react"
 
 export default function AdminTagihanPage() {
   const { showToast } = useToast()
@@ -76,7 +76,7 @@ export default function AdminTagihanPage() {
       {/* TOOLBAR */}
       <div className="tagihan-toolbar">
         <button className="admin-btn" onClick={openAdd}>
-          <Plus size={14} /> Tambah Tagihan
+          <Plus size={15} /> Tambah Tagihan
         </button>
       </div>
 
@@ -87,17 +87,20 @@ export default function AdminTagihanPage() {
         </div>
       ) : billTypes.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">📋</span>
-          <p>Belum ada jenis tagihan. Tambahkan tagihan di atas.</p>
+          <Inbox size={48} color="var(--neutral)" style={{ opacity: 0.4, marginBottom: 12 }} />
+          <p>Belum ada jenis tagihan</p>
+          <p className="empty-state-sub">Tambahkan tagihan baru di atas</p>
         </div>
       ) : (
         <div className="tagihan-grid">
           {billTypes.map(b => (
             <div key={b.id} className="tagihan-card">
               <div className="tc-header">
-                <div className="tc-icon">{b.is_recurring ? "🔄" : "📦"}</div>
+                <div className="tc-icon">
+                  {b.is_recurring ? <RefreshCw size={24} color="var(--emerald)" /> : <Package size={24} color="var(--neutral)" />}
+                </div>
                 <div className="tc-actions">
-                  <button className="tc-btn" onClick={() => openEdit(b)} title="Edit"><Edit2 size={14} /></button>
+                  <button className="tc-btn" onClick={() => openEdit(b)} title="Edit"><Pencil size={14} /></button>
                   <button className="tc-btn tc-btn-delete" onClick={() => setDeleteTarget(b)} title="Hapus"><Trash2 size={14} /></button>
                 </div>
               </div>
@@ -106,7 +109,7 @@ export default function AdminTagihanPage() {
               <div className="tc-amount">{formatRupiah(b.default_amount)}</div>
               <div className="tc-footer">
                 <span className={`tc-badge ${b.is_recurring ? "recurring" : "one-time"}`}>
-                  {b.is_recurring ? "🔄 Bulanan" : "📦 Satu Kali"}
+                  {b.is_recurring ? "Bulanan" : "Satu Kali"}
                 </span>
               </div>
             </div>

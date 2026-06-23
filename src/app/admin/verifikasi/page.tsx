@@ -6,7 +6,7 @@ import { formatRupiah } from "@/lib/db"
 import type { PaymentWithStudent } from "@/lib/payments-db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Check, X } from "@/components/Icons"
+import { Check, X } from "lucide-react"
 
 export default function AdminVerifikasiPage() {
   const { showToast } = useToast()
@@ -56,7 +56,7 @@ export default function AdminVerifikasiPage() {
   return (
     <div className="admin-page">
       <h1 className="admin-page-title">Verifikasi Pembayaran</h1>
-      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+      <p style={{ color: "var(--neutral)", marginBottom: 14, fontSize: 13 }}>
         Approve atau tolak bukti pembayaran yang masuk.
       </p>
 
@@ -103,7 +103,7 @@ export default function AdminVerifikasiPage() {
                       <td>
                         {p.bukti_url ? (
                           <a href={p.bukti_url} target="_blank" rel="noopener noreferrer"
-                            style={{ color: "#43A047", fontSize: 13 }}>
+                            style={{ color: "var(--emerald)", fontSize: 13 }}>
                             Lihat
                           </a>
                         ) : '-'}
@@ -126,9 +126,9 @@ export default function AdminVerifikasiPage() {
                             </button>
                           </div>
                         )}
-                        {p.status === "approved" && <span style={{ color: "#43A047", fontWeight: 600 }}>Disetujui</span>}
+                        {p.status === "approved" && <span style={{ color: "var(--emerald)", fontWeight: 600 }}>Disetujui</span>}
                         {p.status === "rejected" && (
-                          <span title={p.keterangan_admin} style={{ color: "#E53935", fontWeight: 600 }}>
+                          <span title={p.keterangan_admin} style={{ color: "var(--terracotta)", fontWeight: 600 }}>
                             Ditolak {p.keterangan_admin && "(info)"}
                           </span>
                         )}
@@ -156,7 +156,7 @@ export default function AdminVerifikasiPage() {
           <div className="admin-overlay" onClick={() => setRejectModal(null)} />
           <div className="admin-modal">
             <h3>Tolak Pembayaran</h3>
-            <p style={{ fontSize: 13, color: "#5f6f63", marginBottom: 12 }}>
+            <p style={{ fontSize: 13, color: "var(--neutral)", marginBottom: 12 }}>
               Berikan alasan penolakan (opsional)
             </p>
             <textarea className="admin-input" placeholder="Alasan..."

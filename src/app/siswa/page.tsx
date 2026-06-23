@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { getStudentsByClass, getStatKelas, getActiveYear, type Siswa, type StatusBayar } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
-import { Search } from "@/components/Icons"
+import { Search } from "lucide-react"
 
 function DaftarSiswaContent() {
   const router = useRouter()
@@ -49,12 +49,14 @@ function DaftarSiswaContent() {
     { label: "Lunas", value: "lunas", color: "green" },
     { label: "Belum Bayar", value: "belum", color: "red" },
     { label: "Menunggu", value: "menunggu", color: "yellow" },
+    { label: "Tidak Ada Tagihan", value: "tidak_ada_tagihan", color: "green" },
   ]
 
   const statusMap: Record<StatusBayar, string> = {
     lunas: "Lunas",
     belum: "Belum Bayar",
     menunggu: "Menunggu",
+    tidak_ada_tagihan: "Tidak Ada Tagihan",
   }
 
   if (loading) {
@@ -85,7 +87,7 @@ function DaftarSiswaContent() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "#173b1a", marginLeft: 12 }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", marginLeft: 12, fontFamily: "var(--font-heading)" }}>
                   Kelas {kelas}
                 </span>
               </div>
@@ -94,16 +96,16 @@ function DaftarSiswaContent() {
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: 16 }}>
               <div style={{ background: "#f8fbf8", borderRadius: 14, padding: 16, textAlign: "center", border: "1px solid #e5ece5" }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#1B5E20" }}>{stat.total}</div>
-                <div style={{ fontSize: 12, color: "#6b776d", marginTop: 4 }}>Total Siswa</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--emerald)", fontVariantNumeric: "tabular-nums" }}>{stat.total}</div>
+                <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Total Siswa</div>
               </div>
               <div style={{ background: "#f8fbf8", borderRadius: 14, padding: 16, textAlign: "center", border: "1px solid #e5ece5" }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#43A047" }}>{stat.lunas}</div>
-                <div style={{ fontSize: 12, color: "#6b776d", marginTop: 4 }}>Lunas</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--emerald)", fontVariantNumeric: "tabular-nums" }}>{stat.lunas}</div>
+                <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Lunas</div>
               </div>
               <div style={{ background: "#f8fbf8", borderRadius: 14, padding: 16, textAlign: "center", border: "1px solid #e5ece5" }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#E53935" }}>{stat.belum + stat.menunggu}</div>
-                <div style={{ fontSize: 12, color: "#6b776d", marginTop: 4 }}>Perlu Dibayar</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--terracotta)", fontVariantNumeric: "tabular-nums" }}>{stat.belum + stat.menunggu}</div>
+                <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Perlu Dibayar</div>
               </div>
             </div>
           </section>
@@ -133,7 +135,7 @@ function DaftarSiswaContent() {
 
           {siswaList.length === 0 ? (
             <div className="card" style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 600, color: "#173b1a", fontSize: 16 }}>
+              <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 16, fontFamily: "var(--font-heading)" }}>
                 {allSiswa.length === 0 ? "Belum ada data siswa" : "Tidak ada siswa yang cocok"}
               </div>
               <div className="empty-text" style={{ padding: "8px 0 0" }}>

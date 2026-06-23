@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getSiswaById, formatRupiah, type Siswa } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
+import { CircleCheck, Hourglass, Clock, CircleDot } from "lucide-react"
 
 export default function DetailSiswaPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -38,19 +39,15 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
       ? { text: "Lunas", className: "badge-lunas" }
       : siswa?.status === "belum"
         ? { text: "Belum Bayar", className: "badge-belum" }
-        : { text: "Menunggu", className: "badge-menunggu" }
+        : siswa?.status === "menunggu"
+          ? { text: "Menunggu", className: "badge-menunggu" }
+          : { text: "Tidak Ada Tagihan", className: "badge-tidak-ada-tagihan" }
 
-  const statusEmoji = (status: string) => {
-    if (status === "lunas") return "OK"
-    if (status === "belum") return "!"
-    return "..."
-  }
-
-  const statusColor = (status: string) => {
-    if (status === "lunas") return "#43A047"
-    if (status === "belum") return "#E53935"
-    if (status === "menunggu") return "#F9A825"
-    return "#9e9e9e"
+  const statusIcon = (status: string) => {
+    if (status === "lunas") return <CircleCheck size={18} color="var(--emerald)" />
+    if (status === "belum") return <Hourglass size={18} color="var(--terracotta)" />
+    if (status === "menunggu") return <Clock size={18} color="var(--gold)" />
+    return <CircleDot size={18} color="var(--neutral)" />
   }
 
   if (loading) {
@@ -70,7 +67,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
         <NavBar />
         <main className="app-main">
           <div className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#173b1a" }}>Siswa tidak ditemukan</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>Siswa tidak ditemukan</div>
             <div className="empty-text" style={{ paddingTop: 8 }}>
               Data siswa yang dicari tidak ada atau sudah dihapus.
             </div>
@@ -95,10 +92,12 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16, flexWrap: "wrap" }}>
-              <div className="avatar" style={{ width: 64, height: 64, fontSize: 24 }}>MI</div>
+              <div className="avatar" style={{ width: 64, height: 64, fontSize: 24 }}>
+                {siswa.nama.charAt(0).toUpperCase()}
+              </div>
               <div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: "#173b1a" }}>{siswa.nama}</div>
-                <div style={{ color: "#5f6f63", fontSize: 14, marginTop: 4 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{siswa.nama}</div>
+                <div style={{ color: "var(--neutral)", fontSize: 14, marginTop: 4 }}>
                   NISN {siswa.nisn} | Kelas {siswa.kelas}
                 </div>
               </div>
@@ -108,8 +107,8 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
           <div className="app-grid-2">
             <section className="card" style={{ background: "#f8fbf8" }}>
               <div className="card-title">Tagihan Aktif</div>
-              <div style={{ fontSize: 14, color: "#5f6f63" }}>{siswa.tagihan}</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "#1B5E20", marginTop: 8 }}>
+              <div style={{ fontSize: 14, color: "var(--neutral)" }}>{siswa.tagihan}</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--emerald)", marginTop: 8, fontVariantNumeric: "tabular-nums" }}>
                 {formatRupiah(siswa.nominalTagihan)}
               </div>
               <button
@@ -133,7 +132,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
                 siswa.riwayat.map((item, index) => (
                   <div key={index} className={`riwayat-item status-${item.status}`}>
                     <div className="left">
-                      <span className="emoji">{statusEmoji(item.status)}</span>
+                      <span className="emoji">{statusIcon(item.status)}</span>
                       <div>
                         <span className="bulan">{item.bulan}</span>
                         <span className="tgl">{item.tanggal}</span>
@@ -141,7 +140,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
                     </div>
                     <div className="right">
                       <div className="nominal">{formatRupiah(item.nominal)}</div>
-                      <div className="status-text" style={{ color: statusColor(item.status) }}>
+                      <div className="status-text">
                         {item.status === "lunas" ? "Lunas" : item.status === "belum" ? "Belum Bayar" : "Menunggu"}
                       </div>
                     </div>

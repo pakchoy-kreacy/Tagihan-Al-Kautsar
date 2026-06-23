@@ -15,7 +15,7 @@ export default function AdminPembayaranPage() {
   return (
     <div className="admin-page">
       <h1 className="admin-page-title">Riwayat Pembayaran</h1>
-      <p style={{ color: "#757575", marginBottom: 14, fontSize: 13 }}>
+      <p style={{ color: "var(--neutral)", marginBottom: 14, fontSize: 13 }}>
         Daftar pembayaran masuk terbaru untuk verifikasi dan monitoring.
       </p>
       {loading ? <div className="loading-text">Memuat...</div> : (
@@ -38,7 +38,7 @@ export default function AdminPembayaranPage() {
                 </tr>
               ))}
               {payments.length === 0 && (
-                <tr><td colSpan={5} style={{ textAlign: "center", color: "#9e9e9e" }}>Belum ada pembayaran</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: "center", color: "var(--neutral)" }}>Belum ada pembayaran</td></tr>
               )}
             </tbody>
           </table>

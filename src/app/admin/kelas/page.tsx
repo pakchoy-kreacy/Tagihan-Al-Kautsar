@@ -7,6 +7,7 @@ import { addKelas, deleteKelas } from "@/lib/db"
 import type { KelasWithStats } from "@/lib/admin-db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
+import { Building2, Users, Plus, Inbox } from "lucide-react"
 
 export default function AdminKelasPage() {
   const { showToast } = useToast()
@@ -47,7 +48,7 @@ export default function AdminKelasPage() {
       {/* ADD FORM */}
       <div className="card-add">
         <div className="card-add-inner">
-          <span className="card-add-icon">🏫</span>
+          <Building2 size={20} color="var(--emerald)" style={{ flexShrink: 0 }} />
           <input
             className="admin-input card-add-input"
             placeholder="Nama kelas baru (contoh: 3C)"
@@ -55,7 +56,9 @@ export default function AdminKelasPage() {
             onChange={e => setFormName(e.target.value.toUpperCase())}
             onKeyDown={e => e.key === "Enter" && handleAdd()}
           />
-          <button className="admin-btn card-add-btn" onClick={handleAdd}>+ Tambah</button>
+          <button className="admin-btn card-add-btn" onClick={handleAdd}>
+            <Plus size={15} /> Tambah
+          </button>
         </div>
       </div>
 
@@ -66,8 +69,9 @@ export default function AdminKelasPage() {
         </div>
       ) : kelasList.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">🏫</span>
-          <p>Belum ada kelas. Tambahkan kelas baru di atas.</p>
+          <Inbox size={48} color="var(--neutral)" style={{ opacity: 0.4, marginBottom: 12 }} />
+          <p>Belum ada kelas</p>
+          <p className="empty-state-sub">Tambahkan kelas baru di atas</p>
         </div>
       ) : (
         <div className="kelas-grid">
@@ -81,7 +85,7 @@ export default function AdminKelasPage() {
               </div>
               <div className="kelas-card-body">
                 <div className="kelas-student-count">
-                  <span className="kelas-student-icon">👥</span>
+                  <Users size={18} color="var(--emerald)" />
                   <span className="kelas-student-num">{kelas.totalSiswa}</span>
                   <span className="kelas-student-label"> siswa</span>
                 </div>

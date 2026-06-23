@@ -4,15 +4,16 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House } from "lucide-react"
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: "D" },
-  { href: "/admin/kelas", label: "Kelas", icon: "K" },
-  { href: "/admin/siswa", label: "Siswa", icon: "S" },
-  { href: "/admin/tagihan", label: "Tagihan", icon: "T" },
-  { href: "/admin/verifikasi", label: "Verifikasi", icon: "V" },
-  { href: "/admin/verifikasi-infaq", label: "Infaq", icon: "I" },
-  { href: "/admin/pengaturan", label: "Pengaturan", icon: "G" },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/kelas", label: "Kelas", icon: Building2 },
+  { href: "/admin/siswa", label: "Siswa", icon: Users },
+  { href: "/admin/tagihan", label: "Kelola Tagihan", icon: Receipt },
+  { href: "/admin/verifikasi", label: "Verifikasi", icon: ClipboardList },
+  { href: "/admin/infaq", label: "Infaq", icon: Heart },
+  { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="admin-layout">
       <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <LayoutDashboard size={18} />
         <span>Menu</span>
         <span className="admin-menu-label">Admin Panel</span>
       </button>
@@ -54,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="admin-nav">
           {navItems.map((item) => {
             const isActive = pathname === item.href
+            const Icon = item.icon
             return (
               <Link
                 key={item.href}
@@ -61,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={`admin-nav-item ${isActive ? "active" : ""}`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <span className="admin-nav-icon">{item.icon}</span>
+                <span className="admin-nav-icon"><Icon size={18} /></span>
                 <span>{item.label}</span>
               </Link>
             )
@@ -69,7 +72,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" className="admin-back-link">Kembali ke Beranda</Link>
+          <Link href="/" className="admin-back-link" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <House size={14} /> Kembali ke Beranda
+          </Link>
           <button
             type="button"
             onClick={handleLogout}
@@ -81,10 +86,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               cursor: "pointer",
               marginTop: 8,
               padding: 0,
-              display: "block",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            Logout
+            <LogOut size={14} /> Logout
           </button>
         </div>
       </aside>
