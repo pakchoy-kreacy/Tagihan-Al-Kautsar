@@ -7,8 +7,9 @@
 
   /* Brand Design Tokens */
   --ink: #1C2A22;
-  --emerald: #0E5C4A;
-  --emerald-soft: #E4EFE9;
+  --emerald: #2BAE76;
+  --primary-dark: #1F8F5C;
+  --emerald-soft: #E6F7EF;
   --gold: #C8932A;
   --gold-soft: #F5EDD8;
   --sand: #FBF8F2;
@@ -87,7 +88,7 @@ textarea:focus-visible {
 }
 
 .app-nav {
-  background: var(--emerald);
+  background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
   color: white;
   padding: 0 24px;
   display: flex;
@@ -240,7 +241,7 @@ textarea:focus-visible {
     top: 56px;
     left: 0;
     right: 0;
-    background: var(--emerald);
+    background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
     flex-direction: column;
     padding: 12px;
     gap: 4px;
@@ -350,7 +351,7 @@ textarea:focus-visible {
   overflow: hidden;
   margin-bottom: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  background: linear-gradient(135deg, var(--emerald), #0a4a3c);
+  background: linear-gradient(135deg, #2BAE76 0%, #1F8F5C 100%);
   aspect-ratio: 16/9;
   display: flex;
   align-items: center;
@@ -496,21 +497,23 @@ textarea:focus-visible {
 }
 
 .btn-primary {
-  background: var(--emerald);
+  background: linear-gradient(135deg, #2BAE76 0%, #34C284 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(43, 174, 118, 0.3);
 }
 
 .btn-primary:hover {
-  background: #0a4a3c;
+  background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
 }
 
 .btn-secondary {
-  background: var(--emerald);
+  background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(43, 174, 118, 0.25);
 }
 
 .btn-secondary:hover {
-  background: #0a4a3c;
+  background: linear-gradient(135deg, #1a7a4e 0%, #1F8F5C 100%);
 }
 
 .btn-outline {
@@ -524,7 +527,7 @@ textarea:focus-visible {
 }
 
 .btn-success {
-  background: var(--emerald);
+  background: linear-gradient(135deg, #2BAE76 0%, #34C284 100%);
   color: white;
 }
 
@@ -549,7 +552,7 @@ textarea:focus-visible {
 }
 
 .btn-approve {
-  background: var(--emerald);
+  background: linear-gradient(135deg, #2BAE76 0%, #34C284 100%);
   color: white;
 }
 

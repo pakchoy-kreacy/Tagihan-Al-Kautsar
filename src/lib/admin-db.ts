@@ -60,27 +60,49 @@ export interface KelasWithStats {
 // ============================================
 export async function getAdminStats(): Promise<AdminStats> {
   try {
-    const [{ count: totalSiswa }, { count: totalKelas }, { count: lunas }, { count: belum }, { count: menunggu }] =
-      await Promise.all([
-        supabase.from('students').select('*', { count: 'exact', head: true }),
-        supabase.from('classes').select('*', { count: 'exact', head: true }),
-        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'lunas'),
-        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'belum'),
-        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'menunggu'),
-      ])
+    // Get active academic year
+    const { data: yearData } = await supabase
+      .from('academic_years').select('id').eq('is_active', true).maybeSingle()
 
+    // Get all class IDs for the active year
+    let classIds: string[] = []
+    if (yearData) {
+      const { data: classes } = await supabase
+        .from('classes').select('id').eq('academic_year_id', yearData.id)
+      classIds = (classes || []).map(c => c.id)
+    }
+
+    // Get student IDs in those classes
+    let studentIds: string[] = []
+    if (classIds.length > 0) {
+      const { data: students } = await supabase
+        .from('students').select('id').in('class_id', classIds)
+      studentIds = (students || []).map(s => s.id)
+    }
+
+    // Count stats
+    const totalSiswa = studentIds.length
+    const totalKelas = classIds.length
+
+    // Count bills by status for these students
+    let lunas = 0, belum = 0, menunggu = 0
+    if (studentIds.length > 0) {
+      const [lRes, bRes, mRes] = await Promise.all([
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'lunas').in('student_id', studentIds),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'belum').in('student_id', studentIds),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'menunggu').in('student_id', studentIds),
+      ])
+      lunas = lRes.count || 0
+      belum = bRes.count || 0
+      menunggu = mRes.count || 0
+    }
+
+    // Count ALL donations (no status filter - infaq is auto-approved)
     const { data: infaqData } = await supabase
       .from('donations').select('nominal')
     const totalInfaq = infaqData?.reduce((sum, d) => sum + (d.nominal || 0), 0) || 0
 
-    return {
-      totalSiswa: totalSiswa || 0,
-      totalKelas: totalKelas || 0,
-      lunas: lunas || 0,
-      belum: belum || 0,
-      menunggu: menunggu || 0,
-      totalInfaq,
-    }
+    return { totalSiswa, totalKelas, lunas, belum, menunggu, totalInfaq }
   } catch (error) {
     console.error('Error fetching admin stats:', error)
     return { totalSiswa: 0, totalKelas: 0, lunas: 0, belum: 0, menunggu: 0, totalInfaq: 0 }
@@ -111,10 +133,16 @@ export async function getKelasWithStats(): Promise<KelasWithStats[]> {
 
     const unpaidCounts = await Promise.all(
       classes.map(async (c) => {
+        // Get student IDs in this class first
+        const { data: classStudents } = await supabase
+          .from('students').select('id').eq('class_id', c.id)
+        const studentIds = (classStudents || []).map(s => s.id)
+        if (studentIds.length === 0) return { id: c.id, count: 0 }
+
         const { count } = await supabase
           .from('bills').select('*', { count: 'exact', head: true })
           .in('status', ['belum', 'menunggu'])
-          .eq('year', new Date().getFullYear())
+          .in('student_id', studentIds)
         return { id: c.id, count: count || 0 }
       })
     )
