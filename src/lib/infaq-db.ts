@@ -165,7 +165,26 @@ export async function updateBankInfo(id: string, data: Partial<BankInfoSettings>
 // ============================================
 // SCHOOL SETTINGS
 // ============================================
+const SETTINGS_CACHE_KEY = "espp_school_settings_data"
+
 export async function getSchoolSettings(): Promise<SchoolSettings | null> {
+  // Coba cache dulu
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(SETTINGS_CACHE_KEY)
+      if (raw) {
+        const cached = JSON.parse(raw) as SchoolSettings
+        // Return cache, refresh di background
+        refreshSchoolSettings()
+        return cached
+      }
+    } catch { /* ignore */ }
+  }
+
+  return refreshSchoolSettings()
+}
+
+async function refreshSchoolSettings(): Promise<SchoolSettings | null> {
   try {
     const { data, error } = await supabase
       .from('school_settings')
@@ -173,7 +192,11 @@ export async function getSchoolSettings(): Promise<SchoolSettings | null> {
       .single()
 
     if (error) throw error
-    return data as SchoolSettings
+    const result = data as SchoolSettings
+    if (typeof window !== "undefined") {
+      try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(result)) } catch { /* ignore */ }
+    }
+    return result
   } catch (error) {
     console.error('Error fetching school settings:', error)
     return null

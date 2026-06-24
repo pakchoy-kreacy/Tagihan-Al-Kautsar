@@ -10,10 +10,23 @@ export default function InfaqPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getBankInfoByType("infaq").then(b => {
-      setBank(b)
-      setLoading(false)
-    })
+    let mounted = true
+
+    async function fetchData() {
+      const b = await getBankInfoByType("infaq")
+      if (mounted) { setBank(b); setLoading(false) }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 60000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
   }, [])
 
   if (loading) {

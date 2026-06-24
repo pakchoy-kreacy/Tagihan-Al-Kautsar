@@ -16,14 +16,26 @@ export default function BayarPage() {
 
   useEffect(() => {
     if (!id) return
-    Promise.all([
-      getSiswaById(id),
-      getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
-    ]).then(([s, b]) => {
-      setSiswa(s || null)
-      setBank(b)
-      setLoading(false)
-    })
+    let mounted = true
+
+    async function fetchData() {
+      const [s, b] = await Promise.all([
+        getSiswaById(id),
+        getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
+      ])
+      if (mounted) { setSiswa(s || null); setBank(b); setLoading(false) }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 30000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
