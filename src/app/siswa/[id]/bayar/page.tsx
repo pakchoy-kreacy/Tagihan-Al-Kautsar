@@ -4,9 +4,10 @@ import { use, useEffect, useState, useRef } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { getSiswaById, formatRupiah, type RiwayatPembayaran } from "@/lib/db"
-import { getBankInfo, submitPayment, uploadBukti } from "@/lib/payments-db"
+import { submitPayment, uploadBukti } from "@/lib/payments-db"
+import { getBankInfoByType } from "@/lib/infaq-db"
 import type { Siswa } from "@/lib/db"
-import type { BankInfo } from "@/lib/payments-db"
+import type { BankInfoSettings } from "@/lib/infaq-db"
 import { NavBar } from "@/components/NavBar"
 import { Check, Upload, X, Copy, Download } from "lucide-react"
 import { useToast } from "@/components/Toast"
@@ -16,7 +17,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
   const { id } = use(params)
   const { showToast } = useToast()
   const [siswa, setSiswa] = useState<Siswa | null>(null)
-  const [bank, setBank] = useState<BankInfo | null>(null)
+  const [bank, setBank] = useState<BankInfoSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -48,7 +49,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
     async function init() {
       setLoading(true)
       try {
-        const [s, b] = await Promise.all([getSiswaById(id), getBankInfo()])
+        const [s, b] = await Promise.all([getSiswaById(id), getBankInfoByType("payment")])
         if (s) {
           setSiswa(s)
           const firstUnpaid = s.riwayat.find((r: RiwayatPembayaran) => r.status !== "lunas")
@@ -175,7 +176,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
 
           <div className="app-grid-2">
             <div style={{ display: "grid", gap: 14 }}>
-              {bank && (
+              {bank ? (
                 <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5", textAlign: "center" }}>
                   <div className="card-title" style={{ justifyContent: "center" }}>Rekening Pembayaran</div>
                   <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
@@ -209,6 +210,8 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
                     </div>
                   )}
                 </div>
+              ) : (
+                <div className="card"><p className="empty-text">Info rekening belum tersedia</p></div>
               )}
 
               {siswa && (
