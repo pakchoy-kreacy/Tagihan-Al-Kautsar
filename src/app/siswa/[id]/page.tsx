@@ -2,9 +2,10 @@
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { getSiswaById, formatRupiah, type Siswa } from "@/lib/db"
-import { NavBar } from "@/components/NavBar"
-import { CircleCheck, Hourglass, Clock, CircleDot, CalendarDays } from "lucide-react"
+import Link from "next/link"
+import { getSiswaById, formatRupiah, type RiwayatPembayaran } from "@/lib/db"
+import type { Siswa } from "@/lib/db"
+import { ArrowLeft, Home, User, Wallet, ChevronRight } from "lucide-react"
 
 export default function DetailSiswaPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -34,28 +35,41 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
     fetchStudent()
   }, [id])
 
-  const statusLabel =
-    siswa?.status === "lunas"
-      ? { text: "Lunas", className: "badge-lunas" }
-      : siswa?.status === "belum"
-        ? { text: "Belum Bayar", className: "badge-belum" }
-        : siswa?.status === "menunggu"
-          ? { text: "Menunggu", className: "badge-menunggu" }
-          : { text: "Tidak Ada Tagihan", className: "badge-tidak-ada-tagihan" }
+  function formatDate(tgl: string) {
+    if (!tgl || tgl === "Belum dibayar") return tgl
+    try {
+      return new Date(tgl).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+    } catch {
+      return tgl
+    }
+  }
 
-  const statusIcon = (status: string) => {
-    if (status === "lunas") return <CircleCheck size={18} color="var(--emerald)" />
-    if (status === "belum") return <Hourglass size={18} color="var(--terracotta)" />
-    if (status === "menunggu") return <Clock size={18} color="var(--gold)" />
-    return <CircleDot size={18} color="var(--neutral)" />
+  function deadlineText(item: RiwayatPembayaran) {
+    if (!item.batas_waktu) return null
+    try {
+      return new Date(item.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+    } catch {
+      return null
+    }
+  }
+
+  const statusConfig: Record<string, { label: string; className: string }> = {
+    lunas: { label: "LUNAS", className: "lunas" },
+    belum: { label: "BELUM BAYAR", className: "belum" },
+    menunggu: { label: "MENUNGGU", className: "menunggu" },
+    tidak_ada_tagihan: { label: "TIDAK ADA", className: "lunas" },
   }
 
   if (loading) {
     return (
       <div className="app-shell">
-        <NavBar />
-        <main className="app-main">
-          <div className="loading-text">Memuat data siswa...</div>
+        <header className="public-header">
+          <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
+          <span className="public-header-title">Detail Tagihan</span>
+          <Link href="/"><Home size={20} /></Link>
+        </header>
+        <main className="public-page">
+          <div className="loading-text" style={{ padding: 40, textAlign: "center" }}>Memuat...</div>
         </main>
       </div>
     )
@@ -64,9 +78,13 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
   if (notFound || !siswa) {
     return (
       <div className="app-shell">
-        <NavBar />
-        <main className="app-main">
-          <div className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
+        <header className="public-header">
+          <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
+          <span className="public-header-title">Detail Tagihan</span>
+          <Link href="/"><Home size={20} /></Link>
+        </header>
+        <main className="public-page">
+          <div className="card" style={{ textAlign: "center", padding: 32, marginTop: 20 }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>Siswa tidak ditemukan</div>
             <div className="empty-text" style={{ paddingTop: 8 }}>
               Data siswa yang dicari tidak ada atau sudah dihapus.
@@ -80,103 +98,85 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
     )
   }
 
+  const activeBill = siswa.riwayat.find((r) => r.status !== "lunas")
+  const history = siswa.riwayat.filter((r) => r.status === "lunas")
+  const activeStatus = activeBill ? statusConfig[activeBill.status] : null
+
   return (
     <div className="app-shell">
-      <NavBar />
-      <main className="app-main">
-        <div className="app-grid">
-          <section className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <button type="button" className="back" onClick={() => router.back()}>Kembali</button>
-              <span className={`badge ${statusLabel.className}`}>
-                {statusLabel.text}
-                {siswa.riwayat.length > 0 && (
-                  <span style={{ marginLeft: 4, opacity: 0.85 }}>
-                    ({siswa.riwayat.filter(r => r.status === 'lunas').length}/{siswa.riwayat.length})
-                  </span>
-                )}
-              </span>
-            </div>
+      <header className="public-header">
+        <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
+        <span className="public-header-title">Detail Tagihan</span>
+        <Link href="/"><Home size={20} /></Link>
+      </header>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16, flexWrap: "wrap" }}>
-              <div className="avatar" style={{ width: 64, height: 64, fontSize: 24 }}>
-                {siswa.nama.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{siswa.nama}</div>
-                <div style={{ color: "var(--neutral)", fontSize: 14, marginTop: 4 }}>
-                  NISN {siswa.nisn} | Kelas {siswa.kelas}
-                </div>
-              </div>
-            </div>
-          </section>
+      <main className="public-page">
+        {/* Profile Card */}
+        <div className="profile-card">
+          <div className="profile-avatar">
+            <User size={28} />
+          </div>
+          <div className="profile-info">
+            <div className="name">{siswa.nama}</div>
+            <div className="meta">Kelas {siswa.kelas}</div>
+            <div className="meta">NISN: {siswa.nisn}</div>
+          </div>
+        </div>
 
-          <div className="app-grid-2">
-            <section className="card" style={{ background: "#f8fbf8" }}>
-              <div className="card-title">Tagihan Aktif</div>
-              <div style={{ fontSize: 14, color: "var(--neutral)" }}>{siswa.tagihan}</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--emerald)", marginTop: 8, fontVariantNumeric: "tabular-nums" }}>
-                {formatRupiah(siswa.nominalTagihan)}
-              </div>
-              {(() => {
-                const unpaid = siswa.riwayat.find(r => r.status !== "lunas")
-                if (unpaid?.batas_waktu) {
-                  const d = new Date(unpaid.batas_waktu)
-                  return (
-                    <div style={{ marginTop: 10, fontSize: 13, color: "var(--terracotta)", display: "flex", alignItems: "center", gap: 6 }}>
-                      <CalendarDays size={14} />
-                      Batas bayar: {d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                    </div>
-                  )
-                }
-                return null
-              })()}
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{ marginTop: 16 }}
-                onClick={() => router.push(`/siswa/${id}/bayar`)}
-              >
-                Bayar Sekarang
-              </button>
-            </section>
-
-            <section className="riwayat" style={{ background: "#fff", borderRadius: 14, padding: "16px 18px" }}>
-              <div className="title">Riwayat Pembayaran</div>
-
-              {siswa.riwayat.length === 0 ? (
-                <div className="empty-text" style={{ padding: "18px 0" }}>
-                  Belum ada riwayat pembayaran
-                </div>
-              ) : (
-                siswa.riwayat.map((item, index) => (
-                  <div key={index} className={`riwayat-item status-${item.status}`}>
-                    <div className="left">
-                      <span className="emoji">{statusIcon(item.status)}</span>
-                      <div>
-                        <span className="bulan">{item.bulan}</span>
-                        <span className="tgl">{item.tanggal}</span>
-                      </div>
-                    </div>
-                    <div className="right">
-                      <div className="nominal">{formatRupiah(item.nominal)}</div>
-                      <div className="status-text">
-                        {item.status === "lunas" ? "Lunas" : item.status === "belum" ? "Belum Bayar" : "Menunggu"}
-                      </div>
-                      {item.batas_waktu && item.status !== "lunas" && (
-                        <div style={{ fontSize: 11, color: "var(--terracotta)", marginTop: 2 }}>
-                          Jatuh tempo: {new Date(item.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </section>
+        {/* Active Bill */}
+        <div className="bill-card">
+          <div className="bill-card-header">
+            <div className="bill-card-title">Tagihan Aktif</div>
+            {activeStatus && <span className={`bill-status-badge ${activeStatus.className}`}>{activeStatus.label}</span>}
           </div>
 
-          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+          <div className="bill-card-title" style={{ marginBottom: 12 }}>{siswa.tagihan}</div>
+
+          {activeBill?.batas_waktu && (
+            <div className="bill-row">
+              <span className="label">Jatuh Tempo</span>
+              <span className="value">{deadlineText(activeBill)}</span>
+            </div>
+          )}
+
+          <div className="bill-row" style={{ marginTop: 4 }}>
+            <span className="label">Jumlah</span>
+            <span className="value amount">{formatRupiah(siswa.nominalTagihan)}</span>
+          </div>
+
+          {siswa.status !== "lunas" && siswa.status !== "tidak_ada_tagihan" && (
+            <button type="button" className="bill-btn" onClick={() => router.push(`/siswa/${id}/bayar`)}>
+              <Wallet size={18} />
+              Bayar Sekarang
+            </button>
+          )}
         </div>
+
+        {/* Payment History */}
+        <div className="history-card">
+          <div className="title">Riwayat Pembayaran</div>
+          {history.length === 0 ? (
+            <div className="empty-text" style={{ padding: "12px 0" }}>Belum ada riwayat pembayaran</div>
+          ) : (
+            history.map((item) => {
+              const cfg = statusConfig[item.status] || statusConfig.lunas
+              return (
+                <div key={item.id} className="history-item">
+                  <div className="left">
+                    <div className="bill-name">{item.bulan}</div>
+                    <div className="bill-date">{formatDate(item.tanggal)}</div>
+                  </div>
+                  <div className="right">
+                    <span className={`status ${cfg.className}`}>{cfg.label}</span>
+                    <ChevronRight size={16} color="var(--neutral)" />
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
       </main>
     </div>
   )
