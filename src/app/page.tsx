@@ -5,7 +5,7 @@ import { getSchoolSettings } from "@/lib/infaq-db"
 import type { SchoolSettings } from "@/lib/infaq-db"
 import Image from "next/image"
 import { NavBar } from "@/components/NavBar"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Users, Heart } from "lucide-react"
 import { getAllClasses, type KelasData } from "@/lib/db"
 import { useRouter } from "next/navigation"
 
@@ -144,10 +144,12 @@ export default function BerandaPage() {
               onClick={() => selectedKelas && router.push(`/siswa?kelas=${selectedKelas}`)}
               disabled={!selectedKelas}
             >
+              <Users size={18} />
               Lihat Data Siswa
             </button>
 
             <button type="button" className="btn btn-secondary" onClick={() => router.push("/infaq")}>
+              <Heart size={18} />
               Infaq Sekolah
             </button>
           </div>

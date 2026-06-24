@@ -206,11 +206,15 @@ textarea:focus-visible {
 .home-banner {
   position: relative;
   width: 100%;
-  max-height: 220px;
-  aspect-ratio: 21/9;
-  border-radius: 14px;
+  max-width: 720px;
+  margin: 0 auto;
+  max-height: 260px;
+  aspect-ratio: 16/9;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--emerald-soft);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .home-banner img,
@@ -223,7 +227,7 @@ textarea:focus-visible {
 
 @media (max-width: 767px) {
   .home-banner {
-    max-height: 160px;
+    max-height: 180px;
     aspect-ratio: 16/9;
   }
 }
@@ -242,14 +246,16 @@ textarea:focus-visible {
 
 .skeleton-banner {
   width: 100%;
-  max-height: 220px;
-  aspect-ratio: 21/9;
-  border-radius: 14px;
+  max-width: 720px;
+  margin: 0 auto;
+  max-height: 260px;
+  aspect-ratio: 16/9;
+  border-radius: 16px;
 }
 
 @media (max-width: 767px) {
   .skeleton-banner {
-    max-height: 160px;
+    max-height: 180px;
     aspect-ratio: 16/9;
   }
 }
@@ -281,7 +287,7 @@ textarea:focus-visible {
   }
 
   .app-actions {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .app-nav-toggle {
@@ -295,7 +301,7 @@ textarea:focus-visible {
   }
 
   .app-actions {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
