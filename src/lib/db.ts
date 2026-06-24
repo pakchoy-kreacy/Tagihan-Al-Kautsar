@@ -9,6 +9,7 @@ export interface RiwayatPembayaran {
   tanggal: string
   nominal: number
   status: StatusBayar
+  batas_waktu: string | null
 }
 
 export interface Siswa {
@@ -165,13 +166,14 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         status,
         tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: typedBills.map((b: Bill) => ({
+        riwayat: typedBills.map((b: any) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
           tanggal: b.paid_date || 'Belum dibayar',
           nominal: b.amount,
           status: b.status as StatusBayar,
+          batas_waktu: b.bill_types?.batas_waktu || null,
         })),
       }
     })
@@ -195,7 +197,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
 
     const { data: bills, error: billsError } = await supabase
       .from('bills')
-      .select('*')
+      .select('*, bill_types(batas_waktu)')
       .eq('student_id', id)
       .order('year', { ascending: false })
       .order('month', { ascending: false })
@@ -222,13 +224,14 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       status,
       tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
       nominalTagihan: activeBill?.amount || 0,
-      riwayat: typedBills.map((b: Bill) => ({
+      riwayat: typedBills.map((b: any) => ({
         id: b.id,
         bulan: b.month,
         tahun: b.year.toString(),
         tanggal: b.paid_date || 'Belum dibayar',
         nominal: b.amount,
         status: b.status as StatusBayar,
+        batas_waktu: b.bill_types?.batas_waktu || null,
       })),
     }
   } catch (error) {
@@ -526,13 +529,14 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
         status,
         tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: typedBills.map((b: Bill) => ({
+        riwayat: typedBills.map((b: any) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
           tanggal: b.paid_date || 'Belum dibayar',
           nominal: b.amount,
           status: b.status as StatusBayar,
+          batas_waktu: b.bill_types?.batas_waktu || null,
         })),
       }
     })

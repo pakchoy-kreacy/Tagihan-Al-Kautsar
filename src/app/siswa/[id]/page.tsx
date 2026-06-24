@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getSiswaById, formatRupiah, type Siswa } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
-import { CircleCheck, Hourglass, Clock, CircleDot } from "lucide-react"
+import { CircleCheck, Hourglass, Clock, CircleDot, CalendarDays } from "lucide-react"
 
 export default function DetailSiswaPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -118,6 +118,19 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
               <div style={{ fontSize: 28, fontWeight: 700, color: "var(--emerald)", marginTop: 8, fontVariantNumeric: "tabular-nums" }}>
                 {formatRupiah(siswa.nominalTagihan)}
               </div>
+              {(() => {
+                const unpaid = siswa.riwayat.find(r => r.status !== "lunas")
+                if (unpaid?.batas_waktu) {
+                  const d = new Date(unpaid.batas_waktu)
+                  return (
+                    <div style={{ marginTop: 10, fontSize: 13, color: "var(--terracotta)", display: "flex", alignItems: "center", gap: 6 }}>
+                      <CalendarDays size={14} />
+                      Batas bayar: {d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </div>
+                  )
+                }
+                return null
+              })()}
               <button
                 type="button"
                 className="btn btn-primary"
@@ -150,6 +163,11 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
                       <div className="status-text">
                         {item.status === "lunas" ? "Lunas" : item.status === "belum" ? "Belum Bayar" : "Menunggu"}
                       </div>
+                      {item.batas_waktu && item.status !== "lunas" && (
+                        <div style={{ fontSize: 11, color: "var(--terracotta)", marginTop: 2 }}>
+                          Jatuh tempo: {new Date(item.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))

@@ -9,7 +9,7 @@ import { getBankInfoByType } from "@/lib/infaq-db"
 import type { Siswa } from "@/lib/db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { NavBar } from "@/components/NavBar"
-import { Check, Upload, X, Copy, Download } from "lucide-react"
+import { Check, Upload, X, Copy, Download, CalendarDays } from "lucide-react"
 import { useToast } from "@/components/Toast"
 
 export default function BayarPage({ params }: { params: Promise<{ id: string }> }) {
@@ -226,6 +226,19 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
                     <div style={{ fontSize: 20, fontWeight: 700, color: "#a87a20", fontVariantNumeric: "tabular-nums" }}>
                       {formatRupiah(siswa.nominalTagihan)}
                     </div>
+                    {(() => {
+                      const active = unpaidBills[0]
+                      if (active?.batas_waktu) {
+                        const d = new Date(active.batas_waktu)
+                        return (
+                          <div style={{ marginTop: 6, fontSize: 12, color: "var(--terracotta)", display: "flex", alignItems: "center", gap: 4 }}>
+                            <CalendarDays size={12} />
+                            Batas bayar: {d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                          </div>
+                        )
+                      }
+                      return null
+                    })()}
                   </div>
                 </div>
               )}
@@ -247,7 +260,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
                 >
                   {unpaidBills.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.bulan} — {formatRupiah(b.nominal)}
+                      {b.bulan} — {formatRupiah(b.nominal)}{b.batas_waktu ? ` | Jatuh tempo: ${new Date(b.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}` : ""}
                     </option>
                   ))}
                 </select>
