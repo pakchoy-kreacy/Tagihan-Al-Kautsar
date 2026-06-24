@@ -41,7 +41,7 @@ export default function AdminVerifikasiPage() {
   async function handleReject(paymentId: string, ket: string) {
     setRejectModal(null)
     setActionLoading(paymentId)
-    const ok = await rejectPayment(paymentId, ket)
+    const ok = await rejectPayment(paymentId, rejectTarget?.bill_id || "", ket)
     if (ok) { showToast("Pembayaran ditolak"); await fetchPayments() }
     else showToast("Gagal reject!", "error")
     setActionLoading(null)

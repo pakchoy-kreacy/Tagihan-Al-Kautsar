@@ -119,6 +119,15 @@ export async function submitPayment(data: {
     })
 
     if (error) throw error
+
+    // Update status tagihan jadi menunggu verifikasi
+    const { error: billError } = await supabase
+      .from('bills')
+      .update({ status: 'menunggu' })
+      .eq('id', data.bill_id)
+
+    if (billError) throw billError
+
     return { success: true }
   } catch (error) {
     console.error('Error submitting payment:', error)
@@ -204,7 +213,7 @@ export async function approvePayment(paymentId: string, billId: string): Promise
 // ============================================
 // ADMIN: REJECT PAYMENT
 // ============================================
-export async function rejectPayment(paymentId: string, keterangan: string = ''): Promise<boolean> {
+export async function rejectPayment(paymentId: string, billId: string, keterangan: string = ''): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('payments')
@@ -212,6 +221,15 @@ export async function rejectPayment(paymentId: string, keterangan: string = ''):
       .eq('id', paymentId)
 
     if (error) throw error
+
+    // Kembalikan status tagihan jadi belum bayar
+    const { error: billError } = await supabase
+      .from('bills')
+      .update({ status: 'belum' })
+      .eq('id', billId)
+
+    if (billError) throw billError
+
     return true
   } catch (error) {
     console.error('Error rejecting payment:', error)
