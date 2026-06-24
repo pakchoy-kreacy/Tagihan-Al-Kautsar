@@ -2,7 +2,6 @@
 import "./admin.css"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
@@ -25,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
-  const { settings } = useSchoolSettings()
+  useSchoolSettings()
 
   const isLoginPage = pathname === "/admin/login"
 
@@ -110,20 +109,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </button>
 
       <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="admin-sidebar-header">
-          {settings?.logo_url ? (
-            <div className="admin-sidebar-logo">
-              <Image src={settings.logo_url} alt="Logo" width={40} height={40} style={{ borderRadius: "50%", objectFit: "cover" }} />
-            </div>
-          ) : (
-            <div className="admin-sidebar-logo">MI</div>
-          )}
-          <div>
-            <div className="admin-sidebar-title">ESPP MI</div>
-            <div className="admin-sidebar-sub">Admin Panel</div>
-          </div>
-        </div>
-
         <nav className="admin-nav">
           {navItems.map((item) => {
             const isActive = pathname === item.href

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef, useMemo } from "react"
-import Link from "next/link"
 import Image from "next/image"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { submitPayment, uploadBukti } from "@/lib/payments-db"
@@ -102,7 +101,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
         <header className="public-header">
           <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
           <span className="public-header-title">Pembayaran</span>
-          <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/" style={{ color: "inherit", display: "flex" }}><Home size={20} /></a>
         </header>
         <main className="public-page">
           <div className="card" style={{ textAlign: "center", padding: 32, marginTop: 20 }}>
@@ -133,7 +133,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
       <header className="public-header">
         <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Pembayaran</span>
-        <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/" style={{ color: "inherit", display: "flex" }}><Home size={20} /></a>
       </header>
 
       <main className="public-page with-bottom-btn">

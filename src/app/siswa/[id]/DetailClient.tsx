@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { ArrowLeft, Home, User, Wallet, ChevronRight } from "lucide-react"
 
@@ -10,6 +10,7 @@ interface DetailClientProps {
 }
 
 export function DetailClient({ siswa, id }: DetailClientProps) {
+  const [navigating, setNavigating] = useState(false)
 
   function formatDate(tgl: string) {
     if (!tgl || tgl === "Belum dibayar") return tgl
@@ -45,7 +46,8 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
       <header className="public-header">
         <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Detail Tagihan</span>
-        <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/" style={{ color: "inherit", display: "flex" }}><Home size={20} /></a>
       </header>
 
       <main className="public-page">
@@ -87,9 +89,9 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
               <span className="value amount" style={{ fontSize: 20 }}>{formatRupiah(totalUnpaid)}</span>
             </div>
 
-            <a href={`/siswa/${id}/bayar`} className="bill-btn" style={{ textDecoration: "none", marginTop: 16 }}>
+            <a href={`/siswa/${id}/bayar`} className="bill-btn" style={{ textDecoration: "none", marginTop: 16 }} onClick={() => setNavigating(true)}>
               <Wallet size={18} />
-              Bayar Sekarang
+              {navigating ? "Memuat..." : "Bayar Sekarang"}
             </a>
           </div>
         ) : (

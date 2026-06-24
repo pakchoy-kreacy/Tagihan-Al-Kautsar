@@ -43,7 +43,7 @@ export function NavBar() {
 
       <div className={`app-nav-links ${open ? "open" : ""}`}>
         {links.map((link) => (
-          <Link
+          <a
             key={link.href}
             href={link.href}
             className={`app-nav-link ${pathname === link.href ? "active" : ""}`}
@@ -51,7 +51,7 @@ export function NavBar() {
             style={{ textDecoration: "none" }}
           >
             {link.label}
-          </Link>
+          </a>
         ))}
       </div>
     </nav>
