@@ -585,3 +585,73 @@ export async function deleteBillType(id: string): Promise<boolean> {
     return false
   }
 }
+
+// ============================================
+// GENERATE BILLS FROM BILL TYPES
+// ============================================
+export async function generateBills(month: string, year: number): Promise<{ success: boolean; count: number; error?: string }> {
+  try {
+    const { data: yearData, error: yearError } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('is_active', true)
+      .single()
+
+    if (yearError || !yearData) {
+      return { success: false, count: 0, error: "Tahun ajaran aktif tidak ditemukan" }
+    }
+
+    const { data: billTypes, error: btError } = await supabase.from('bill_types').select('*')
+    if (btError) throw btError
+    if (!billTypes || billTypes.length === 0) {
+      return { success: false, count: 0, error: "Belum ada jenis tagihan" }
+    }
+
+    const { data: students, error: stError } = await supabase
+      .from('students')
+      .select('id, classes(name)')
+
+    if (stError) throw stError
+    if (!students || students.length === 0) {
+      return { success: false, count: 0, error: "Belum ada siswa" }
+    }
+
+    const billsToInsert = []
+    for (const bt of billTypes) {
+      const applicableClasses = bt.berlaku_untuk_kelas
+      for (const student of students) {
+        const className = (student.classes as unknown as { name: string })?.name || ''
+        if (applicableClasses && applicableClasses.length > 0 && !applicableClasses.includes(className)) {
+          continue
+        }
+        billsToInsert.push({
+          student_id: student.id,
+          bill_type_id: bt.id,
+          academic_year_id: yearData.id,
+          month,
+          year,
+          amount: bt.default_amount,
+          status: 'belum',
+        })
+      }
+    }
+
+    if (billsToInsert.length === 0) {
+      return { success: true, count: 0 }
+    }
+
+    const { error } = await supabase
+      .from('bills')
+      .upsert(billsToInsert, {
+        onConflict: 'student_id,bill_type_id,month,year',
+        ignoreDuplicates: true,
+      })
+
+    if (error) throw error
+
+    return { success: true, count: billsToInsert.length }
+  } catch (error) {
+    console.error('Error generating bills:', error)
+    return { success: false, count: 0, error: "Gagal generate tagihan" }
+  }
+}
