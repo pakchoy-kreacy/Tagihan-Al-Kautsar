@@ -90,30 +90,39 @@ export default function BerandaPage() {
             </section>
           ) : null}
 
-          {/* HINT */}
+          {/* PETUNJUK */}
           {!loading && (
-            <div style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              maxWidth: 720,
-              margin: "4px auto 0",
-              padding: "12px 16px",
-              background: "var(--gold-soft)",
-              border: "1px solid #e6d9b8",
-              borderRadius: 12,
-            }}>
-              <Lightbulb size={18} style={{ color: "var(--gold)", flexShrink: 0, marginTop: 2 }} />
-              <p style={{
-                color: "#7a6228",
-                fontSize: 14,
-                lineHeight: 1.6,
-                textAlign: "justify",
-                margin: 0,
+            <section className="card" style={{ maxWidth: 720, margin: "4px auto 0", padding: 20 }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                marginBottom: 14,
               }}>
-                Pilih kelas untuk melihat data siswa, atau kirim infaq sekolah.
-              </p>
-            </div>
+                <Lightbulb size={20} style={{ color: "var(--gold)" }} />
+                <h2 style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "var(--ink)",
+                  margin: 0,
+                  fontFamily: "var(--font-heading)",
+                }}>
+                  Petunjuk
+                </h2>
+              </div>
+              <ol style={{
+                margin: 0,
+                paddingLeft: 22,
+                color: "var(--ink)",
+                fontSize: 15,
+                lineHeight: 1.7,
+              }}>
+                <li>Pilih kelas, lalu klik <strong>Lihat Data Siswa</strong>.</li>
+                <li>Pilih siswa yang ingin dibayar tagihannya.</li>
+                <li>Lakukan pembayaran sesuai tagihan sekolah.</li>
+              </ol>
+            </section>
           )}
 
           {/* PILIH KELAS */}

@@ -21,7 +21,6 @@ export function NavBar() {
 
   const links = [
     { href: "/", label: "Beranda" },
-    { href: "/infaq", label: "Infaq" },
     { href: "/admin", label: "Admin" },
   ]
 
