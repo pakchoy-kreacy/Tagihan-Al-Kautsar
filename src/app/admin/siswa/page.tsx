@@ -350,40 +350,65 @@ function SiswaContent() {
               <div className="detail-name">{detailSiswa.nama}</div>
               <div className="detail-nisn">NISN {detailSiswa.nisn} · {detailSiswa.kelas}</div>
               <div className={`detail-status badge badge-${detailSiswa.status}`}>{statusMap[detailSiswa.status]}</div>
-              {detailSiswa.status !== 'lunas' && detailSiswa.status !== 'tidak_ada_tagihan' && (
-                <button
-                  type="button"
-                  className="admin-btn"
-                  style={{ marginTop: 14 }}
-                  onClick={async () => {
-                    const activeBill = detailSiswa.riwayat.find(r => r.status !== 'lunas')
-                    if (!activeBill) return
-                    const ok = await markBillAsPaid(activeBill.id)
-                    if (ok) {
-                      showToast("Tagihan ditandai lunas!")
-                      setDetailSiswa(null)
-                      await fetchData()
-                    } else {
-                      showToast("Gagal menandai lunas!", "error")
-                    }
-                  }}
-                >
-                  Tandai Lunas (Konfirmasi Manual)
-                </button>
-              )}
             </div>
+
             {detailSiswa.riwayat.length > 0 ? (
               <div className="detail-riwayat">
-                <div className="detail-riwayat-title">Riwayat Pembayaran</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div className="detail-riwayat-title" style={{ marginBottom: 0 }}>Riwayat Pembayaran</div>
+                  {detailSiswa.riwayat.some(r => r.status !== 'lunas') && (
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-sm"
+                      style={{ fontSize: 12, padding: "6px 12px" }}
+                      onClick={async () => {
+                        const unpaid = detailSiswa.riwayat.filter(r => r.status !== 'lunas')
+                        let okCount = 0
+                        for (const bill of unpaid) {
+                          const ok = await markBillAsPaid(bill.id)
+                          if (ok) okCount++
+                        }
+                        if (okCount === unpaid.length) {
+                          showToast(`${okCount} tagihan ditandai lunas!`)
+                        } else {
+                          showToast(`${okCount} dari ${unpaid.length} tagihan berhasil ditandai lunas`, "error")
+                        }
+                        setDetailSiswa(null)
+                        await fetchData()
+                      }}
+                    >
+                      Tandai Semua Lunas
+                    </button>
+                  )}
+                </div>
                 {detailSiswa.riwayat.map(r => (
                   <div key={r.id} className={`riwayat-row status-${r.status}`}>
                     <div>
-                      <div className="riwayat-bulan">{r.bulan} {r.tahun}</div>
+                      <div className="riwayat-bulan">{r.bulan}</div>
                       <div className="riwayat-tanggal">{r.tanggal}</div>
                     </div>
-                    <div className="riwayat-right">
+                    <div className="riwayat-right" style={{ alignItems: "flex-end", gap: 6 }}>
                       <div className="riwayat-nominal">{formatRupiah(r.nominal)}</div>
                       <div className="riwayat-status">{statusMap[r.status]}</div>
+                      {r.status !== 'lunas' && (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn-sm"
+                          style={{ fontSize: 11, padding: "4px 10px" }}
+                          onClick={async () => {
+                            const ok = await markBillAsPaid(r.id)
+                            if (ok) {
+                              showToast("Tagihan ditandai lunas!")
+                              setDetailSiswa(null)
+                              await fetchData()
+                            } else {
+                              showToast("Gagal menandai lunas!", "error")
+                            }
+                          }}
+                        >
+                          Tandai Lunas
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

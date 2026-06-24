@@ -196,7 +196,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
                 >
                   {unpaidBills.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.bulan} {b.tahun} — {formatRupiah(b.nominal)}
+                      {b.bulan} — {formatRupiah(b.nominal)}
                     </option>
                   ))}
                 </select>
