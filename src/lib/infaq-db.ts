@@ -100,6 +100,34 @@ export async function rejectDonasi(id: string, ket: string = ''): Promise<boolea
   }
 }
 
+export async function updateDonasi(id: string, data: Partial<Pick<Donation, 'nama_donatur' | 'nominal' | 'pesan'>>): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('donations')
+      .update(data)
+      .eq('id', id)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error updating donation:', error)
+    return false
+  }
+}
+
+export async function deleteDonasi(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('donations')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error deleting donation:', error)
+    return false
+  }
+}
+
 // ============================================
 // BANK INFO (payment & infaq)
 // ============================================

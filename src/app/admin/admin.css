@@ -1210,6 +1210,29 @@ select.admin-input {
 
 .modal-close:hover { color: var(--ink); }
 
+.modal-body {
+  margin-bottom: 16px;
+}
+
+.modal-body .form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.modal-body .form-label:first-child {
+  margin-top: 0;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 /* DETAIL SISWA */
 .detail-siswa {
   text-align: center;
@@ -1683,10 +1706,42 @@ select.admin-input {
   padding-top: 10px;
 }
 
-.ic-bukti {
-  border-top: 1px solid #f0f0f0;
-  padding-top: 8px;
-  margin-top: 4px;
+.ic-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ic-action-btn.view {
+  color: var(--emerald);
+  border-color: #c8e6d5;
+}
+.ic-action-btn.view:hover {
+  background: var(--emerald-soft);
+}
+
+.ic-action-btn.edit {
+  color: var(--gold);
+  border-color: #e8d8b0;
+}
+.ic-action-btn.edit:hover {
+  background: var(--gold-soft);
+}
+
+.ic-action-btn.delete {
+  color: var(--terracotta);
+  border-color: #e8c0be;
+}
+.ic-action-btn.delete:hover {
+  background: var(--terracotta-soft);
 }
 
 @media (max-width: 480px) {
