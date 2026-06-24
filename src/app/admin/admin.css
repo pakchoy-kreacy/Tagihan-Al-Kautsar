@@ -2214,3 +2214,106 @@ select.admin-input {
 .siswa-table {
   min-width: 500px;
 }
+
+/* =============================================
+   REKAP TAGIHAN
+   ============================================= */
+
+.rekap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.rekap-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #f0f0f0;
+  transition: all 0.2s;
+}
+
+.rekap-card:hover {
+  border-color: var(--emerald);
+  box-shadow: 0 4px 12px rgba(43,174,118,0.12);
+}
+
+.rekap-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.rekap-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-heading);
+}
+
+.rekap-card-desc {
+  font-size: 12px;
+  color: var(--neutral);
+  margin-bottom: 8px;
+}
+
+.rekap-card-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--emerald);
+  margin-bottom: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rekap-card-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rekap-stat {
+  text-align: center;
+  padding: 8px 4px;
+  background: #f8f8f8;
+  border-radius: 10px;
+}
+
+.rekap-stat-num {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rekap-stat-label {
+  font-size: 10px;
+  color: var(--neutral);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.rekap-card-tunggakan {
+  font-size: 12px;
+  color: var(--terracotta);
+  font-weight: 600;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+@media (max-width: 768px) {
+  .rekap-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rekap-card-amount {
+    font-size: 18px;
+  }
+
+  .rekap-stat-num {
+    font-size: 16px;
+  }
+}

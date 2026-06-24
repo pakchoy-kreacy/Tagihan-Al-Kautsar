@@ -1,0 +1,348 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
+import { formatRupiah } from "@/lib/db"
+import { useToast } from "@/components/Toast"
+import { Download, X, Inbox, Filter } from "lucide-react"
+import * as XLSX from "xlsx"
+
+interface BillType {
+  id: string
+  name: string
+  description: string
+  default_amount: number
+  is_recurring: boolean
+  berlaku_untuk_kelas: string[] | null
+}
+
+interface StudentBill {
+  bill_id: string
+  student_id: string
+  student_name: string
+  nisn: string
+  class_name: string
+  bill_type_id: string
+  bill_type_name: string
+  month: string
+  year: number
+  amount: number
+  status: string
+  paid_date: string | null
+}
+
+interface RekapItem {
+  billType: BillType
+  lunas: StudentBill[]
+  belum: StudentBill[]
+  menunggu: StudentBill[]
+  totalNominal: number
+  lunasNominal: number
+  belumNominal: number
+}
+
+export default function RekapTagihanPage() {
+  const { showToast } = useToast()
+  const [rekap, setRekap] = useState<RekapItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedBillType, setSelectedBillType] = useState<RekapItem | null>(null)
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  async function fetchData() {
+    setLoading(true)
+    try {
+      const [{ data: billTypes }, { data: students }, { data: bills }] = await Promise.all([
+        supabase.from("bill_types").select("*").order("name"),
+        supabase.from("students").select("id, name, nisn, classes(name)"),
+        supabase.from("bills").select("*").order("year", { ascending: false }).order("month"),
+      ])
+
+      if (!billTypes) return
+
+      const studentMap = new Map<string, { name: string; nisn: string; className: string }>()
+      for (const s of students || []) {
+        studentMap.set(s.id, {
+          name: s.name,
+          nisn: s.nisn,
+          className: (s.classes as unknown as { name: string })?.name || "N/A",
+        })
+      }
+
+      const rekapItems: RekapItem[] = billTypes.map(bt => {
+        const btBills = (bills || [])
+          .filter(b => b.bill_type_id === bt.id)
+          .map(b => {
+            const student = studentMap.get(b.student_id)
+            return {
+              bill_id: b.id,
+              student_id: b.student_id,
+              student_name: student?.name || "-",
+              nisn: student?.nisn || "-",
+              class_name: student?.className || "N/A",
+              bill_type_id: bt.id,
+              bill_type_name: bt.name,
+              month: b.month,
+              year: b.year,
+              amount: b.amount,
+              status: b.status,
+              paid_date: b.paid_date,
+            }
+          })
+
+        const lunas = btBills.filter(b => b.status === "lunas")
+        const belum = btBills.filter(b => b.status === "belum")
+        const menunggu = btBills.filter(b => b.status === "menunggu")
+
+        return {
+          billType: bt,
+          lunas,
+          belum,
+          menunggu,
+          totalNominal: btBills.reduce((sum, b) => sum + b.amount, 0),
+          lunasNominal: lunas.reduce((sum, b) => sum + b.amount, 0),
+          belumNominal: belum.reduce((sum, b) => sum + b.amount, 0),
+        }
+      })
+
+      setRekap(rekapItems)
+    } catch (error) {
+      console.error("Error fetching rekap:", error)
+      showToast("Gagal memuat data rekap!", "error")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleExportExcel() {
+    const rows: Record<string, unknown>[] = []
+
+    for (const item of rekap) {
+      const allBills = [...item.lunas, ...item.belum, ...item.menunggu]
+      for (const bill of allBills) {
+        rows.push({
+          "Jenis Tagihan": bill.bill_type_name,
+          "Nama Siswa": bill.student_name,
+          "NISN": bill.nisn,
+          "Kelas": bill.class_name,
+          "Bulan": bill.month,
+          "Nominal": bill.amount,
+          "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
+          "Tanggal Bayar": bill.paid_date || "-",
+        })
+      }
+    }
+
+    if (rows.length === 0) {
+      showToast("Tidak ada data untuk di-export!", "error")
+      return
+    }
+
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap Tagihan")
+
+    // Auto column width
+    const colWidths = Object.keys(rows[0]).map(key => ({
+      wch: Math.max(key.length, ...rows.map(r => String(r[key]).length)) + 2
+    }))
+    ws["!cols"] = colWidths
+
+    XLSX.writeFile(wb, "rekap-tagihan.xlsx")
+    showToast("Berhasil di-export ke Excel!", "success")
+  }
+
+  function handleExportPerBillType() {
+    if (!selectedBillType) return
+
+    const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu]
+    const rows: Record<string, unknown>[] = allBills.map(bill => ({
+      "Nama Siswa": bill.student_name,
+      "NISN": bill.nisn,
+      "Kelas": bill.class_name,
+      "Bulan": bill.month,
+      "Nominal": bill.amount,
+      "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
+      "Tanggal Bayar": bill.paid_date || "-",
+    }))
+
+    if (rows.length === 0) {
+      showToast("Tidak ada data untuk di-export!", "error")
+      return
+    }
+
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, selectedBillType.billType.name)
+
+    const colWidths = Object.keys(rows[0]).map(key => ({
+      wch: Math.max(key.length, ...rows.map(r => String(r[key]).length)) + 2
+    }))
+    ws["!cols"] = colWidths
+
+    XLSX.writeFile(wb, `rekap-${selectedBillType.billType.name}.xlsx`)
+    showToast("Berhasil di-export ke Excel!", "success")
+  }
+
+  return (
+    <div className="admin-page">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
+        <div>
+          <div className="page-title">Rekap Tagihan</div>
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>Ringkasan tagihan per jenis tagihan</p>
+        </div>
+        <button className="admin-btn" onClick={handleExportExcel}>
+          <Download size={15} /> Export Semua
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="tagihan-grid">
+          {[1,2,3].map(i => <div key={i} className="tagihan-card skeleton" />)}
+        </div>
+      ) : rekap.length === 0 ? (
+        <div className="empty-state">
+          <Inbox size={48} color="var(--neutral)" style={{ opacity: 0.4, marginBottom: 12 }} />
+          <p>Belum ada data tagihan</p>
+        </div>
+      ) : (
+        <div className="rekap-grid">
+          {rekap.map(item => (
+            <div
+              key={item.billType.id}
+              className="rekap-card"
+              onClick={() => setSelectedBillType(item)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="rekap-card-header">
+                <div className="rekap-card-title">{item.billType.name}</div>
+                {item.billType.is_recurring && (
+                  <span className="tc-badge recurring" style={{ fontSize: 10 }}>Bulanan</span>
+                )}
+              </div>
+
+              {item.billType.description && (
+                <div className="rekap-card-desc">{item.billType.description}</div>
+              )}
+
+              <div className="rekap-card-amount">{formatRupiah(item.billType.default_amount)}</div>
+
+              <div className="rekap-card-stats">
+                <div className="rekap-stat">
+                  <div className="rekap-stat-num" style={{ color: "var(--emerald)" }}>{item.lunas.length}</div>
+                  <div className="rekap-stat-label">Lunas</div>
+                </div>
+                <div className="rekap-stat">
+                  <div className="rekap-stat-num" style={{ color: "var(--terracotta)" }}>{item.belum.length}</div>
+                  <div className="rekap-stat-label">Belum</div>
+                </div>
+                <div className="rekap-stat">
+                  <div className="rekap-stat-num" style={{ color: "var(--gold)" }}>{item.menunggu.length}</div>
+                  <div className="rekap-stat-label">Menunggu</div>
+                </div>
+                <div className="rekap-stat">
+                  <div className="rekap-stat-num" style={{ color: "var(--ink)" }}>{item.lunas.length + item.belum.length + item.menunggu.length}</div>
+                  <div className="rekap-stat-label">Total</div>
+                </div>
+              </div>
+
+              {item.belum.length > 0 && (
+                <div className="rekap-card-tunggakan">
+                  Tunggakan: {formatRupiah(item.belumNominal)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {selectedBillType && (
+        <>
+          <div className="admin-overlay" onClick={() => { setSelectedBillType(null); setFilterStatus("all") }} />
+          <div className="admin-modal" style={{ maxWidth: 700 }}>
+            <div className="modal-header">
+              <h3>{selectedBillType.billType.name}</h3>
+              <button className="modal-close" onClick={() => { setSelectedBillType(null); setFilterStatus("all") }}><X size={18} /></button>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+              {[
+                { value: "all", label: "Semua" },
+                { value: "belum", label: "Belum Bayar" },
+                { value: "menunggu", label: "Menunggu" },
+                { value: "lunas", label: "Lunas" },
+              ].map(tab => (
+                <button
+                  key={tab.value}
+                  className={`admin-btn ${filterStatus === tab.value ? "" : "admin-btn-outline"}`}
+                  style={{ fontSize: 12, padding: "6px 14px" }}
+                  onClick={() => setFilterStatus(tab.value)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+              <button
+                className="admin-btn admin-btn-outline"
+                style={{ fontSize: 12, padding: "6px 14px", marginLeft: "auto" }}
+                onClick={handleExportPerBillType}
+              >
+                <Download size={13} /> Export
+              </button>
+            </div>
+
+            {(() => {
+              const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu]
+              const filtered = filterStatus === "all" ? allBills : allBills.filter(b => b.status === filterStatus)
+
+              if (filtered.length === 0) {
+                return <p className="empty-text" style={{ padding: "16px 0" }}>Tidak ada data</p>
+              }
+
+              return (
+                <div className="admin-table-wrap">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Bulan</th>
+                        <th>Nominal</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map(bill => (
+                        <tr key={bill.bill_id}>
+                          <td style={{ fontWeight: 600 }}>{bill.student_name}<br />
+                            <span style={{ fontSize: 11, color: "#6b776d" }}>{bill.nisn}</span>
+                          </td>
+                          <td>{bill.class_name}</td>
+                          <td>{bill.month}</td>
+                          <td style={{ fontWeight: 600 }}>{formatRupiah(bill.amount)}</td>
+                          <td>
+                            <span className={`badge badge-${bill.status}`}>
+                              {bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum" : "Menunggu"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })()}
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, fontSize: 13, color: "var(--neutral)" }}>
+              <span>Total: {selectedBillType.lunas.length + selectedBillType.belum.length + selectedBillType.menunggu.length} tagihan</span>
+              <span style={{ fontWeight: 600 }}>Dibayar: {formatRupiah(selectedBillType.lunasNominal)}</span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

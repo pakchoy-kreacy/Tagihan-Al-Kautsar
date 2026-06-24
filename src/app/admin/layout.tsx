@@ -6,13 +6,14 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
-import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House } from "lucide-react"
+import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House, FileSpreadsheet } from "lucide-react"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/siswa", label: "Siswa", icon: Users },
   { href: "/admin/kelas", label: "Kelas", icon: Building2 },
   { href: "/admin/tagihan", label: "Kelola Tagihan", icon: Receipt },
+  { href: "/admin/rekap-tagihan", label: "Rekap Tagihan", icon: FileSpreadsheet },
   { href: "/admin/verifikasi", label: "Verifikasi", icon: ClipboardList, hasBadge: true },
   { href: "/admin/infaq", label: "Infaq", icon: Heart },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
