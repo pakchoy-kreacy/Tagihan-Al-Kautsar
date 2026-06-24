@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { formatRupiah } from "@/lib/db"
+import { formatRupiah, updateBillStatus } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox, Filter } from "lucide-react"
 import * as XLSX from "xlsx"
@@ -47,6 +47,7 @@ export default function RekapTagihanPage() {
   const [loading, setLoading] = useState(true)
   const [selectedBillType, setSelectedBillType] = useState<RekapItem | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [editingBillId, setEditingBillId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -324,9 +325,43 @@ export default function RekapTagihanPage() {
                           <td>{bill.month}</td>
                           <td style={{ fontWeight: 600 }}>{formatRupiah(bill.amount)}</td>
                           <td>
-                            <span className={`badge badge-${bill.status}`}>
-                              {bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum" : "Menunggu"}
-                            </span>
+                            {editingBillId === bill.bill_id ? (
+                              <select
+                                className="admin-input"
+                                style={{ padding: "4px 8px", fontSize: 12, width: "auto" }}
+                                defaultValue={bill.status}
+                                autoFocus
+                                onChange={async (e) => {
+                                  const newStatus = e.target.value
+                                  const ok = await updateBillStatus(bill.bill_id, newStatus)
+                                  if (ok) {
+                                    showToast("Status diperbarui!")
+                                    setEditingBillId(null)
+                                    await fetchData()
+                                    if (selectedBillType) {
+                                      const updated = rekap.find(r => r.billType.id === selectedBillType.billType.id)
+                                      if (updated) setSelectedBillType(updated)
+                                    }
+                                  } else {
+                                    showToast("Gagal update status!", "error")
+                                  }
+                                }}
+                                onBlur={() => setEditingBillId(null)}
+                              >
+                                <option value="belum">Belum</option>
+                                <option value="menunggu">Menunggu</option>
+                                <option value="lunas">Lunas</option>
+                              </select>
+                            ) : (
+                              <span
+                                className={`badge badge-${bill.status}`}
+                                style={{ cursor: "pointer" }}
+                                onClick={() => setEditingBillId(bill.bill_id)}
+                                title="Klik untuk edit status"
+                              >
+                                {bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum" : "Menunggu"}
+                              </span>
+                            )}
                           </td>
                         </tr>
                       ))}

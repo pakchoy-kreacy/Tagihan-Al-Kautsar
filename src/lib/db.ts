@@ -370,6 +370,31 @@ export async function markBillAsPaid(billId: string): Promise<boolean> {
 }
 
 // ============================================
+// UPDATE BILL STATUS (manual by admin)
+// ============================================
+export async function updateBillStatus(billId: string, status: string): Promise<boolean> {
+  try {
+    const updateData: Record<string, unknown> = { status }
+    if (status === 'lunas') {
+      updateData.paid_date = new Date().toISOString().split('T')[0]
+    } else {
+      updateData.paid_date = null
+    }
+
+    const { error } = await supabase
+      .from('bills')
+      .update(updateData)
+      .eq('id', billId)
+
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error updating bill status:', error)
+    return false
+  }
+}
+
+// ============================================
 // CRUD KELAS
 // ============================================
 export async function addKelas(name: string): Promise<boolean> {
