@@ -18,6 +18,7 @@ export interface SchoolSettings {
   logo_url: string
   nomor_wa: string
   alamat: string
+  banner_url: string
 }
 
 export interface BankInfoSettings {

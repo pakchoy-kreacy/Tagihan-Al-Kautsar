@@ -19,7 +19,6 @@ export default function AdminPengaturanPage() {
   const [bankPayment, setBankPayment] = useState<BankInfoSettings | null>(null)
   const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
   const [primaryColor, setPrimaryColor] = useState("#0E5C4A")
-  const [bannerUrl, setBannerUrl] = useState("")
 
   async function loadData() {
     setLoading(true)
@@ -65,11 +64,11 @@ export default function AdminPengaturanPage() {
   }
 
   async function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return
+    const file = e.target.files?.[0]; if (!file || !sekolah) return
     setSaving(true)
     try {
       const url = await uploadBuktiInfaq(file, 'banner')
-      setBannerUrl(url)
+      setSekolah({ ...sekolah, banner_url: url })
       showToast("Banner terupload! Klik simpan.")
     } catch { showToast("Gagal upload banner!", "error") }
     finally { setSaving(false) }
@@ -89,7 +88,10 @@ export default function AdminPengaturanPage() {
 
   async function saveTampilan() {
     localStorage.setItem("app_primary_color", primaryColor)
-    if (bannerUrl) localStorage.setItem("app_banner_url", bannerUrl)
+    if (sekolah?.banner_url) {
+      const ok = await updateSchoolSettings({ id: sekolah.id, banner_url: sekolah.banner_url })
+      if (!ok) { showToast("Gagal simpan banner!", "error"); return }
+    }
     showToast("Pengaturan tampilan tersimpan!")
   }
 
@@ -270,9 +272,9 @@ export default function AdminPengaturanPage() {
           </div>
           <div style={{ marginTop: 20 }}>
             <label className="form-label">Banner Sekolah</label>
-            {bannerUrl && (
+            {sekolah?.banner_url && (
               <div style={{ marginBottom: 8, borderRadius: 12, overflow: "hidden", maxWidth: 400 }}>
-                <Image src={bannerUrl} alt="Banner" width={400} height={160} style={{ objectFit: "cover" }} />
+                <Image src={sekolah.banner_url} alt="Banner" width={400} height={160} style={{ objectFit: "cover" }} />
               </div>
             )}
             <label className="file-upload-btn">

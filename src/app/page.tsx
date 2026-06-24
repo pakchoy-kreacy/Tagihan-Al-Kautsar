@@ -33,7 +33,7 @@ export default function BerandaPage() {
   }, [])
 
   const logoUrl = settings?.logo_url
-  const bannerUrl = (settings as SchoolSettings & { banner_url?: string })?.banner_url
+  const bannerUrl = settings?.banner_url
   const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
   const alamat = settings?.alamat || "Kabo Jaya"
 
