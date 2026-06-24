@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 import { getAdminStats, getPendingPayments, getRekapSummary, type PendingPayment } from "@/lib/admin-db"
 import { formatRupiah } from "@/lib/db"
 import type { AdminStats } from "@/lib/admin-db"
@@ -15,24 +16,46 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+
     async function fetchData() {
-      setLoading(true)
       try {
         const [statsData, payments, rekapData] = await Promise.all([
           getAdminStats(),
           getPendingPayments(5),
           getRekapSummary(),
         ])
+        if (!mounted) return
         setStats(statsData)
         setPendingPayments(payments)
         setRekap(rekapData)
       } catch (error) {
         console.error("Failed to fetch admin data:", error)
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
+
     fetchData()
+    const interval = setInterval(fetchData, 30000)
+
+    // Re-fetch on tab visibility change
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    // Realtime: update stats & pending list when payments table changes
+    const channel = supabase
+      .channel("dashboard-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { fetchData() })
+      .on("postgres_changes", { event: "*", schema: "public", table: "bills" }, () => { fetchData() })
+      .subscribe()
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   if (loading) {

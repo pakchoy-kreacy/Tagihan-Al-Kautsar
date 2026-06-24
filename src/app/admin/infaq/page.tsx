@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { getDonations, updateDonasi, deleteDonasi } from "@/lib/infaq-db"
 import { formatRupiah } from "@/lib/db"
 import type { Donation } from "@/lib/infaq-db"
-import { Heart, Eye, Inbox, X, Pencil, Trash2, Check, Search } from "lucide-react"
+import { Heart, Eye, Inbox, X, Pencil, Trash2, Search } from "lucide-react"
 
 export default function AdminInfaqPage() {
   const [donations, setDonations] = useState<Donation[]>([])
@@ -19,14 +19,26 @@ export default function AdminInfaqPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteSaving, setDeleteSaving] = useState(false)
 
-  async function fetchDonations() {
-    setLoading(true)
-    const data = await getDonations()
-    setDonations(data)
-    setLoading(false)
-  }
+  useEffect(() => {
+    let mounted = true
 
-  useEffect(() => { fetchDonations() }, []) // eslint-disable-line react-hooks/set-state-in-effect
+    async function fetchDonations() {
+      setLoading(true)
+      const data = await getDonations()
+      if (mounted) { setDonations(data); setLoading(false) }
+    }
+
+    fetchDonations()
+    const interval = setInterval(fetchDonations, 30000)
+    const onVisible = () => { if (!document.hidden) fetchDonations() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [])
 
   const filtered = donations.filter(d =>
     (d.nama_donatur || "").toLowerCase().includes(search.toLowerCase())

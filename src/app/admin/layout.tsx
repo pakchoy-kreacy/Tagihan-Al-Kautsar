@@ -25,16 +25,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
-  const [isLoginPage, setIsLoginPage] = useState(false)
   const { settings } = useSchoolSettings()
 
-  useEffect(() => {
-    setIsLoginPage(pathname === "/admin/login")
+  const isLoginPage = pathname === "/admin/login"
 
-    if (pathname === "/admin/login") {
-      setAuthChecked(true)
-      return
-    }
+  useEffect(() => {
+    if (pathname === "/admin/login") return
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session && pathname !== "/admin/login") {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useMemo } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
@@ -22,17 +22,11 @@ export function InfaqClient({ bank }: InfaqClientProps) {
   const [nominal, setNominal] = useState("")
   const [pesan, setPesan] = useState("")
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null)
-      return
-    }
-    const url = URL.createObjectURL(file)
-    setPreviewUrl(url)
-    return () => URL.revokeObjectURL(url)
+  const previewUrl = useMemo(() => {
+    if (!file) return null
+    return URL.createObjectURL(file)
   }, [file])
 
   async function handleSubmit() {

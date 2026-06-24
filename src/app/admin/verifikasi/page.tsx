@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 import { getPayments, approvePayment, rejectPayment } from "@/lib/payments-db"
 import { formatRupiah } from "@/lib/db"
 import type { PaymentWithStudent } from "@/lib/payments-db"
@@ -18,8 +19,33 @@ export default function AdminVerifikasiPage() {
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchPayments() }, [filter])
+  useEffect(() => {
+    let mounted = true
+
+    async function fetchPayments() {
+      setLoading(true)
+      const data = await getPayments(filter === "all" ? undefined : filter)
+      if (mounted) { setPayments(data); setLoading(false) }
+    }
+
+    fetchPayments()
+    const interval = setInterval(fetchPayments, 15000)
+
+    const onVisible = () => { if (!document.hidden) fetchPayments() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    const channel = supabase
+      .channel("verifikasi-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { fetchPayments() })
+      .subscribe()
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+      supabase.removeChannel(channel)
+    }
+  }, [filter])
 
   async function fetchPayments() {
     setLoading(true)

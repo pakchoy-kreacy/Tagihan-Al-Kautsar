@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useMemo } from "react"
+import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { formatRupiah, type Siswa } from "@/lib/db"
@@ -24,36 +25,23 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
   const [error, setError] = useState("")
 
   const [method, setMethod] = useState<"transfer" | "qris">("transfer")
-  const [selectedBill, setSelectedBill] = useState<string>("")
+
+  const unpaidBills = siswa.riwayat.filter((r) => r.status !== "lunas")
+  const firstUnpaid = unpaidBills[0]
+  const [selectedBill, setSelectedBill] = useState<string>(firstUnpaid?.id || "")
 
   const [form, setForm] = useState({
     nama_pengirim: "",
-    jumlah_transfer: "",
+    jumlah_transfer: firstUnpaid?.nominal.toString() || "",
     catatan: "",
   })
 
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const unpaidBills = siswa.riwayat.filter((r) => r.status !== "lunas")
-
-  useEffect(() => {
-    const firstUnpaid = unpaidBills[0]
-    if (firstUnpaid) {
-      setSelectedBill(firstUnpaid.id)
-      setForm((f) => ({ ...f, jumlah_transfer: firstUnpaid.nominal.toString() }))
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null)
-      return
-    }
-    const url = URL.createObjectURL(file)
-    setPreviewUrl(url)
-    return () => URL.revokeObjectURL(url)
+  const previewUrl = useMemo(() => {
+    if (!file) return null
+    return URL.createObjectURL(file)
   }, [file])
 
   async function handleSubmit() {
@@ -116,7 +104,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
         <header className="public-header">
           <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
           <span className="public-header-title">Pembayaran</span>
-          <a href="/" style={{ color: "inherit" }}><Home size={20} /></a>
+          <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
         </header>
         <main className="public-page">
           <div className="card" style={{ textAlign: "center", padding: 32, marginTop: 20 }}>
@@ -147,7 +135,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
       <header className="public-header">
         <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Pembayaran</span>
-        <a href="/" style={{ color: "inherit" }}><Home size={20} /></a>
+        <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
       </header>
 
       <main className="public-page with-bottom-btn">

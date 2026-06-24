@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Menu } from "lucide-react"
@@ -21,14 +22,14 @@ export function NavBar() {
 
   return (
     <nav className="app-nav rub-el-hizb">
-      <a href="/" className="app-nav-brand" onClick={() => setOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
+      <Link href="/" className="app-nav-brand" onClick={() => setOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
         {logoUrl ? (
           <Image src={logoUrl} alt={schoolName} width={36} height={36} style={{ borderRadius: "50%", objectFit: "cover" }} />
         ) : (
           <span className="logo">{schoolName.charAt(0)}</span>
         )}
         <span>ESPP MI</span>
-      </a>
+      </Link>
 
       <button
         type="button"
@@ -42,7 +43,7 @@ export function NavBar() {
 
       <div className={`app-nav-links ${open ? "open" : ""}`}>
         {links.map((link) => (
-          <a
+          <Link
             key={link.href}
             href={link.href}
             className={`app-nav-link ${pathname === link.href ? "active" : ""}`}
@@ -50,7 +51,7 @@ export function NavBar() {
             style={{ textDecoration: "none" }}
           >
             {link.label}
-          </a>
+          </Link>
         ))}
       </div>
     </nav>

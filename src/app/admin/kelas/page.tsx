@@ -16,14 +16,24 @@ export default function AdminKelasPage() {
   const [formName, setFormName] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<KelasWithStats | null>(null)
 
-  useEffect(() => { fetchKelas() }, [])
-
   async function fetchKelas() {
     setLoading(true)
     const data = await getKelasWithStats()
-    setKelasList(data)
-    setLoading(false)
+    setKelasList(data); setLoading(false)
   }
+
+  useEffect(() => {
+    fetchKelas()
+    const interval = setInterval(fetchKelas, 30000)
+
+    const onVisible = () => { if (!document.hidden) fetchKelas() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [])
 
   async function handleAdd() {
     if (!formName.trim()) return showToast("Isi nama kelas!", "error")

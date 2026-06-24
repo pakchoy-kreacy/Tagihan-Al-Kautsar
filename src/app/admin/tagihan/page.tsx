@@ -21,8 +21,6 @@ export default function AdminTagihanPage() {
   const [formBerlakuKelas, setFormBerlakuKelas] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
 
-  useEffect(() => { fetchData() }, [])
-
   async function fetchData() {
     setLoading(true)
     const [data, kelas] = await Promise.all([getAllBillTypes(), getAllClasses()])
@@ -30,6 +28,19 @@ export default function AdminTagihanPage() {
     setKelasList(kelas)
     setLoading(false)
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchData(), 0)
+    const interval = setInterval(fetchData, 30000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [])
 
   function openAdd() {
     setEditId(null); setFormName(""); setFormDesc(""); setFormAmount(""); setFormRecurring(true)

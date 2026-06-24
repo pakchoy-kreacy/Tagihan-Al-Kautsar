@@ -28,8 +28,6 @@ function SiswaContent() {
   const [detailSiswa, setDetailSiswa] = useState<Siswa | null>(null)
   const [importing, setImporting] = useState(false)
 
-  useEffect(() => { fetchData() }, [])
-
   async function fetchData() {
     setLoading(true)
     try {
@@ -39,6 +37,19 @@ function SiswaContent() {
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchData(), 0)
+    const interval = setInterval(fetchData, 30000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [])
 
   function openAdd() {
     setEditId(null); setFormNisn(""); setFormNama(""); setFormKelas("")

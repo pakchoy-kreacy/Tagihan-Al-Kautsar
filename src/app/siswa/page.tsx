@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { SiswaClient } from "./SiswaClient"
 import { getStudentsByClass, getActiveYear, type Siswa } from "@/lib/db"
 
@@ -9,8 +9,12 @@ export default function DaftarSiswaPage() {
   const [tahunAjaran, setTahunAjaran] = useState("")
   const [kelas, setKelas] = useState("3A")
   const [loading, setLoading] = useState(true)
+  const initialFetchDone = useRef(false)
 
   useEffect(() => {
+    if (initialFetchDone.current) return
+    initialFetchDone.current = true
+
     const params = new URLSearchParams(window.location.search)
     const k = params.get("kelas") || "3A"
     setKelas(k)

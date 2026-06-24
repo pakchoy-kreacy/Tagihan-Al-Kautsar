@@ -10,12 +10,12 @@ export default function DetailSiswaPage() {
   const id = typeof window !== "undefined" ? window.location.pathname.split("/").pop() || "" : ""
 
   useEffect(() => {
-    if (!id) { setLoading(false); return }
-    setLoading(true)
+    if (!id) return
     getSiswaById(id).then(s => {
       setSiswa(s || null)
       setLoading(false)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) {

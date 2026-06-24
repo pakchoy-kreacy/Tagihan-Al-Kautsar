@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react"
 import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
 
 interface SchoolSettingsContextType {
@@ -19,36 +19,39 @@ export function useSchoolSettings() {
 
 const SETTINGS_CACHE_KEY = "espp_school_settings"
 
+function getCachedSettings(): SchoolSettings | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY)
+    return raw ? JSON.parse(raw) as SchoolSettings : null
+  } catch {
+    return null
+  }
+}
+
 export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<SchoolSettings | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [settings, setSettings] = useState<SchoolSettings | null>(getCachedSettings)
+  const [loading, setLoading] = useState(!getCachedSettings)
+  const cachedRef = useRef(settings)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    // 1. Langsung pakai cache (instant, no delay)
-    let cached: SchoolSettings | null = null
-    try {
-      const raw = localStorage.getItem(SETTINGS_CACHE_KEY)
-      if (raw) {
-        cached = JSON.parse(raw) as SchoolSettings
-        setSettings(cached)
-        setLoading(false)
-        applyFavicon(cached.logo_url)
-      }
-    } catch {
-      // ignore
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+
+    const cached = getCachedSettings()
+    if (cached) {
+      cachedRef.current = cached
+      applyFavicon(cached.logo_url)
     }
 
-    // 2. Fetch update di background (tidak block UI)
     getSchoolSettings().then(s => {
       if (s) {
+        cachedRef.current = s
         setSettings(s)
         setLoading(false)
         applyFavicon(s.logo_url)
-        try {
-          localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s))
-        } catch {
-          // ignore
-        }
+        try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s)) } catch { /* ignore */ }
       } else if (!cached) {
         setLoading(false)
       }

@@ -39,7 +39,7 @@ interface Bill {
   amount: number
   status: string
   paid_date: string | null
-  bill_types?: { name: string }
+  bill_types?: { name: string; batas_waktu: string | null }
 }
 
 // Get all classes
@@ -134,7 +134,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
 
     const { data: bills, error: billsError } = await supabase
       .from('bills')
-      .select('*')
+      .select('*, bill_types(name, batas_waktu)')
       .in('student_id', studentIds)
       .order('year', { ascending: false })
       .order('month', { ascending: false })
@@ -166,9 +166,9 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         nama: student.name,
         kelas: className,
         status,
-        tagihan: activeBill ? (activeBill as any).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
+        tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: typedBills.map((b: any) => ({
+        riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
@@ -225,9 +225,9 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       nama: student.name,
       kelas,
       status,
-      tagihan: activeBill ? (activeBill as any).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
-      nominalTagihan: activeBill?.amount || 0,
-      riwayat: typedBills.map((b: any) => ({
+        tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
+        nominalTagihan: activeBill?.amount || 0,
+        riwayat: typedBills.map((b: Bill) => ({
         id: b.id,
         bulan: b.month,
         tahun: b.year.toString(),
@@ -511,8 +511,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
       billsByStudent.set(bill.student_id, list)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return students.map((student: any) => {
+    return students.map((student: { id: string; nisn: string; name: string; classes?: { name: string } | { name: string }[] }) => {
       const typedBills = billsByStudent.get(student.id) || []
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
       let status: StatusBayar
@@ -523,7 +522,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
       } else {
         status = 'lunas'
       }
-      const kelas = student.classes?.name || student.classes?.[0]?.name || 'N/A'
+      const kelas = (student.classes as unknown as { name: string })?.name || 'N/A'
 
       return {
         id: student.id,
@@ -531,9 +530,9 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
         nama: student.name,
         kelas,
         status,
-        tagihan: activeBill ? (activeBill as any).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
+        tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: typedBills.map((b: any) => ({
+        riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),

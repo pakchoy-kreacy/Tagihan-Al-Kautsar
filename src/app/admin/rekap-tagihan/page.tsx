@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { formatRupiah, updateBillStatus } from "@/lib/db"
 import { useToast } from "@/components/Toast"
-import { Download, X, Inbox, Filter } from "lucide-react"
+import { Download, X, Inbox } from "lucide-react"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
 interface BillType {
@@ -48,10 +48,6 @@ export default function RekapTagihanPage() {
   const [selectedBillType, setSelectedBillType] = useState<RekapItem | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [editingBillId, setEditingBillId] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchData()
-  }, [])
 
   async function fetchData() {
     setLoading(true)
@@ -117,6 +113,20 @@ export default function RekapTagihanPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchData(), 0)
+    const interval = setInterval(fetchData, 30000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleExportExcel() {
     const XLSX = await import("xlsx")

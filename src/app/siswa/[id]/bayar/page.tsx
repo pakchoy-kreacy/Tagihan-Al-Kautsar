@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { ArrowLeft, Home } from "lucide-react"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { getBankInfoByType } from "@/lib/infaq-db"
@@ -14,10 +15,7 @@ export default function BayarPage() {
   const id = typeof window !== "undefined" ? window.location.pathname.split("/")[2] : ""
 
   useEffect(() => {
-    const parts = window.location.pathname.split("/")
-    const id = parts[2] || ""
-    if (!id) { setLoading(false); return }
-    setLoading(true)
+    if (!id) return
     Promise.all([
       getSiswaById(id),
       getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
@@ -26,6 +24,7 @@ export default function BayarPage() {
       setBank(b)
       setLoading(false)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) {
@@ -51,7 +50,7 @@ export default function BayarPage() {
         <header className="public-header">
           <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
           <span className="public-header-title">Pembayaran</span>
-          <a href="/" style={{ color: "inherit" }}><Home size={20} /></a>
+          <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
         </header>
         <main className="public-page">
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
