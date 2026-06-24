@@ -1,6 +1,8 @@
 ﻿import { SiswaClient } from "./SiswaClient"
 import { getStudentsByClass, getActiveYear } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 interface PageProps {
   searchParams: Promise<{ kelas?: string }>
 }
