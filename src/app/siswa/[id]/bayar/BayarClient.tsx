@@ -124,7 +124,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
   const selectedBillData = unpaidBills.find((b) => b.id === selectedBill)
   const billName = selectedBillData
-    ? (selectedBillData.bill_type_name ? `${selectedBillData.bill_type_name} ${selectedBillData.bulan}` : selectedBillData.bulan)
+    ? (selectedBillData.bill_type_name || selectedBillData.bulan)
     : siswa.tagihan || "-"
   const billAmount = selectedBillData ? selectedBillData.nominal : siswa.nominalTagihan || 0
 
@@ -160,7 +160,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
             >
               {unpaidBills.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.bill_type_name ? `${b.bill_type_name} ${b.bulan}` : b.bulan} — {formatRupiah(b.nominal)}{b.batas_waktu ? ` | Jatuh tempo: ${new Date(b.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}` : ""}
+                  {b.bill_type_name || b.bulan} — {formatRupiah(b.nominal)}
                 </option>
               ))}
             </select>

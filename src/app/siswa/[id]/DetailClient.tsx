@@ -36,9 +36,9 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     tidak_ada_tagihan: { label: "TIDAK ADA", className: "lunas" },
   }
 
-  const activeBill = siswa.riwayat.find((r) => r.status !== "lunas")
+  const activeBills = siswa.riwayat.filter((r) => r.status !== "lunas")
   const history = siswa.riwayat.filter((r) => r.status === "lunas")
-  const activeStatus = activeBill ? statusConfig[activeBill.status] : null
+  const totalUnpaid = activeBills.reduce((sum, b) => sum + b.nominal, 0)
 
   return (
     <div className="app-shell">
@@ -60,33 +60,48 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
           </div>
         </div>
 
-        <div className="bill-card">
-          <div className="bill-card-header">
-            <div className="bill-card-title">Tagihan Aktif</div>
-            {activeStatus && <span className={`bill-status-badge ${activeStatus.className}`}>{activeStatus.label}</span>}
-          </div>
-
-          <div className="bill-card-title" style={{ marginBottom: 12 }}>{siswa.tagihan}</div>
-
-          {activeBill?.batas_waktu && (
-            <div className="bill-row">
-              <span className="label">Jatuh Tempo</span>
-              <span className="value">{deadlineText(activeBill)}</span>
+        {activeBills.length > 0 ? (
+          <div className="bill-card">
+            <div className="bill-card-header">
+              <div className="bill-card-title">Tagihan Aktif ({activeBills.length})</div>
             </div>
-          )}
 
-          <div className="bill-row" style={{ marginTop: 4 }}>
-            <span className="label">Jumlah</span>
-            <span className="value amount">{formatRupiah(siswa.nominalTagihan)}</span>
-          </div>
+            {activeBills.map((bill) => {
+              const status = statusConfig[bill.status] || statusConfig.belum
+              return (
+                <div key={bill.id} style={{ padding: "12px 0", borderBottom: activeBills.length > 1 ? "1px solid var(--sand)" : "none" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div className="bill-card-title" style={{ marginBottom: 0, fontSize: 15 }}>{bill.bill_type_name || bill.bulan}</div>
+                    <span className={`bill-status-badge ${status.className}`} style={{ fontSize: 11 }}>{status.label}</span>
+                  </div>
+                  {bill.batas_waktu && (
+                    <div style={{ fontSize: 12, color: "var(--neutral)", marginBottom: 4 }}>Jatuh tempo: {deadlineText(bill)}</div>
+                  )}
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{formatRupiah(bill.nominal)}</div>
+                </div>
+              )
+            })}
 
-          {siswa.status !== "lunas" && siswa.status !== "tidak_ada_tagihan" && (
-            <a href={`/siswa/${id}/bayar`} className="bill-btn" style={{ textDecoration: "none" }}>
+            <div className="bill-row" style={{ marginTop: 12, paddingTop: 12, borderTop: activeBills.length > 1 ? "2px solid var(--emerald-soft)" : "none" }}>
+              <span className="label" style={{ fontWeight: 700 }}>Total Tagihan</span>
+              <span className="value amount" style={{ fontSize: 20 }}>{formatRupiah(totalUnpaid)}</span>
+            </div>
+
+            <a href={`/siswa/${id}/bayar`} className="bill-btn" style={{ textDecoration: "none", marginTop: 16 }}>
               <Wallet size={18} />
               Bayar Sekarang
             </a>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="bill-card">
+            <div className="bill-card-header">
+              <div className="bill-card-title">Tagihan Aktif</div>
+            </div>
+            <div style={{ textAlign: "center", padding: "20px 0", color: "var(--neutral)" }}>
+              {siswa.status === "lunas" ? "Semua tagihan sudah lunas" : "Tidak ada tagihan"}
+            </div>
+          </div>
+        )}
 
         <div className="history-card">
           <div className="title">Riwayat Pembayaran</div>
