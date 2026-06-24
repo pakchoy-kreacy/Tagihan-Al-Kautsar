@@ -3,18 +3,14 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Menu } from "lucide-react"
-import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
+import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 
 export function NavBar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const [settings, setSettings] = useState<SchoolSettings | null>(null)
-
-  useEffect(() => {
-    getSchoolSettings().then(setSettings)
-  }, [])
+  const { settings } = useSchoolSettings()
 
   const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
   const logoUrl = settings?.logo_url

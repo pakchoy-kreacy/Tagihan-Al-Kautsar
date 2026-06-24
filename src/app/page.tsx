@@ -1,35 +1,26 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getSchoolSettings } from "@/lib/infaq-db"
-import type { SchoolSettings } from "@/lib/infaq-db"
 import Image from "next/image"
 import { NavBar } from "@/components/NavBar"
+import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { ChevronDown, Users, Heart, Lightbulb, Search, UserCheck, Wallet } from "lucide-react"
 import { getAllClasses, type KelasData } from "@/lib/db"
 import { useRouter } from "next/navigation"
 
 export default function BerandaPage() {
   const router = useRouter()
+  const { settings, loading: settingsLoading } = useSchoolSettings()
   const [selectedKelas, setSelectedKelas] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [loading, setLoading] = useState(true)
-  const [settings, setSettings] = useState<SchoolSettings | null>(null)
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [classes, s] = await Promise.all([getAllClasses(), getSchoolSettings()])
-        setKelasList(classes)
-        setSettings(s)
-      } catch (error) {
-        console.error("Failed to fetch data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
+    getAllClasses().then(classes => {
+      setKelasList(classes)
+      setLoading(false)
+    })
   }, [])
 
   const logoUrl = settings?.logo_url
@@ -37,7 +28,7 @@ export default function BerandaPage() {
   const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
   const alamat = settings?.alamat || "Kabo Jaya"
 
-  const isDataReady = !loading
+  const isDataReady = !loading && !settingsLoading
 
   return (
     <div className="app-shell">
@@ -81,7 +72,7 @@ export default function BerandaPage() {
           </section>
 
           {/* BANNER */}
-          {loading ? (
+          {!isDataReady ? (
             <div className="skeleton skeleton-banner" />
           ) : bannerUrl ? (
             <section className="home-banner" aria-label="Banner Sekolah">
@@ -91,7 +82,7 @@ export default function BerandaPage() {
           ) : null}
 
           {/* PETUNJUK */}
-          {!loading && (
+          {isDataReady && (
             <section className="petunjuk-card">
               <div className="petunjuk-header">
                 <Lightbulb size={22} style={{ color: "var(--gold)" }} />
