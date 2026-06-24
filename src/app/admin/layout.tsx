@@ -65,9 +65,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .eq('status', 'pending')
       setPendingCount(count || 0)
     }
+
     fetchPendingCount()
-    const interval = setInterval(fetchPendingCount, 30000)
-    return () => clearInterval(interval)
+
+    // Realtime: update badge langsung saat data payments berubah
+    const channel = supabase
+      .channel('pending-payments-badge')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'payments' },
+        () => {
+          fetchPendingCount()
+        }
+      )
+      .subscribe()
+
+    // Polling cadangan tiap 10 detik
+    const interval = setInterval(fetchPendingCount, 10000)
+
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   async function handleLogout() {
