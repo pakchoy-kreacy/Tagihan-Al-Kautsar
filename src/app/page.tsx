@@ -13,14 +13,26 @@ export default function BerandaPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([
-      getSchoolSettings(),
-      getAllClasses(),
-    ]).then(([s, k]) => {
+    let mounted = true
+
+    async function fetchData() {
+      const [s, k] = await Promise.all([getSchoolSettings(), getAllClasses()])
+      if (!mounted) return
       setSettings(s)
       setKelasList(k)
       setLoading(false)
-    })
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 60000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
   }, [])
 
   if (loading) {

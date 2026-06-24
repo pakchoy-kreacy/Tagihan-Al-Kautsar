@@ -23,13 +23,14 @@ export default function AdminKelasPage() {
   }
 
   useEffect(() => {
-    fetchKelas()
+    const timer = setTimeout(() => fetchKelas(), 0)
     const interval = setInterval(fetchKelas, 30000)
 
     const onVisible = () => { if (!document.hidden) fetchKelas() }
     document.addEventListener("visibilitychange", onVisible)
 
     return () => {
+      clearTimeout(timer)
       clearInterval(interval)
       document.removeEventListener("visibilitychange", onVisible)
     }

@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { SiswaClient } from "./SiswaClient"
 import { getStudentsByClass, getActiveYear, type Siswa } from "@/lib/db"
 
@@ -9,25 +9,32 @@ export default function DaftarSiswaPage() {
   const [tahunAjaran, setTahunAjaran] = useState("")
   const [kelas, setKelas] = useState("3A")
   const [loading, setLoading] = useState(true)
-  const initialFetchDone = useRef(false)
 
-  useEffect(() => {
-    if (initialFetchDone.current) return
-    initialFetchDone.current = true
-
+  const fetchData = useCallback(async () => {
     const params = new URLSearchParams(window.location.search)
     const k = params.get("kelas") || "3A"
     setKelas(k)
-    setLoading(true)
-    Promise.all([
+    const [siswa, tahun] = await Promise.all([
       getStudentsByClass(k),
       getActiveYear(),
-    ]).then(([siswa, tahun]) => {
-      setAllSiswa(siswa)
-      setTahunAjaran(tahun)
-      setLoading(false)
-    })
+    ])
+    setAllSiswa(siswa)
+    setTahunAjaran(tahun)
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchData(), 0)
+    const interval = setInterval(fetchData, 30000)
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [fetchData])
 
   if (loading) {
     return (

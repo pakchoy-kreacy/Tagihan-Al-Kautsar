@@ -105,7 +105,7 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
                   style={{ width: "100%" }}
                 >
                   <span className={selectedKelas ? "" : "placeholder"}>
-                    {selectedKelas || "-- Pilih Kelas --"}
+                    {selectedKelas ? `Kelas ${selectedKelas}` : "-- Pilih Kelas --"}
                   </span>
                   <span className="arrow"><ChevronDown size={14} /></span>
                 </button>
@@ -121,7 +121,7 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
                           setDropdownOpen(false)
                         }}
                       >
-                        {kelas.name}
+                        Kelas {kelas.name}
                       </button>
                     ))}
                   </div>
