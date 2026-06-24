@@ -163,7 +163,7 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
               return (
                 <div key={item.id} className="history-item">
                   <div className="left">
-                    <div className="bill-name">{item.bulan}</div>
+                    <div className="bill-name">{item.bill_type_name ? `${item.bill_type_name} ${item.bulan}` : item.bulan}</div>
                     <div className="bill-date">{formatDate(item.tanggal)}</div>
                   </div>
                   <div className="right">

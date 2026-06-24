@@ -10,6 +10,7 @@ export interface RiwayatPembayaran {
   nominal: number
   status: StatusBayar
   batas_waktu: string | null
+  bill_type_name: string | null
 }
 
 export interface Siswa {
@@ -38,6 +39,7 @@ interface Bill {
   amount: number
   status: string
   paid_date: string | null
+  bill_types?: { name: string }
 }
 
 // Get all classes
@@ -164,7 +166,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         nama: student.name,
         kelas: className,
         status,
-        tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
+        tagihan: activeBill ? (activeBill as any).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
         riwayat: typedBills.map((b: any) => ({
           id: b.id,
@@ -174,6 +176,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
           nominal: b.amount,
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
+          bill_type_name: b.bill_types?.name || null,
         })),
       }
     })
@@ -197,7 +200,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
 
     const { data: bills, error: billsError } = await supabase
       .from('bills')
-      .select('*, bill_types(batas_waktu)')
+      .select('*, bill_types(name, batas_waktu)')
       .eq('student_id', id)
       .order('year', { ascending: false })
       .order('month', { ascending: false })
@@ -222,7 +225,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       nama: student.name,
       kelas,
       status,
-      tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
+      tagihan: activeBill ? (activeBill as any).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
       nominalTagihan: activeBill?.amount || 0,
       riwayat: typedBills.map((b: any) => ({
         id: b.id,
@@ -232,6 +235,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
         nominal: b.amount,
         status: b.status as StatusBayar,
         batas_waktu: b.bill_types?.batas_waktu || null,
+        bill_type_name: b.bill_types?.name || null,
       })),
     }
   } catch (error) {
@@ -493,7 +497,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
 
     const { data: bills, error: billsError } = await supabase
       .from('bills')
-      .select('*')
+      .select('*, bill_types(name, batas_waktu)')
       .in('student_id', studentIds)
       .order('year', { ascending: false })
       .order('month', { ascending: false })
@@ -527,7 +531,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
         nama: student.name,
         kelas,
         status,
-        tagihan: activeBill ? activeBill.month : 'Tidak Ada Tagihan',
+        tagihan: activeBill ? (activeBill as any).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
         riwayat: typedBills.map((b: any) => ({
           id: b.id,
@@ -537,6 +541,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
           nominal: b.amount,
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
+          bill_type_name: b.bill_types?.name || null,
         })),
       }
     })

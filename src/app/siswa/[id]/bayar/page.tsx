@@ -170,7 +170,9 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
   }
 
   const selectedBillData = unpaidBills.find((b) => b.id === selectedBill)
-  const billName = selectedBillData ? selectedBillData.bulan : siswa?.tagihan || "-"
+  const billName = selectedBillData
+    ? (selectedBillData.bill_type_name ? `${selectedBillData.bill_type_name} ${selectedBillData.bulan}` : selectedBillData.bulan)
+    : siswa?.tagihan || "-"
   const billAmount = selectedBillData ? selectedBillData.nominal : siswa?.nominalTagihan || 0
 
   return (
@@ -207,7 +209,7 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
             >
               {unpaidBills.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.bulan} — {formatRupiah(b.nominal)}{b.batas_waktu ? ` | Jatuh tempo: ${new Date(b.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}` : ""}
+                  {b.bill_type_name ? `${b.bill_type_name} ${b.bulan}` : b.bulan} — {formatRupiah(b.nominal)}{b.batas_waktu ? ` | Jatuh tempo: ${new Date(b.batas_waktu).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}` : ""}
                 </option>
               ))}
             </select>
