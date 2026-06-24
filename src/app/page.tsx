@@ -62,23 +62,19 @@ export default function BerandaPage() {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 200 }}>
-                {!isDataReady ? (
-                  <>
-                    <div className="skeleton skeleton-text" style={{ width: "60%", marginBottom: 8 }} />
-                    <div className="skeleton skeleton-text-sm" style={{ width: "40%" }} />
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{schoolName}</div>
-                    <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>{alamat}</div>
-                  </>
-                )}
+            {!isDataReady ? (
+              <>
+                <div className="skeleton skeleton-text" style={{ width: "60%", marginBottom: 8 }} />
+                <div className="skeleton skeleton-text-sm" style={{ width: "40%" }} />
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{schoolName}</div>
+                <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>{alamat}</div>
+              </>
+            )}
               </div>
             </div>
-            <p style={{ marginTop: 14, color: "var(--neutral)", lineHeight: 1.6, fontSize: 14 }}>
-              Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua.
-              Pilih kelas untuk melihat data siswa, atau kirim infaq sekolah.
-            </p>
           </section>
 
           {/* BANNER */}
@@ -90,6 +86,20 @@ export default function BerandaPage() {
                 sizes="(max-width: 768px) 100vw, 1200px" />
             </section>
           ) : null}
+
+          {/* HINT */}
+          {!loading && (
+            <p style={{
+              textAlign: "center",
+              color: "var(--neutral)",
+              fontSize: 14,
+              lineHeight: 1.6,
+              margin: "4px auto 0",
+              maxWidth: 720,
+            }}>
+              Pilih kelas untuk melihat data siswa, atau kirim infaq sekolah.
+            </p>
+          )}
 
           {/* PILIH KELAS */}
           <section className="card">
