@@ -23,9 +23,13 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "ESPP MI Nurul Iman",
   description: "Sistem pembayaran siswa MI Nurul Iman yang sederhana, cepat, dan mudah dipakai orang tua.",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  icons: [
+    {
+      rel: "icon",
+      type: "image/png",
+      url: "/icon.png",
+    },
+  ],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
