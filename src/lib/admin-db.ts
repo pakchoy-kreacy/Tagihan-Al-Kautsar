@@ -290,3 +290,63 @@ export async function getUnpaidStudents(): Promise<UnpaidStudent[]> {
     return []
   }
 }
+
+// ============================================
+// REKAP SUMMARY (for dashboard)
+// ============================================
+export interface RekapSummaryItem {
+  id: string
+  name: string
+  description: string
+  default_amount: number
+  is_recurring: boolean
+  lunas: number
+  belum: number
+  menunggu: number
+  total: number
+}
+
+export async function getRekapSummary(): Promise<RekapSummaryItem[]> {
+  try {
+    const { data: billTypes, error: btError } = await supabase
+      .from('bill_types')
+      .select('id, name, description, default_amount, is_recurring')
+      .order('name')
+
+    if (btError) throw btError
+    if (!billTypes || billTypes.length === 0) return []
+
+    const { data: bills, error: bError } = await supabase
+      .from('bills')
+      .select('bill_type_id, status')
+
+    if (bError) throw bError
+
+    const billsByType = new Map<string, { lunas: number; belum: number; menunggu: number }>()
+    for (const bill of bills || []) {
+      const existing = billsByType.get(bill.bill_type_id) || { lunas: 0, belum: 0, menunggu: 0 }
+      if (bill.status === 'lunas') existing.lunas++
+      else if (bill.status === 'belum') existing.belum++
+      else if (bill.status === 'menunggu') existing.menunggu++
+      billsByType.set(bill.bill_type_id, existing)
+    }
+
+    return billTypes.map(bt => {
+      const counts = billsByType.get(bt.id) || { lunas: 0, belum: 0, menunggu: 0 }
+      return {
+        id: bt.id,
+        name: bt.name,
+        description: bt.description || '',
+        default_amount: bt.default_amount,
+        is_recurring: bt.is_recurring,
+        lunas: counts.lunas,
+        belum: counts.belum,
+        menunggu: counts.menunggu,
+        total: counts.lunas + counts.belum + counts.menunggu,
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching rekap summary:', error)
+    return []
+  }
+}

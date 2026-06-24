@@ -2,26 +2,30 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { getAdminStats, getPendingPayments, type PendingPayment } from "@/lib/admin-db"
+import { getAdminStats, getPendingPayments, getRekapSummary, type PendingPayment } from "@/lib/admin-db"
 import { formatRupiah } from "@/lib/db"
 import type { AdminStats } from "@/lib/admin-db"
-import { Users, Building2, CircleCheck, Hourglass, Clock, Heart, Bell, ClipboardList, Settings, Receipt } from "lucide-react"
+import type { RekapSummaryItem } from "@/lib/admin-db"
+import { Users, Building2, CircleCheck, Hourglass, Clock, Heart, Bell, ClipboardList, Settings, Receipt, FileSpreadsheet } from "lucide-react"
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([])
+  const [rekap, setRekap] = useState<RekapSummaryItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
       try {
-        const [statsData, payments] = await Promise.all([
+        const [statsData, payments, rekapData] = await Promise.all([
           getAdminStats(),
           getPendingPayments(5),
+          getRekapSummary(),
         ])
         setStats(statsData)
         setPendingPayments(payments)
+        setRekap(rekapData)
       } catch (error) {
         console.error("Failed to fetch admin data:", error)
       } finally {
@@ -108,6 +112,57 @@ export default function AdminDashboardPage() {
                 Lihat ({pendingPayments.length})
               </Link>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* REKAP TAGIHAN RINGKASAN */}
+      {rekap.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <FileSpreadsheet size={18} color="var(--emerald)" />
+              <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>Rekap Tagihan</span>
+            </div>
+            <Link href="/admin/rekap-tagihan" style={{ fontSize: 13, color: "var(--emerald)", fontWeight: 600, textDecoration: "none" }}>
+              Lihat Semua
+            </Link>
+          </div>
+          <div className="rekap-grid">
+            {rekap.map(item => (
+              <Link key={item.id} href="/admin/rekap-tagihan" className="rekap-card" style={{ textDecoration: "none", color: "inherit" }}>
+                <div className="rekap-card-header">
+                  <div className="rekap-card-title">{item.name}</div>
+                  {item.is_recurring && (
+                    <span className="tc-badge recurring" style={{ fontSize: 10 }}>Bulanan</span>
+                  )}
+                </div>
+                <div className="rekap-card-amount">{formatRupiah(item.default_amount)}</div>
+                <div className="rekap-card-stats">
+                  <div className="rekap-stat">
+                    <div className="rekap-stat-num" style={{ color: "var(--emerald)" }}>{item.lunas}</div>
+                    <div className="rekap-stat-label">Lunas</div>
+                  </div>
+                  <div className="rekap-stat">
+                    <div className="rekap-stat-num" style={{ color: "var(--terracotta)" }}>{item.belum}</div>
+                    <div className="rekap-stat-label">Belum</div>
+                  </div>
+                  <div className="rekap-stat">
+                    <div className="rekap-stat-num" style={{ color: "var(--gold)" }}>{item.menunggu}</div>
+                    <div className="rekap-stat-label">Menunggu</div>
+                  </div>
+                  <div className="rekap-stat">
+                    <div className="rekap-stat-num" style={{ color: "var(--ink)" }}>{item.total}</div>
+                    <div className="rekap-stat-label">Total</div>
+                  </div>
+                </div>
+                {item.belum > 0 && (
+                  <div className="rekap-card-tunggakan">
+                    Belum bayar: {item.belum} siswa
+                  </div>
+                )}
+              </Link>
+            ))}
           </div>
         </div>
       )}
