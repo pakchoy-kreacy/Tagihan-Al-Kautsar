@@ -534,21 +534,83 @@ export async function getAllBillTypes(): Promise<BillType[]> {
   }
 }
 
-export async function addBillType(name: string, description: string, default_amount: number, is_recurring: boolean, batas_waktu?: string, berlaku_untuk_kelas?: string[]): Promise<boolean> {
+export async function addBillType(name: string, description: string, default_amount: number, is_recurring: boolean, batas_waktu?: string, berlaku_untuk_kelas?: string[]): Promise<{ success: boolean; billsGenerated?: number; error?: string }> {
   try {
-    const { error } = await supabase.from('bill_types').insert({
+    const payload: Record<string, unknown> = {
       name,
       description,
       default_amount,
       is_recurring,
-      batas_waktu: batas_waktu || null,
-      berlaku_untuk_kelas: berlaku_untuk_kelas && berlaku_untuk_kelas.length > 0 ? berlaku_untuk_kelas : null,
-    })
+    }
+    if (batas_waktu) payload.batas_waktu = batas_waktu
+    if (berlaku_untuk_kelas && berlaku_untuk_kelas.length > 0) payload.berlaku_untuk_kelas = berlaku_untuk_kelas
+
+    const { data: inserted, error } = await supabase
+      .from('bill_types')
+      .insert(payload)
+      .select('id')
+      .single()
+
     if (error) throw error
-    return true
+    if (!inserted) throw new Error("Gagal mendapatkan ID tagihan")
+
+    // Auto-generate bills for current month/year
+    const now = new Date()
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    const monthLabel = `${monthNames[now.getMonth()]} ${now.getFullYear()}`
+    const year = now.getFullYear()
+
+    const generated = await generateBillsForBillType(inserted.id, monthLabel, year)
+
+    return { success: true, billsGenerated: generated.count }
   } catch (error) {
     console.error('Error adding bill type:', error)
-    return false
+    return { success: false, error: "Gagal menambah tagihan" }
+  }
+}
+
+async function generateBillsForBillType(billTypeId: string, month: string, year: number): Promise<{ count: number }> {
+  try {
+    const [{ data: billType }, { data: yearData }, { data: students }] = await Promise.all([
+      supabase.from('bill_types').select('*').eq('id', billTypeId).single(),
+      supabase.from('academic_years').select('id').eq('is_active', true).single(),
+      supabase.from('students').select('id, classes(name)'),
+    ])
+
+    if (!billType || !yearData || !students) return { count: 0 }
+
+    const applicableClasses = (billType.berlaku_untuk_kelas || []) as string[]
+    const billsToInsert = []
+
+    for (const student of students) {
+      const className = (student.classes as unknown as { name: string })?.name || ''
+      if (applicableClasses.length > 0 && !applicableClasses.includes(className)) continue
+
+      billsToInsert.push({
+        student_id: student.id,
+        bill_type_id: billTypeId,
+        academic_year_id: yearData.id,
+        month,
+        year,
+        amount: billType.default_amount as number,
+        status: 'belum',
+      })
+    }
+
+    if (billsToInsert.length === 0) return { count: 0 }
+
+    const { error } = await supabase
+      .from('bills')
+      .upsert(billsToInsert, {
+        onConflict: 'student_id,bill_type_id,month,year',
+        ignoreDuplicates: true,
+      })
+
+    if (error) throw error
+    return { count: billsToInsert.length }
+  } catch (error) {
+    console.error('Error generating bills for bill type:', error)
+    return { count: 0 }
   }
 }
 

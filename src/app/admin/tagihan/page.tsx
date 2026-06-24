@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllBillTypes, getAllClasses, addBillType, updateBillType, deleteBillType, generateBills, formatRupiah, type BillType, type KelasData } from "@/lib/db"
+import { getAllBillTypes, getAllClasses, addBillType, updateBillType, deleteBillType, formatRupiah, type BillType, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
-import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox, CalendarDays, Zap } from "lucide-react"
+import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox, CalendarDays } from "lucide-react"
 
 export default function AdminTagihanPage() {
   const { showToast } = useToast()
@@ -20,18 +20,8 @@ export default function AdminTagihanPage() {
   const [formBatasWaktu, setFormBatasWaktu] = useState("")
   const [formBerlakuKelas, setFormBerlakuKelas] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
-  const [showGenerateModal, setShowGenerateModal] = useState(false)
-  const [generateMonth, setGenerateMonth] = useState("")
-  const [generateYear, setGenerateYear] = useState(new Date().getFullYear())
-  const [generating, setGenerating] = useState(false)
 
-  useEffect(() => {
-    fetchData()
-    const now = new Date()
-    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-    setGenerateMonth(monthNames[now.getMonth()])
-    setGenerateYear(now.getFullYear())
-  }, [])
+  useEffect(() => { fetchData() }, [])
 
   async function fetchData() {
     setLoading(true)
@@ -39,20 +29,6 @@ export default function AdminTagihanPage() {
     setBillTypes(data)
     setKelasList(kelas)
     setLoading(false)
-  }
-
-  async function handleGenerate() {
-    if (!generateMonth.trim() || !generateYear) return showToast("Isi bulan dan tahun!", "error")
-    setGenerating(true)
-    const monthLabel = `${generateMonth.trim()} ${generateYear}`
-    const result = await generateBills(monthLabel, generateYear)
-    setGenerating(false)
-    if (result.success) {
-      setShowGenerateModal(false)
-      showToast(result.count > 0 ? `Berhasil generate ${result.count} tagihan!` : "Tidak ada tagihan baru yang perlu dibuat.")
-    } else {
-      showToast(result.error || "Gagal generate tagihan!", "error")
-    }
   }
 
   function openAdd() {
@@ -96,13 +72,20 @@ export default function AdminTagihanPage() {
       if (ok) { setShowModal(false); showToast("Tagihan diperbarui!"); await fetchData() }
       else showToast("Gagal memperbarui!", "error")
     } else {
-      const ok = await addBillType(
+      const result = await addBillType(
         formName.trim(), formDesc.trim(), amount, formRecurring,
         formBatasWaktu || undefined,
         formBerlakuKelas.length > 0 ? formBerlakuKelas : undefined
       )
-      if (ok) { setShowModal(false); showToast("Tagihan ditambahkan!"); await fetchData() }
-      else showToast("Gagal menambah tagihan!", "error")
+      if (result.success) {
+        setShowModal(false)
+        showToast(result.billsGenerated && result.billsGenerated > 0
+          ? `Tagihan ditambahkan! ${result.billsGenerated} tagihan siswa dibuat.`
+          : "Tagihan ditambahkan!")
+        await fetchData()
+      } else {
+        showToast(result.error || "Gagal menambah tagihan!", "error")
+      }
     }
   }
 
@@ -132,9 +115,6 @@ export default function AdminTagihanPage() {
       <div className="tagihan-toolbar">
         <button className="admin-btn" onClick={openAdd}>
           <Plus size={15} /> Tambah Tagihan
-        </button>
-        <button className="admin-btn admin-btn-outline" onClick={() => setShowGenerateModal(true)}>
-          <Zap size={15} /> Generate Tagihan
         </button>
       </div>
 
@@ -247,37 +227,6 @@ export default function AdminTagihanPage() {
             <div className="admin-modal-actions">
               <button className="admin-btn admin-btn-outline" onClick={() => setShowModal(false)}>Batal</button>
               <button className="admin-btn" onClick={handleSubmit}>{editId ? "Update" : "Simpan"}</button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* GENERATE MODAL */}
-      {showGenerateModal && (
-        <>
-          <div className="admin-overlay" onClick={() => setShowGenerateModal(false)} />
-          <div className="admin-modal" style={{ maxWidth: 420 }}>
-            <div className="modal-header">
-              <h3>Generate Tagihan Siswa</h3>
-              <button className="modal-close" onClick={() => setShowGenerateModal(false)}><X size={18} /></button>
-            </div>
-            <p style={{ fontSize: 13, color: "var(--neutral)", marginBottom: 16 }}>
-              Buatkan tagihan untuk semua siswa berdasarkan jenis tagihan yang sudah ditentukan.
-            </p>
-
-            <label className="form-label">Bulan</label>
-            <input className="admin-input" placeholder="Contoh: Juni"
-              value={generateMonth} onChange={e => setGenerateMonth(e.target.value)} />
-
-            <label className="form-label">Tahun</label>
-            <input className="admin-input" type="number" placeholder="2026"
-              value={generateYear} onChange={e => setGenerateYear(parseInt(e.target.value) || 0)} />
-
-            <div className="admin-modal-actions">
-              <button className="admin-btn admin-btn-outline" onClick={() => setShowGenerateModal(false)}>Batal</button>
-              <button className="admin-btn" onClick={handleGenerate} disabled={generating || !generateMonth.trim() || !generateYear}>
-                {generating ? "Menggenerate..." : "Generate"}
-              </button>
             </div>
           </div>
         </>
