@@ -189,8 +189,7 @@ export default function InfaqPage() {
             </div>
 
             <div className="card">
-              <div className="card-title" style={{ justifyContent: "center", fontSize: 17, marginBottom: 16 }}>
-                <Upload size={18} style={{ color: "var(--emerald)" }} />
+              <div className="card-title" style={{ justifyContent: "center", fontSize: 17, marginBottom: 14 }}>
                 Upload Bukti Infaq
               </div>
               <input className="form-input" placeholder="Nama Donatur" value={nama}
@@ -217,11 +216,11 @@ export default function InfaqPage() {
                   type="button"
                   className="btn btn-outline"
                   onClick={() => fileInputRef.current?.click()}
-                  style={{ height: "auto", padding: "16px 20px", flexDirection: "column", gap: 6 }}
+                  style={{ height: "auto", padding: "12px 16px", flexDirection: "column", gap: 4 }}
                 >
-                  <Upload size={24} style={{ color: "var(--emerald)" }} />
-                  <span style={{ fontSize: 14, fontWeight: 500 }}>Klik untuk pilih gambar</span>
-                  <span style={{ fontSize: 12, color: "var(--neutral)", fontWeight: 400 }}>Format: JPG, PNG</span>
+                  <Upload size={20} style={{ color: "var(--emerald)" }} />
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>Ketuk untuk pilih gambar</span>
+                  <span style={{ fontSize: 11, color: "var(--neutral)", fontWeight: 400 }}>JPG, PNG</span>
                 </button>
               ) : (
                 <div style={{
@@ -247,20 +246,37 @@ export default function InfaqPage() {
                     </div>
                   )}
                   <div style={{ fontSize: 12, color: "var(--neutral)", marginBottom: 10, wordBreak: "break-all" }}>{file.name}</div>
-                  <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                  <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 8 }}>
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline"
                       onClick={() => fileInputRef.current?.click()}
-                      style={{ flex: "0 0 auto" }}
+                      style={{
+                        fontSize: 13,
+                        color: "var(--emerald)",
+                        fontWeight: 600,
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px 8px",
+                      }}
                     >
                       Ubah
                     </button>
                     <button
                       type="button"
-                      className="btn btn-sm btn-danger"
                       onClick={() => setFile(null)}
-                      style={{ flex: "0 0 auto" }}
+                      style={{
+                        fontSize: 13,
+                        color: "var(--terracotta)",
+                        fontWeight: 600,
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px 8px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
                     >
                       <X size={14} />
                       Hapus
