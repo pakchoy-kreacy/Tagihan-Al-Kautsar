@@ -88,7 +88,14 @@ export default function DetailSiswaPage({ params }: { params: Promise<{ id: stri
           <section className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <button type="button" className="back" onClick={() => router.back()}>Kembali</button>
-              <span className={`badge ${statusLabel.className}`}>{statusLabel.text}</span>
+              <span className={`badge ${statusLabel.className}`}>
+                {statusLabel.text}
+                {siswa.riwayat.length > 0 && (
+                  <span style={{ marginLeft: 4, opacity: 0.85 }}>
+                    ({siswa.riwayat.filter(r => r.status === 'lunas').length}/{siswa.riwayat.length})
+                  </span>
+                )}
+              </span>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16, flexWrap: "wrap" }}>

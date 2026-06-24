@@ -267,7 +267,16 @@ function SiswaContent() {
                     <td className="st-name">{s.nama}</td>
                     <td className="st-nisn">{s.nisn}</td>
                     <td>{s.kelas}</td>
-                    <td><span className={`badge badge-${s.status}`}>{statusMap[s.status]}</span></td>
+                    <td>
+                      <span className={`badge badge-${s.status}`}>
+                        {statusMap[s.status]}
+                        {s.riwayat.length > 0 && (
+                          <span style={{ marginLeft: 4, opacity: 0.85 }}>
+                            ({s.riwayat.filter(r => r.status === 'lunas').length}/{s.riwayat.length})
+                          </span>
+                        )}
+                      </span>
+                    </td>
                     <td className="st-actions" onClick={e => e.stopPropagation()}>
                       <button className="sca-btn sca-btn-edit" onClick={() => openEdit(s)}>
                         <Pencil size={13} style={{ verticalAlign: "middle" }} />
@@ -292,7 +301,14 @@ function SiswaContent() {
                     <div className="sca-name">{s.nama}</div>
                     <div className="sca-nisn">NISN {s.nisn}</div>
                   </div>
-                  <span className={`badge badge-${s.status}`}>{statusMap[s.status]}</span>
+                  <span className={`badge badge-${s.status}`}>
+                    {statusMap[s.status]}
+                    {s.riwayat.length > 0 && (
+                      <span style={{ marginLeft: 4, opacity: 0.85 }}>
+                        ({s.riwayat.filter(r => r.status === 'lunas').length}/{s.riwayat.length})
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="sca-footer">
                   <span className="sca-kelas">{s.kelas}</span>
@@ -350,6 +366,11 @@ function SiswaContent() {
               <div className="detail-name">{detailSiswa.nama}</div>
               <div className="detail-nisn">NISN {detailSiswa.nisn} · {detailSiswa.kelas}</div>
               <div className={`detail-status badge badge-${detailSiswa.status}`}>{statusMap[detailSiswa.status]}</div>
+              {detailSiswa.riwayat.length > 0 && (
+                <div style={{ fontSize: 13, color: "var(--neutral)", marginTop: 6 }}>
+                  {detailSiswa.riwayat.filter(r => r.status === 'lunas').length} dari {detailSiswa.riwayat.length} tagihan lunas
+                </div>
+              )}
             </div>
 
             {detailSiswa.riwayat.length > 0 ? (

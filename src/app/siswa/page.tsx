@@ -151,7 +151,14 @@ function DaftarSiswaContent() {
                       <h4>{siswa.nama}</h4>
                       <p>NISN {siswa.nisn}</p>
                     </div>
-                    <span className={`badge badge-${siswa.status}`}>{statusMap[siswa.status]}</span>
+                    <span className={`badge badge-${siswa.status}`}>
+                      {statusMap[siswa.status]}
+                      {siswa.riwayat.length > 0 && (
+                        <span style={{ marginLeft: 4, opacity: 0.85 }}>
+                          ({siswa.riwayat.filter(r => r.status === 'lunas').length}/{siswa.riwayat.length})
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </Link>
               ))}
