@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { getAllStudentsWithBills, addSiswa, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses } from "@/lib/db"
+import { getAllStudentsWithBills, addSiswa, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses, markBillAsPaid } from "@/lib/db"
 import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
@@ -350,6 +350,27 @@ function SiswaContent() {
               <div className="detail-name">{detailSiswa.nama}</div>
               <div className="detail-nisn">NISN {detailSiswa.nisn} · {detailSiswa.kelas}</div>
               <div className={`detail-status badge badge-${detailSiswa.status}`}>{statusMap[detailSiswa.status]}</div>
+              {detailSiswa.status !== 'lunas' && detailSiswa.status !== 'tidak_ada_tagihan' && (
+                <button
+                  type="button"
+                  className="admin-btn"
+                  style={{ marginTop: 14 }}
+                  onClick={async () => {
+                    const activeBill = detailSiswa.riwayat.find(r => r.status !== 'lunas')
+                    if (!activeBill) return
+                    const ok = await markBillAsPaid(activeBill.id)
+                    if (ok) {
+                      showToast("Tagihan ditandai lunas!")
+                      setDetailSiswa(null)
+                      await fetchData()
+                    } else {
+                      showToast("Gagal menandai lunas!", "error")
+                    }
+                  }}
+                >
+                  Tandai Lunas (Konfirmasi Manual)
+                </button>
+              )}
             </div>
             {detailSiswa.riwayat.length > 0 ? (
               <div className="detail-riwayat">

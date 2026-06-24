@@ -337,6 +337,24 @@ export async function deleteSiswa(id: string): Promise<boolean> {
 }
 
 // ============================================
+// MARK BILL AS PAID (manual by admin)
+// ============================================
+export async function markBillAsPaid(billId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('bills')
+      .update({ status: 'lunas', paid_date: new Date().toISOString().split('T')[0] })
+      .eq('id', billId)
+
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error marking bill as paid:', error)
+    return false
+  }
+}
+
+// ============================================
 // CRUD KELAS
 // ============================================
 export async function addKelas(name: string): Promise<boolean> {
