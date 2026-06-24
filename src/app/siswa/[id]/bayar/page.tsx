@@ -49,7 +49,9 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
     async function init() {
       setLoading(true)
       try {
-        const [s, b] = await Promise.all([getSiswaById(id), getBankInfoByType("payment")])
+        const [s, bP] = await Promise.all([getSiswaById(id), getBankInfoByType("payment")])
+        // Fallback ke infaq kalau data pembayaran belum di-set
+        const b = bP || await getBankInfoByType("infaq")
         if (s) {
           setSiswa(s)
           const firstUnpaid = s.riwayat.find((r: RiwayatPembayaran) => r.status !== "lunas")
