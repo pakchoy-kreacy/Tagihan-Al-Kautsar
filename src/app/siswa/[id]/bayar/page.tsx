@@ -4,13 +4,13 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, Home } from "lucide-react"
 import { getSiswaById, type Siswa } from "@/lib/db"
-import { getBankInfoByType } from "@/lib/infaq-db"
-import type { BankInfoSettings } from "@/lib/infaq-db"
+import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { BayarClient } from "./BayarClient"
 
 export default function BayarPage() {
   const [siswa, setSiswa] = useState<Siswa | null>(null)
-  const [bank, setBank] = useState<BankInfoSettings | null>(null)
+  const { bankPayment, bankInfaq } = useSchoolSettings()
+  const bank = bankPayment || bankInfaq
   const id = typeof window !== "undefined" ? window.location.pathname.split("/")[2] : ""
 
   useEffect(() => {
@@ -18,11 +18,8 @@ export default function BayarPage() {
     let mounted = true
 
     async function fetchData() {
-      const [s, b] = await Promise.all([
-        getSiswaById(id),
-        getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
-      ])
-      if (mounted) { setSiswa(s || null); setBank(b) }
+      const s = await getSiswaById(id)
+      if (mounted) setSiswa(s || null)
     }
 
     fetchData()

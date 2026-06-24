@@ -131,7 +131,28 @@ export async function deleteDonasi(id: string): Promise<boolean> {
 // ============================================
 // BANK INFO (payment & infaq)
 // ============================================
+const BANK_CACHE_KEY_PREFIX = "espp_bank_info_"
+
 export async function getBankInfoByType(type: 'payment' | 'infaq'): Promise<BankInfoSettings | null> {
+  const cacheKey = `${BANK_CACHE_KEY_PREFIX}${type}`
+  
+  // Coba cache dulu
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(cacheKey)
+      if (raw) {
+        const cached = JSON.parse(raw) as BankInfoSettings
+        // Return cache, refresh di background
+        refreshBankInfo(type, cacheKey)
+        return cached
+      }
+    } catch { /* ignore */ }
+  }
+
+  return refreshBankInfo(type, cacheKey)
+}
+
+async function refreshBankInfo(type: 'payment' | 'infaq', cacheKey: string): Promise<BankInfoSettings | null> {
   try {
     const { data, error } = await supabase
       .from('bank_info')
@@ -141,7 +162,11 @@ export async function getBankInfoByType(type: 'payment' | 'infaq'): Promise<Bank
       .single()
 
     if (error) throw error
-    return data as BankInfoSettings
+    const result = data as BankInfoSettings
+    if (typeof window !== "undefined") {
+      try { localStorage.setItem(cacheKey, JSON.stringify(result)) } catch { /* ignore */ }
+    }
+    return result
   } catch (error) {
     console.error('Error fetching bank info:', error)
     return null

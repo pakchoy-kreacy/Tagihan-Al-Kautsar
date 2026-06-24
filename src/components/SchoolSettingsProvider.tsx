@@ -1,16 +1,23 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react"
-import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
+import { getSchoolSettings, getBankInfoByType, type SchoolSettings, type BankInfoSettings } from "@/lib/infaq-db"
+import { getAllClasses, type KelasData } from "@/lib/db"
 
 interface SchoolSettingsContextType {
   settings: SchoolSettings | null
   loading: boolean
+  kelasList: KelasData[]
+  bankPayment: BankInfoSettings | null
+  bankInfaq: BankInfoSettings | null
 }
 
 const SchoolSettingsContext = createContext<SchoolSettingsContextType>({
   settings: null,
   loading: true,
+  kelasList: [],
+  bankPayment: null,
+  bankInfaq: null,
 })
 
 export function useSchoolSettings() {
@@ -32,7 +39,9 @@ function getCachedSettings(): SchoolSettings | null {
 export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SchoolSettings | null>(getCachedSettings)
   const [loading, setLoading] = useState(!getCachedSettings)
-  const cachedRef = useRef(settings)
+  const [kelasList, setKelasList] = useState<KelasData[]>([])
+  const [bankPayment, setBankPayment] = useState<BankInfoSettings | null>(null)
+  const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
   const fetchedRef = useRef(false)
 
   useEffect(() => {
@@ -41,27 +50,32 @@ export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
 
     const cached = getCachedSettings()
     if (cached) {
-      cachedRef.current = cached
       applyFavicon(cached.logo_url)
     }
 
-    getSchoolSettings().then(s => {
+    // Prefetch semua data penting sekaligus
+    Promise.all([
+      getSchoolSettings(),
+      getAllClasses(),
+      getBankInfoByType('payment'),
+      getBankInfoByType('infaq'),
+    ]).then(([s, k, bp, bi]) => {
       if (s) {
-        cachedRef.current = s
         setSettings(s)
-        setLoading(false)
         applyFavicon(s.logo_url)
         try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s)) } catch { /* ignore */ }
-      } else if (!cached) {
-        setLoading(false)
       }
+      if (k) setKelasList(k)
+      if (bp) setBankPayment(bp)
+      if (bi) setBankInfaq(bi)
+      setLoading(false)
     }).catch(() => {
       if (!cached) setLoading(false)
     })
   }, [])
 
   return (
-    <SchoolSettingsContext.Provider value={{ settings, loading }}>
+    <SchoolSettingsContext.Provider value={{ settings, loading, kelasList, bankPayment, bankInfaq }}>
       {children}
     </SchoolSettingsContext.Provider>
   )
