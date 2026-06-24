@@ -106,11 +106,12 @@
 }
 
 .admin-nav-item.active {
-  background: var(--emerald-soft);
+  background: rgba(255,255,255,0.95);
   color: var(--emerald);
   font-weight: 600;
   border-left: 4px solid var(--gold);
   padding-left: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .admin-nav-icon {
