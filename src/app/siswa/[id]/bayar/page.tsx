@@ -8,11 +8,13 @@ import { getBankInfo, submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { Siswa } from "@/lib/db"
 import type { BankInfo } from "@/lib/payments-db"
 import { NavBar } from "@/components/NavBar"
-import { Check, Upload, X } from "lucide-react"
+import { Check, Upload, X, Copy, Download } from "lucide-react"
+import { useToast } from "@/components/Toast"
 
 export default function BayarPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { id } = use(params)
+  const { showToast } = useToast()
   const [siswa, setSiswa] = useState<Siswa | null>(null)
   const [bank, setBank] = useState<BankInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -88,8 +90,35 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
       else setError(result.error || "Gagal mengirim. Coba lagi.")
     } catch {
       setError("Gagal upload. Coba lagi.")
-    } finally {
+    }     finally {
       setSubmitting(false)
+    }
+  }
+
+  async function copyRekening(no: string) {
+    try {
+      await navigator.clipboard.writeText(no)
+      showToast("Nomor rekening disalin!", "success")
+    } catch {
+      showToast("Gagal menyalin nomor rekening", "error")
+    }
+  }
+
+  async function downloadQris(url: string) {
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = blobUrl
+      a.download = "qris-pembayaran.png"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(blobUrl)
+      showToast("QRIS berhasil di-download!", "success")
+    } catch {
+      showToast("Gagal download QRIS", "error")
     }
   }
 
@@ -147,19 +176,36 @@ export default function BayarPage({ params }: { params: Promise<{ id: string }> 
           <div className="app-grid-2">
             <div style={{ display: "grid", gap: 14 }}>
               {bank && (
-                <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5" }}>
-                  <div className="card-title">Transfer ke</div>
-                  <div style={{ marginTop: 4 }}>
-                    <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "var(--emerald)", letterSpacing: 2, fontVariantNumeric: "tabular-nums" }}>
-                      {bank.nomor_rekening}
-                    </div>
-                    <div style={{ fontSize: 13, color: "var(--ink)" }}>a.n. {bank.atas_nama}</div>
-                  </div>
+                <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5", textAlign: "center" }}>
+                  <div className="card-title" style={{ justifyContent: "center" }}>Rekening Pembayaran</div>
+                  <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
+                  <div style={{ fontSize: "clamp(18px, 5vw, 22px)", fontWeight: 700, color: "var(--emerald)", letterSpacing: 1, marginTop: 4 }}>{bank.nomor_rekening}</div>
+                  <div style={{ fontSize: 13, color: "var(--ink)", marginTop: 4 }}>a.n. {bank.atas_nama}</div>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline"
+                    onClick={() => copyRekening(bank.nomor_rekening)}
+                    style={{ marginTop: 14, width: "100%", maxWidth: 280, marginInline: "auto" }}
+                  >
+                    <Copy size={16} />
+                    Salin Nomor Rekening
+                  </button>
+
                   {bank.qris_url && (
-                    <div style={{ marginTop: 12, textAlign: "center" }}>
-                      <Image src={bank.qris_url} alt="QRIS" width={160} height={160} style={{ borderRadius: 10 }} />
-                      <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Scan QRIS</div>
+                    <div style={{ marginTop: 18, textAlign: "center" }}>
+                      <div style={{ position: "relative", width: "100%", maxWidth: 220, aspectRatio: "1/1", margin: "0 auto", borderRadius: 12, overflow: "hidden", background: "white", border: "1px solid #d0e6d8" }}>
+                        <Image src={bank.qris_url} alt="QRIS" fill style={{ objectFit: "contain", padding: 8 }} sizes="220px" />
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline"
+                        onClick={() => downloadQris(bank.qris_url!)}
+                        style={{ marginTop: 10, width: "100%", maxWidth: 280, marginInline: "auto" }}
+                      >
+                        <Download size={16} />
+                        Download QRIS
+                      </button>
                     </div>
                   )}
                 </div>
