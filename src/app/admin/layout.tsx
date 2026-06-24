@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
+import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House, FileSpreadsheet } from "lucide-react"
 
 const navItems = [
@@ -26,11 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingCount, setPendingCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoginPage, setIsLoginPage] = useState(false)
-  const [settings, setSettings] = useState<SchoolSettings | null>(null)
-
-  useEffect(() => {
-    getSchoolSettings().then(setSettings)
-  }, [])
+  const { settings } = useSchoolSettings()
 
   useEffect(() => {
     setIsLoginPage(pathname === "/admin/login")

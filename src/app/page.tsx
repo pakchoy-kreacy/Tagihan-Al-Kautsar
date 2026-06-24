@@ -28,7 +28,8 @@ export default function BerandaPage() {
   const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
   const alamat = settings?.alamat || "Kabo Jaya"
 
-  const isDataReady = !loading && !settingsLoading
+  const isDataReady = !loading
+  const isSettingsReady = !settingsLoading || settings !== null
 
   return (
     <div className="app-shell">
@@ -38,7 +39,7 @@ export default function BerandaPage() {
           {/* SCHOOL INFO */}
           <section className="card" style={{ background: "#fff", borderRadius: 18, padding: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              {!isDataReady ? (
+              {!isSettingsReady ? (
                 <div className="skeleton skeleton-circle" />
               ) : logoUrl ? (
                 <Image src={logoUrl} alt={schoolName} width={56} height={56}
@@ -53,7 +54,7 @@ export default function BerandaPage() {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 200 }}>
-            {!isDataReady ? (
+            {!isSettingsReady ? (
               <>
                 <div className="skeleton skeleton-text" style={{ width: "60%", marginBottom: 8 }} />
                 <div className="skeleton skeleton-text-sm" style={{ width: "40%" }} />
@@ -72,7 +73,7 @@ export default function BerandaPage() {
           </section>
 
           {/* BANNER */}
-          {!isDataReady ? (
+          {!isSettingsReady ? (
             <div className="skeleton skeleton-banner" />
           ) : bannerUrl ? (
             <section className="home-banner" aria-label="Banner Sekolah">
@@ -82,7 +83,7 @@ export default function BerandaPage() {
           ) : null}
 
           {/* PETUNJUK */}
-          {isDataReady && (
+          {isSettingsReady && (
             <section className="petunjuk-card">
               <div className="petunjuk-header">
                 <Lightbulb size={22} style={{ color: "var(--gold)" }} />
