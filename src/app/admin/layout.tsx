@@ -8,8 +8,8 @@ import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Setti
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/kelas", label: "Kelas", icon: Building2 },
   { href: "/admin/siswa", label: "Siswa", icon: Users },
+  { href: "/admin/kelas", label: "Kelas", icon: Building2 },
   { href: "/admin/tagihan", label: "Kelola Tagihan", icon: Receipt },
   { href: "/admin/verifikasi", label: "Verifikasi", icon: ClipboardList, hasBadge: true },
   { href: "/admin/infaq", label: "Infaq", icon: Heart },
@@ -88,7 +88,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
         <LayoutDashboard size={18} />
         <span>Menu</span>
-        <span className="admin-menu-label">Admin Panel</span>
       </button>
 
       <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
