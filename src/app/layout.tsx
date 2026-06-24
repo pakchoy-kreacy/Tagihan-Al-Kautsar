@@ -30,6 +30,18 @@ export const metadata: Metadata = {
       url: "/icon.png",
     },
   ],
+  openGraph: {
+    title: "ESPP MI Nurul Iman",
+    description: "Sistem pembayaran siswa MI Nurul Iman yang sederhana, cepat, dan mudah dipakai orang tua.",
+    images: ["/icon.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "ESPP MI Nurul Iman",
+    description: "Sistem pembayaran siswa MI Nurul Iman yang sederhana, cepat, dan mudah dipakai orang tua.",
+    images: ["/icon.png"],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
