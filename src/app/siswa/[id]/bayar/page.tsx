@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ArrowLeft, Home } from "lucide-react"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { getBankInfoByType } from "@/lib/infaq-db"
@@ -9,13 +8,15 @@ import type { BankInfoSettings } from "@/lib/infaq-db"
 import { BayarClient } from "./BayarClient"
 
 export default function BayarPage() {
-  const params = useParams()
-  const id = params.id as string
   const [siswa, setSiswa] = useState<Siswa | null>(null)
   const [bank, setBank] = useState<BankInfoSettings | null>(null)
   const [loading, setLoading] = useState(true)
+  const id = typeof window !== "undefined" ? window.location.pathname.split("/")[2] : ""
 
   useEffect(() => {
+    const parts = window.location.pathname.split("/")
+    const id = parts[2] || ""
+    if (!id) { setLoading(false); return }
     setLoading(true)
     Promise.all([
       getSiswaById(id),
@@ -25,7 +26,7 @@ export default function BayarPage() {
       setBank(b)
       setLoading(false)
     })
-  }, [id])
+  }, [])
 
   if (loading) {
     return (

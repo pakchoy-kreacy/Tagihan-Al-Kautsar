@@ -1,23 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { DetailClient } from "./DetailClient"
 
 export default function DetailSiswaPage() {
-  const params = useParams()
-  const id = params.id as string
   const [siswa, setSiswa] = useState<Siswa | null>(null)
   const [loading, setLoading] = useState(true)
+  const id = typeof window !== "undefined" ? window.location.pathname.split("/").pop() || "" : ""
 
   useEffect(() => {
+    if (!id) { setLoading(false); return }
     setLoading(true)
     getSiswaById(id).then(s => {
       setSiswa(s || null)
       setLoading(false)
     })
-  }, [id])
+  }, [])
 
   if (loading) {
     return (
