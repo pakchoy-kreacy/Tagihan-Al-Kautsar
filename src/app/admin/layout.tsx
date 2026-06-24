@@ -127,7 +127,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="admin-sidebar-logo">MI</div>
           )}
           <div>
-            <div className="admin-sidebar-title">MI Nurul Iman</div>
+            <div className="admin-sidebar-title">ESPP MI</div>
             <div className="admin-sidebar-sub">Admin Panel</div>
           </div>
         </div>

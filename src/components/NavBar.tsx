@@ -32,7 +32,7 @@ export function NavBar() {
         ) : (
           <span className="logo">{schoolName.charAt(0)}</span>
         )}
-        <span>{schoolName}</span>
+        <span>ESPP MI</span>
       </Link>
 
       <button

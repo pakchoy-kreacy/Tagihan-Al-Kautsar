@@ -69,14 +69,14 @@ export default function BerandaPage() {
               </>
             ) : (
               <>
-                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{schoolName}</div>
-                <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>{alamat}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>ESPP MI</div>
+                <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>{schoolName} · {alamat}</div>
               </>
             )}
               </div>
             </div>
             <p style={{ marginTop: 14, color: "var(--ink)", lineHeight: 1.6, fontSize: 14 }}>
-              Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua.
+              Sistem pembayaran siswa MI Nurul Iman yang sederhana, cepat, dan mudah dipakai orang tua.
             </p>
           </section>
 
