@@ -7,7 +7,7 @@ import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox, FileSpreadsheet } from "lucide-react"
-import * as XLSX from "xlsx"
+// XLSX di-import dynamic untuk mengurangi bundle size
 
 function SiswaContent() {
   const searchParams = useSearchParams()
@@ -72,7 +72,8 @@ function SiswaContent() {
     setDeleteTarget(null)
   }
 
-  function handleDownloadTemplate() {
+  async function handleDownloadTemplate() {
+    const XLSX = await import("xlsx")
     const ws = XLSX.utils.aoa_to_sheet([
       ["NISN", "Nama", "Kelas"],
       ["3A-01", "Ahmad Rizki", "3A"],
@@ -104,6 +105,7 @@ function SiswaContent() {
             }
           }
         } else {
+          const XLSX = await import("xlsx")
           const buf = await file.arrayBuffer()
           const wb = XLSX.read(buf, { type: "array" })
           const ws = wb.Sheets[wb.SheetNames[0]]

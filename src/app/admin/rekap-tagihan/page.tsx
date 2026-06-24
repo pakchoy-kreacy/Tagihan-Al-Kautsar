@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase"
 import { formatRupiah, updateBillStatus } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox, Filter } from "lucide-react"
-import * as XLSX from "xlsx"
+// XLSX di-import dynamic untuk mengurangi bundle size
 
 interface BillType {
   id: string
@@ -118,7 +118,8 @@ export default function RekapTagihanPage() {
     }
   }
 
-  function handleExportExcel() {
+  async function handleExportExcel() {
+    const XLSX = await import("xlsx")
     const rows: Record<string, unknown>[] = []
 
     for (const item of rekap) {
@@ -156,8 +157,9 @@ export default function RekapTagihanPage() {
     showToast("Berhasil di-export ke Excel!", "success")
   }
 
-  function handleExportPerBillType() {
+  async function handleExportPerBillType() {
     if (!selectedBillType) return
+    const XLSX = await import("xlsx")
 
     const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu]
     const rows: Record<string, unknown>[] = allBills.map(bill => ({
