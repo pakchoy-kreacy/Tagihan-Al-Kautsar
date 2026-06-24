@@ -1,19 +1,73 @@
-﻿import { SiswaClient } from "./SiswaClient"
-import { getStudentsByClass, getActiveYear } from "@/lib/db"
+﻿"use client"
 
-export const revalidate = 60
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { SiswaClient } from "./SiswaClient"
+import { getStudentsByClass, getActiveYear, type Siswa } from "@/lib/db"
 
-interface PageProps {
-  searchParams: Promise<{ kelas?: string }>
-}
+function SiswaContent() {
+  const searchParams = useSearchParams()
+  const kelas = searchParams.get("kelas") || "3A"
+  const [allSiswa, setAllSiswa] = useState<Siswa[]>([])
+  const [tahunAjaran, setTahunAjaran] = useState("")
+  const [loading, setLoading] = useState(true)
 
-export default async function DaftarSiswaPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const kelas = params.kelas || "3A"
-  const [allSiswa, tahunAjaran] = await Promise.all([
-    getStudentsByClass(kelas),
-    getActiveYear(),
-  ])
+  useEffect(() => {
+    setLoading(true)
+    Promise.all([
+      getStudentsByClass(kelas),
+      getActiveYear(),
+    ]).then(([siswa, tahun]) => {
+      setAllSiswa(siswa)
+      setTahunAjaran(tahun)
+      setLoading(false)
+    })
+  }, [kelas])
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <div className="app-nav rub-el-hizb">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px" }}>
+            <div className="skeleton" style={{ width: 36, height: 36, borderRadius: "50%" }} />
+            <div className="skeleton" style={{ width: 80, height: 16 }} />
+          </div>
+        </div>
+        <main className="app-main">
+          <div className="app-grid">
+            <div className="skeleton" style={{ width: "100%", height: 120, borderRadius: 16 }} />
+            <div className="skeleton" style={{ width: "100%", height: 44, borderRadius: 12 }} />
+            <div className="skeleton" style={{ width: "100%", height: 80, borderRadius: 16 }} />
+            {[1,2,3].map(i => (
+              <div key={i} className="skeleton" style={{ width: "100%", height: 72, borderRadius: 14 }} />
+            ))}
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return <SiswaClient kelas={kelas} tahunAjaran={tahunAjaran} allSiswa={allSiswa} />
+}
+
+export default function DaftarSiswaPage() {
+  return (
+    <Suspense fallback={
+      <div className="app-shell">
+        <div className="app-nav rub-el-hizb">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px" }}>
+            <div className="skeleton" style={{ width: 36, height: 36, borderRadius: "50%" }} />
+            <div className="skeleton" style={{ width: 80, height: 16 }} />
+          </div>
+        </div>
+        <main className="app-main">
+          <div className="app-grid">
+            <div className="skeleton" style={{ width: "100%", height: 120, borderRadius: 16 }} />
+          </div>
+        </main>
+      </div>
+    }>
+      <SiswaContent />
+    </Suspense>
+  )
 }

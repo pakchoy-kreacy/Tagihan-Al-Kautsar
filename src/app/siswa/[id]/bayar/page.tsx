@@ -1,20 +1,66 @@
-import { getSiswaById } from "@/lib/db"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, Home } from "lucide-react"
+import { getSiswaById, type Siswa } from "@/lib/db"
 import { getBankInfoByType } from "@/lib/infaq-db"
+import type { BankInfoSettings } from "@/lib/infaq-db"
 import { BayarClient } from "./BayarClient"
-import { notFound } from "next/navigation"
 
-export const revalidate = 60
+export default function BayarPage() {
+  const params = useParams()
+  const id = params.id as string
+  const [siswa, setSiswa] = useState<Siswa | null>(null)
+  const [bank, setBank] = useState<BankInfoSettings | null>(null)
+  const [loading, setLoading] = useState(true)
 
-interface PageProps {
-  params: Promise<{ id: string }>
-}
+  useEffect(() => {
+    setLoading(true)
+    Promise.all([
+      getSiswaById(id),
+      getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
+    ]).then(([s, b]) => {
+      setSiswa(s || null)
+      setBank(b)
+      setLoading(false)
+    })
+  }, [id])
 
-export default async function BayarPage({ params }: PageProps) {
-  const { id } = await params
-  const [siswa, bank] = await Promise.all([
-    getSiswaById(id),
-    getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
-  ])
-  if (!siswa) notFound()
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <header className="public-header">
+          <div className="skeleton" style={{ width: 22, height: 22, borderRadius: 6 }} />
+          <div className="skeleton" style={{ width: 120, height: 16 }} />
+          <div className="skeleton" style={{ width: 20, height: 20, borderRadius: 6 }} />
+        </header>
+        <main className="public-page">
+          <div className="skeleton" style={{ width: "100%", height: 80, borderRadius: 14, marginBottom: 14 }} />
+          <div className="skeleton" style={{ width: "100%", height: 60, borderRadius: 14, marginBottom: 14 }} />
+          <div className="skeleton" style={{ width: "100%", height: 180, borderRadius: 14 }} />
+        </main>
+      </div>
+    )
+  }
+
+  if (!siswa) {
+    return (
+      <div className="app-shell">
+        <header className="public-header">
+          <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
+          <span className="public-header-title">Pembayaran</span>
+          <Link href="/"><Home size={20} /></Link>
+        </header>
+        <main className="public-page">
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ color: "var(--neutral)" }}>Siswa tidak ditemukan</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return <BayarClient siswa={siswa} bank={bank} id={id} />
 }
