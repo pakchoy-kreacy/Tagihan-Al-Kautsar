@@ -639,6 +639,10 @@ export async function updateBillType(id: string, data: { name?: string; descript
 
 export async function deleteBillType(id: string): Promise<boolean> {
   try {
+    // Hapus semua tagihan siswa yang terkait dengan jenis tagihan ini
+    const { error: billsError } = await supabase.from('bills').delete().eq('bill_type_id', id)
+    if (billsError) throw billsError
+
     const { error } = await supabase.from('bill_types').delete().eq('id', id)
     if (error) throw error
     return true

@@ -235,7 +235,7 @@ export default function AdminTagihanPage() {
       <ConfirmModal
         open={!!deleteTarget}
         title="Hapus Tagihan"
-        message={`Yakin hapus "${deleteTarget?.name}"? Tagihan yang sudah dibuat untuk siswa tidak ikut terhapus.`}
+        message={`Yakin hapus "${deleteTarget?.name}"? Semua tagihan siswa yang terkait juga akan dihapus.`}
         confirmLabel="Hapus"
         danger
         onConfirm={handleDelete}
