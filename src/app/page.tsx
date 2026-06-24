@@ -37,23 +37,19 @@ export default function BerandaPage() {
   const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
   const alamat = settings?.alamat || "Kabo Jaya"
 
+  const isDataReady = !loading
+
   return (
     <div className="app-shell">
       <NavBar />
       <main className="app-main">
         <div className="app-grid">
-          {/* BANNER */}
-          {bannerUrl && (
-            <section className="card" style={{ padding: 0, overflow: "hidden", borderRadius: 18 }}>
-              <Image src={bannerUrl} alt="Banner Sekolah" width={800} height={200}
-                style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
-            </section>
-          )}
-
           {/* SCHOOL INFO */}
-          <section className="card" style={{ background: "#fff", borderRadius: 18, padding: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              {logoUrl ? (
+          <section className="card" style={{ background: "#fff", borderRadius: 18, padding: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              {!isDataReady ? (
+                <div className="skeleton skeleton-circle" />
+              ) : logoUrl ? (
                 <Image src={logoUrl} alt={schoolName} width={56} height={56}
                   style={{ borderRadius: 999, objectFit: "cover", flexShrink: 0, border: "2px solid var(--emerald-soft)" }} />
               ) : (
@@ -66,15 +62,34 @@ export default function BerandaPage() {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{schoolName}</div>
-                <div style={{ color: "var(--neutral)", fontSize: 14, marginTop: 2 }}>{alamat}</div>
+                {!isDataReady ? (
+                  <>
+                    <div className="skeleton skeleton-text" style={{ width: "60%", marginBottom: 8 }} />
+                    <div className="skeleton skeleton-text-sm" style={{ width: "40%" }} />
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>{schoolName}</div>
+                    <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>{alamat}</div>
+                  </>
+                )}
               </div>
             </div>
-            <p style={{ marginTop: 16, color: "var(--neutral)", lineHeight: 1.7, fontSize: 15 }}>
-              Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua. Pilih kelas
-              untuk melihat data siswa, atau kirim infaq sekolah.
+            <p style={{ marginTop: 14, color: "var(--neutral)", lineHeight: 1.6, fontSize: 14 }}>
+              Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua.
+              Pilih kelas untuk melihat data siswa, atau kirim infaq sekolah.
             </p>
           </section>
+
+          {/* BANNER */}
+          {loading ? (
+            <div className="skeleton skeleton-banner" />
+          ) : bannerUrl ? (
+            <section className="home-banner" aria-label="Banner Sekolah">
+              <Image src={bannerUrl} alt="Banner Sekolah" fill priority
+                sizes="(max-width: 768px) 100vw, 1200px" />
+            </section>
+          ) : null}
 
           {/* PILIH KELAS */}
           <section className="card">
@@ -121,7 +136,7 @@ export default function BerandaPage() {
             )}
           </section>
 
-          {/* CTA BUTTONS - only 2 */}
+          {/* CTA BUTTONS */}
           <div className="app-actions">
             <button
               type="button"
@@ -137,7 +152,7 @@ export default function BerandaPage() {
             </button>
           </div>
 
-          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+          <div className="app-footer">© {new Date().getFullYear()} {schoolName}</div>
         </div>
       </main>
     </div>

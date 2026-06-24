@@ -200,6 +200,76 @@ textarea:focus-visible {
   margin-top: 20px;
 }
 
+/* =============================================
+   HOME PAGE (Beranda)
+   ============================================= */
+.home-banner {
+  position: relative;
+  width: 100%;
+  max-height: 220px;
+  aspect-ratio: 21/9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--emerald-soft);
+}
+
+.home-banner img,
+.home-banner > span {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (max-width: 767px) {
+  .home-banner {
+    max-height: 160px;
+    aspect-ratio: 16/9;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-banner {
+  width: 100%;
+  max-height: 220px;
+  aspect-ratio: 21/9;
+  border-radius: 14px;
+}
+
+@media (max-width: 767px) {
+  .skeleton-banner {
+    max-height: 160px;
+    aspect-ratio: 16/9;
+  }
+}
+
+.skeleton-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+}
+
+.skeleton-text {
+  height: 16px;
+  border-radius: 6px;
+}
+
+.skeleton-text-sm {
+  height: 12px;
+  border-radius: 4px;
+}
+
 /* Desktop responsive */
 @media (min-width: 768px) {
   .app-grid-2 {
