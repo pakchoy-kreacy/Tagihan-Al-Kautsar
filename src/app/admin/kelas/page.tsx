@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+
 import { getKelasWithStats } from "@/lib/admin-db"
 import { addKelas, deleteKelas } from "@/lib/db"
 import type { KelasWithStats } from "@/lib/admin-db"
@@ -94,7 +94,7 @@ export default function AdminKelasPage() {
         <div className="kelas-grid">
           {kelasList.map(kelas => (
             <div key={kelas.id} className="kelas-card-wrapper">
-              <Link href={`/admin/siswa?kelas=${kelas.name}`} className="kelas-card">
+              <a href={`/admin/siswa?kelas=${kelas.name}`} className="kelas-card" style={{ textDecoration: "none", color: "inherit" }}>
                 <div className="kelas-card-header">
                   <span className="kelas-badge">{kelas.name}</span>
                   <span className={`kelas-status ${kelas.tunggakan > 0 ? "has-tunggakan" : "all-paid"}`}>
@@ -111,7 +111,7 @@ export default function AdminKelasPage() {
                 <div className="kelas-card-footer">
                   <span className="kelas-card-action">Lihat Siswa →</span>
                 </div>
-              </Link>
+              </a>
               <button
                 className="kelas-card-delete"
                 onClick={() => setDeleteTarget(kelas)}

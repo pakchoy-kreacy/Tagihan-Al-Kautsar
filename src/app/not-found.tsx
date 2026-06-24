@@ -1,5 +1,3 @@
-import Link from "next/link"
-
 export default function NotFound() {
   return (
     <div className="app-shell">
@@ -13,9 +11,10 @@ export default function NotFound() {
             <p style={{ color: "var(--neutral)", fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
               Maaf, halaman yang Anda cari tidak ada atau sudah dipindahkan.
             </p>
-            <Link href="/" className="btn btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/" className="btn btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>
               Ke Beranda
-            </Link>
+            </a>
           </section>
         </div>
       </main>

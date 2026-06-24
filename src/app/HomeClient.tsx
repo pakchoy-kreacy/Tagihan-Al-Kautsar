@@ -14,7 +14,8 @@ interface HomeClientProps {
 export function HomeClient({ settings, kelasList }: HomeClientProps) {
   const [selectedKelas, setSelectedKelas] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [navigating, setNavigating] = useState(false)
+  const [navigatingSiswa, setNavigatingSiswa] = useState(false)
+  const [navigatingInfaq, setNavigatingInfaq] = useState(false)
 
   const logoUrl = settings?.logo_url
   const bannerUrl = settings?.banner_url
@@ -136,10 +137,10 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
                 href={`/siswa?kelas=${selectedKelas}`} 
                 className="btn btn-primary" 
                 style={{ textDecoration: "none" }}
-                onClick={() => setNavigating(true)}
+                onClick={() => setNavigatingSiswa(true)}
               >
                 <Users size={18} />
-                {navigating ? "Memuat..." : "Lihat Data Siswa"}
+                {navigatingSiswa ? "Memuat..." : "Lihat Data Siswa"}
               </a>
             ) : (
               <button type="button" className="btn btn-primary" disabled>
@@ -152,10 +153,10 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
               href="/infaq" 
               className="btn btn-secondary" 
               style={{ textDecoration: "none" }}
-              onClick={() => setNavigating(true)}
+              onClick={() => setNavigatingInfaq(true)}
             >
               <Heart size={18} />
-              {navigating ? "Memuat..." : "Infaq Sekolah"}
+              {navigatingInfaq ? "Memuat..." : "Infaq Sekolah"}
             </a>
           </div>
 

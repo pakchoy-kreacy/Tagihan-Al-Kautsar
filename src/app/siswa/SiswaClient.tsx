@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
 import { Search } from "lucide-react"
 
@@ -12,7 +11,6 @@ interface SiswaClientProps {
 }
 
 export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) {
-  const router = useRouter()
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<StatusBayar | "all">("all")
 
@@ -48,7 +46,8 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
           <section className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div>
-                <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a href="/" className="back" style={{ textDecoration: "none", cursor: "pointer" }}>Kembali</a>
                 <span style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", marginLeft: 12, fontFamily: "var(--font-heading)" }}>
                   Kelas {kelas}
                 </span>

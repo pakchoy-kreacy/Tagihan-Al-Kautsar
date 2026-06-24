@@ -1,7 +1,7 @@
 "use client"
 import "./admin.css"
 import { useState, useEffect } from "react"
-import Link from "next/link"
+
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
@@ -83,8 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
+    window.location.href = "/"
   }
 
   // Halaman login tidak perlu sidebar admin
@@ -114,26 +113,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             const isActive = pathname === item.href
             const Icon = item.icon
             return (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
                 className={`admin-nav-item ${isActive ? "active" : ""}`}
                 onClick={() => setSidebarOpen(false)}
+                style={{ textDecoration: "none", color: "inherit" }}
               >
                 <span className="admin-nav-icon"><Icon size={18} /></span>
                 <span>{item.label}</span>
                 {item.hasBadge && pendingCount > 0 && (
                   <span className="admin-nav-badge">{pendingCount}</span>
                 )}
-              </Link>
+              </a>
             )
           })}
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" className="admin-back-link">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
             <House size={14} /> Kembali ke Beranda
-          </Link>
+          </a>
           <button
             type="button"
             onClick={handleLogout}
@@ -150,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <main className="admin-main">
         <nav className="breadcrumb">
-          <Link href="/admin" className="breadcrumb-link">Admin</Link>
+          <a href="/admin" className="breadcrumb-link" style={{ textDecoration: "none" }}>Admin</a>
           {pathname !== "/admin" && (
             <>
               <span className="breadcrumb-sep">/</span>

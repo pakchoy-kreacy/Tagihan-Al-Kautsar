@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import Link from "next/link"
+
 
 export default function Error({
   error,
@@ -29,9 +29,10 @@ export default function Error({
               <button type="button" className="btn btn-primary" onClick={reset}>
                 Coba Lagi
               </button>
-              <Link href="/" className="btn btn-outline">
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/" className="btn btn-outline" style={{ textDecoration: "none" }}>
                 Ke Beranda
-              </Link>
+              </a>
             </div>
           </section>
         </div>

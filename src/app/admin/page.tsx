@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+
 import { supabase } from "@/lib/supabase"
 import { getAdminStats, getPendingPayments, getRekapSummary, type PendingPayment } from "@/lib/admin-db"
 import { formatRupiah } from "@/lib/db"
@@ -131,9 +131,9 @@ export default function AdminDashboardPage() {
               Ada {pendingPayments.length} verifikasi pembayaran menunggu
             </span>
             <div className="pending-alert-actions">
-              <Link href="/admin/verifikasi" className="btn-pending">
+              <a href="/admin/verifikasi" className="btn-pending" style={{ textDecoration: "none" }}>
                 Lihat ({pendingPayments.length})
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -147,13 +147,13 @@ export default function AdminDashboardPage() {
               <FileSpreadsheet size={18} color="var(--emerald)" />
               <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>Rekap Tagihan</span>
             </div>
-            <Link href="/admin/rekap-tagihan" style={{ fontSize: 13, color: "var(--emerald)", fontWeight: 600, textDecoration: "none" }}>
+            <a href="/admin/rekap-tagihan" style={{ fontSize: 13, color: "var(--emerald)", fontWeight: 600, textDecoration: "none" }}>
               Lihat Semua
-            </Link>
+            </a>
           </div>
           <div className="rekap-grid">
             {rekap.map(item => (
-              <Link key={item.id} href="/admin/rekap-tagihan" className="rekap-card" style={{ textDecoration: "none", color: "inherit" }}>
+              <a key={item.id} href="/admin/rekap-tagihan" className="rekap-card" style={{ textDecoration: "none", color: "inherit" }}>
                 <div className="rekap-card-header">
                   <div className="rekap-card-title">{item.name}</div>
                   {item.is_recurring && (
@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
                     Belum bayar: {item.belum} siswa
                   </div>
                 )}
-              </Link>
+              </a>
             ))}
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function AdminDashboardPage() {
             <span className="activity-title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Clock size={16} color="var(--gold)" /> Menunggu Verifikasi
             </span>
-            <Link href="/admin/verifikasi" className="activity-link">Lihat Semua</Link>
+            <a href="/admin/verifikasi" className="activity-link" style={{ textDecoration: "none" }}>Lihat Semua</a>
           </div>
           {pendingPayments.length === 0 ? (
             <div className="activity-empty">Tidak ada pembayaran menunggu</div>
@@ -225,26 +225,26 @@ export default function AdminDashboardPage() {
 
       {/* QUICK ACTIONS */}
       <div className="quick-actions">
-        <Link href="/admin/siswa" className="quick-action-card">
+        <a href="/admin/siswa" className="quick-action-card" style={{ textDecoration: "none", color: "inherit" }}>
           <Users size={24} color="var(--emerald)" />
           <span className="qa-label">Kelola Siswa</span>
-        </Link>
-        <Link href="/admin/kelas" className="quick-action-card">
+        </a>
+        <a href="/admin/kelas" className="quick-action-card" style={{ textDecoration: "none", color: "inherit" }}>
           <Building2 size={24} color="var(--emerald)" />
           <span className="qa-label">Kelola Kelas</span>
-        </Link>
-        <Link href="/admin/tagihan" className="quick-action-card">
+        </a>
+        <a href="/admin/tagihan" className="quick-action-card" style={{ textDecoration: "none", color: "inherit" }}>
           <Receipt size={24} color="var(--emerald)" />
           <span className="qa-label">Kelola Tagihan</span>
-        </Link>
-        <Link href="/admin/verifikasi" className="quick-action-card">
+        </a>
+        <a href="/admin/verifikasi" className="quick-action-card" style={{ textDecoration: "none", color: "inherit" }}>
           <ClipboardList size={24} color="var(--emerald)" />
           <span className="qa-label">Verifikasi</span>
-        </Link>
-        <Link href="/admin/pengaturan" className="quick-action-card">
+        </a>
+        <a href="/admin/pengaturan" className="quick-action-card" style={{ textDecoration: "none", color: "inherit" }}>
           <Settings size={24} color="var(--emerald)" />
           <span className="qa-label">Pengaturan</span>
-        </Link>
+        </a>
       </div>
     </div>
   )

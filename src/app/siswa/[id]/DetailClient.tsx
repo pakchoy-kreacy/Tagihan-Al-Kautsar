@@ -5,12 +5,30 @@ import { formatRupiah, type Siswa } from "@/lib/db"
 import { ArrowLeft, Home, User, Wallet, ChevronRight } from "lucide-react"
 
 interface DetailClientProps {
-  siswa: Siswa
+  siswa: Siswa | null
   id: string
 }
 
 export function DetailClient({ siswa, id }: DetailClientProps) {
   const [navigating, setNavigating] = useState(false)
+  
+  if (!siswa) {
+    return (
+      <div className="app-shell">
+        <header className="public-header">
+          <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
+          <span className="public-header-title">Detail Tagihan</span>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/" style={{ color: "inherit", display: "flex" }}><Home size={20} /></a>
+        </header>
+        <main className="public-page">
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ color: "var(--neutral)" }}>Memuat data siswa...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   function formatDate(tgl: string) {
     if (!tgl || tgl === "Belum dibayar") return tgl

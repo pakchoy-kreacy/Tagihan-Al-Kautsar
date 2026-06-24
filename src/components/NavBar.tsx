@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
+
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Menu } from "lucide-react"
@@ -22,14 +22,15 @@ export function NavBar() {
 
   return (
     <nav className="app-nav rub-el-hizb">
-      <Link href="/" className="app-nav-brand" onClick={() => setOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/" className="app-nav-brand" onClick={() => setOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
         {logoUrl ? (
           <Image src={logoUrl} alt={schoolName} width={36} height={36} style={{ borderRadius: "50%", objectFit: "cover" }} />
         ) : (
           <span className="logo">{schoolName.charAt(0)}</span>
         )}
         <span>ESPP MI</span>
-      </Link>
+      </a>
 
       <button
         type="button"
