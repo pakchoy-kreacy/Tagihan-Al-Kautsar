@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { ArrowLeft, Home, User, Wallet, ChevronRight } from "lucide-react"
 
@@ -47,7 +46,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
       <header className="public-header">
         <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Detail Tagihan</span>
-        <Link href="/"><Home size={20} /></Link>
+        <a href="/"><Home size={20} /></a>
       </header>
 
       <main className="public-page">

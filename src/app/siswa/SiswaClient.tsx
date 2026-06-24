@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
 import { NavBar } from "@/components/NavBar"
 import { Search } from "lucide-react"
@@ -110,7 +109,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
           ) : (
             <div className="app-cards-grid">
               {siswaList.map((siswa) => (
-                <Link key={siswa.id} href={`/siswa/${siswa.id}`} className="block">
+                <a key={siswa.id} href={`/siswa/${siswa.id}`} className="block" style={{ textDecoration: "none", color: "inherit" }}>
                   <div className={`siswa-card border-${siswa.status}`}>
                     <div className="info">
                       <h4>{siswa.nama}</h4>
@@ -125,7 +124,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
                       )}
                     </span>
                   </div>
-                </Link>
+                </a>
               ))}
             </div>
           )}

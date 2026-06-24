@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { NavBar } from "@/components/NavBar"
 
 export default function NotFound() {
@@ -15,9 +14,9 @@ export default function NotFound() {
             <p style={{ color: "var(--neutral)", fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
               Maaf, halaman yang Anda cari tidak ada atau sudah dipindahkan.
             </p>
-            <Link href="/" className="btn btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>
+            <a href="/" className="btn btn-primary" style={{ textDecoration: "none", display: "inline-block" }}>
               Ke Beranda
-            </Link>
+            </a>
           </section>
         </div>
       </main>

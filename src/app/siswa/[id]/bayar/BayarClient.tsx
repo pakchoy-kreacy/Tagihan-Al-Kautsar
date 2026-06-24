@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
@@ -117,7 +116,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
         <header className="public-header">
           <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
           <span className="public-header-title">Pembayaran</span>
-          <Link href="/"><Home size={20} /></Link>
+          <a href="/" style={{ color: "inherit" }}><Home size={20} /></a>
         </header>
         <main className="public-page">
           <div className="card" style={{ textAlign: "center", padding: 32, marginTop: 20 }}>
@@ -148,7 +147,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
       <header className="public-header">
         <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Pembayaran</span>
-        <Link href="/"><Home size={20} /></Link>
+        <a href="/" style={{ color: "inherit" }}><Home size={20} /></a>
       </header>
 
       <main className="public-page with-bottom-btn">

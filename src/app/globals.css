@@ -1623,23 +1623,4 @@ textarea.form-input {
   padding-bottom: 90px;
 }
 
-/* ============================================
-   NAVIGATION PROGRESS BAR
-   ============================================ */
-.nav-progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  z-index: 99999;
-  background: transparent;
-}
-
-.nav-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #2BAE76, #34C284, #2BAE76);
-  border-radius: 0 2px 2px 0;
-  animation: navProgress 2s ease-out forwards;
-  box-shadow: 0 0 8px rgba(43, 174, 118, 0.5);
-}
+/* No navigation progress bar - native browser handles it */

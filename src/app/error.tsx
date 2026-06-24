@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import Link from "next/link"
 import { NavBar } from "@/components/NavBar"
 
 export default function Error({
@@ -31,9 +30,9 @@ export default function Error({
               <button type="button" className="btn btn-primary" onClick={reset}>
                 Coba Lagi
               </button>
-              <Link href="/" className="btn btn-outline" style={{ textDecoration: "none" }}>
+              <a href="/" className="btn btn-outline" style={{ textDecoration: "none" }}>
                 Ke Beranda
-              </Link>
+              </a>
             </div>
           </section>
         </div>

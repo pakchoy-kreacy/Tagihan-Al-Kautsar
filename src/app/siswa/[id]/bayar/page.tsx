@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import Link from "next/link"
 import { ArrowLeft, Home } from "lucide-react"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { getBankInfoByType } from "@/lib/infaq-db"
@@ -51,7 +50,7 @@ export default function BayarPage() {
         <header className="public-header">
           <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
           <span className="public-header-title">Pembayaran</span>
-          <Link href="/"><Home size={20} /></Link>
+          <a href="/" style={{ color: "inherit" }}><Home size={20} /></a>
         </header>
         <main className="public-page">
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
