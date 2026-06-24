@@ -4,6 +4,7 @@ import "./globals.css"
 import { ToastProvider } from "@/components/Toast"
 import { SchoolSettingsProvider } from "@/components/SchoolSettingsProvider"
 import { Preconnect } from "@/components/Preconnect"
+import { NavigationProgress } from "@/components/NavigationProgress"
 
 const sora = Sora({
   subsets: ["latin"],
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <Preconnect />
       <body className="min-h-full">
         <SchoolSettingsProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <NavigationProgress />
+            {children}
+          </ToastProvider>
         </SchoolSettingsProvider>
       </body>
     </html>

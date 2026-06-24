@@ -19,20 +19,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/admin(.*)",
+        source: "/((?!admin|_next).*)",
         headers: [
           { key: "X-DNS-Prefetch-Control", value: "on" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate, s-maxage=60" },
         ],
       },
       {
-        source: "/((?!admin).*)",
+        source: "/admin(.*)",
         headers: [
-          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
-          { key: "Pragma", value: "no-cache" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Cache-Control", value: "no-store" },
         ],
       },
       {

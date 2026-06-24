@@ -3,7 +3,7 @@ import { getBankInfoByType } from "@/lib/infaq-db"
 import { BayarClient } from "./BayarClient"
 import { notFound } from "next/navigation"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 interface PageProps {
   params: Promise<{ id: string }>
