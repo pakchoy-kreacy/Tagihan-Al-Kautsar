@@ -263,13 +263,13 @@ export default function RekapTagihanPage() {
       {selectedBillType && (
         <>
           <div className="admin-overlay" onClick={() => { setSelectedBillType(null); setFilterStatus("all") }} />
-          <div className="admin-modal" style={{ maxWidth: 700 }}>
+          <div className="admin-modal" style={{ maxWidth: 700, maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
             <div className="modal-header">
               <h3>{selectedBillType.billType.name}</h3>
               <button className="modal-close" onClick={() => { setSelectedBillType(null); setFilterStatus("all") }}><X size={18} /></button>
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", flexShrink: 0 }}>
               {[
                 { value: "all", label: "Semua" },
                 { value: "belum", label: "Belum Bayar" },
@@ -303,7 +303,7 @@ export default function RekapTagihanPage() {
               }
 
               return (
-                <div className="admin-table-wrap">
+                <div className="admin-table-wrap" style={{ flex: 1, overflowY: "auto", maxHeight: "50vh" }}>
                   <table className="admin-table">
                     <thead>
                       <tr>
@@ -336,7 +336,7 @@ export default function RekapTagihanPage() {
               )
             })()}
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, fontSize: 13, color: "var(--neutral)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, fontSize: 13, color: "var(--neutral)", flexShrink: 0 }}>
               <span>Total: {selectedBillType.lunas.length + selectedBillType.belum.length + selectedBillType.menunggu.length} tagihan</span>
               <span style={{ fontWeight: 600 }}>Dibayar: {formatRupiah(selectedBillType.lunasNominal)}</span>
             </div>
