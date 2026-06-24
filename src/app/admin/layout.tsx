@@ -21,15 +21,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isLoginPage, setIsLoginPage] = useState(false)
 
   useEffect(() => {
+    setIsLoginPage(pathname === "/admin/login")
+
+    if (pathname === "/admin/login") {
+      setAuthChecked(true)
+      return
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session && pathname !== "/admin/login") {
+        router.replace("/admin/login")
+      }
+      setAuthChecked(true)
+    })
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session && pathname !== "/admin/login") {
         router.replace("/admin/login")
       }
+      setAuthChecked(true)
     })
+
+    return () => subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
     async function fetchPendingCount() {
@@ -48,6 +67,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     await supabase.auth.signOut()
     router.push("/")
     router.refresh()
+  }
+
+  // Halaman login tidak perlu sidebar admin
+  if (isLoginPage) {
+    return <>{children}</>
+  }
+
+  // Tampilkan loading saat mengecek autentikasi
+  if (!authChecked) {
+    return (
+      <div className="admin-layout" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <div className="loading-text">Memuat...</div>
+      </div>
+    )
   }
 
   return (
