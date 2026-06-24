@@ -2,7 +2,6 @@
 
 import { useState, useRef, useMemo } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
@@ -13,7 +12,6 @@ interface InfaqClientProps {
 }
 
 export function InfaqClient({ bank }: InfaqClientProps) {
-  const router = useRouter()
   const { showToast } = useToast()
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -86,9 +84,10 @@ export function InfaqClient({ bank }: InfaqClientProps) {
               </div>
               <h2 style={{ color: "var(--emerald)", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
               <p style={{ color: "var(--neutral)", marginBottom: 24 }}>Infaq Anda telah kami terima.</p>
-              <button type="button" className="btn btn-primary" onClick={() => router.push("/")}>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/" className="btn btn-primary" style={{ textDecoration: "none" }}>
                 Kembali ke Beranda
-              </button>
+              </a>
             </section>
           </div>
         </main>
@@ -102,7 +101,8 @@ export function InfaqClient({ bank }: InfaqClientProps) {
         <div className="app-grid">
           <section className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <button type="button" className="back" onClick={() => router.push("/")}>Kembali</button>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/" className="back" style={{ textDecoration: "none", cursor: "pointer" }}>Kembali</a>
               <span className="badge badge-lunas">Infaq</span>
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", marginTop: 12, fontFamily: "var(--font-heading)" }}>Infaq Sekolah</div>

@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { ArrowLeft, Home, User, Wallet, ChevronRight } from "lucide-react"
 
@@ -11,7 +10,6 @@ interface DetailClientProps {
 }
 
 export function DetailClient({ siswa, id }: DetailClientProps) {
-  const router = useRouter()
 
   function formatDate(tgl: string) {
     if (!tgl || tgl === "Belum dibayar") return tgl
@@ -45,7 +43,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
   return (
     <div className="app-shell">
       <header className="public-header">
-        <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
+        <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Detail Tagihan</span>
         <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
       </header>
@@ -83,10 +81,10 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
           </div>
 
           {siswa.status !== "lunas" && siswa.status !== "tidak_ada_tagihan" && (
-            <button type="button" className="bill-btn" onClick={() => router.push(`/siswa/${id}/bayar`)}>
+            <a href={`/siswa/${id}/bayar`} className="bill-btn" style={{ textDecoration: "none" }}>
               <Wallet size={18} />
               Bayar Sekarang
-            </button>
+            </a>
           )}
         </div>
 

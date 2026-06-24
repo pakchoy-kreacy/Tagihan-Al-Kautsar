@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { ChevronDown, Users, Heart, Lightbulb, Search, UserCheck, Wallet } from "lucide-react"
 import Image from "next/image"
 import type { SchoolSettings } from "@/lib/infaq-db"
@@ -13,9 +12,9 @@ interface HomeClientProps {
 }
 
 export function HomeClient({ settings, kelasList }: HomeClientProps) {
-  const router = useRouter()
   const [selectedKelas, setSelectedKelas] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [navigating, setNavigating] = useState(false)
 
   const logoUrl = settings?.logo_url
   const bannerUrl = settings?.banner_url
@@ -132,20 +131,32 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
 
           {/* CTA BUTTONS */}
           <div className="app-actions">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => selectedKelas && router.push(`/siswa?kelas=${selectedKelas}`)}
-              disabled={!selectedKelas}
-            >
-              <Users size={18} />
-              Lihat Data Siswa
-            </button>
+            {selectedKelas ? (
+              <a 
+                href={`/siswa?kelas=${selectedKelas}`} 
+                className="btn btn-primary" 
+                style={{ textDecoration: "none" }}
+                onClick={() => setNavigating(true)}
+              >
+                <Users size={18} />
+                {navigating ? "Memuat..." : "Lihat Data Siswa"}
+              </a>
+            ) : (
+              <button type="button" className="btn btn-primary" disabled>
+                <Users size={18} />
+                Lihat Data Siswa
+              </button>
+            )}
 
-            <button type="button" className="btn btn-secondary" onClick={() => router.push("/infaq")}>
+            <a 
+              href="/infaq" 
+              className="btn btn-secondary" 
+              style={{ textDecoration: "none" }}
+              onClick={() => setNavigating(true)}
+            >
               <Heart size={18} />
-              Infaq Sekolah
-            </button>
+              {navigating ? "Memuat..." : "Infaq Sekolah"}
+            </a>
           </div>
 
           <div className="app-footer">© {new Date().getFullYear()} {schoolName}</div>

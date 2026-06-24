@@ -3,7 +3,6 @@
 import { useState, useRef, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
@@ -17,7 +16,6 @@ interface BayarClientProps {
 }
 
 export function BayarClient({ siswa, bank, id }: BayarClientProps) {
-  const router = useRouter()
   const { showToast } = useToast()
 
   const [submitting, setSubmitting] = useState(false)
@@ -102,7 +100,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     return (
       <div className="app-shell">
         <header className="public-header">
-          <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
+          <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
           <span className="public-header-title">Pembayaran</span>
           <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
         </header>
@@ -115,9 +113,9 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
             <p style={{ color: "var(--neutral)", marginBottom: 18 }}>
               Pembayaran Anda sedang diverifikasi oleh admin.
             </p>
-            <button type="button" className="btn btn-primary" onClick={() => router.push(`/siswa/${id}`)}>
+            <a href={`/siswa/${id}`} className="btn btn-primary" style={{ textDecoration: "none" }}>
               Kembali ke Detail
-            </button>
+            </a>
           </div>
         </main>
       </div>
@@ -133,7 +131,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
   return (
     <div className="app-shell">
       <header className="public-header">
-        <button onClick={() => router.back()}><ArrowLeft size={22} /></button>
+        <button onClick={() => window.history.back()}><ArrowLeft size={22} /></button>
         <span className="public-header-title">Pembayaran</span>
         <Link href="/" style={{ color: "inherit" }}><Home size={20} /></Link>
       </header>
