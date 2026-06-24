@@ -75,7 +75,7 @@ export default function BerandaPage() {
             )}
               </div>
             </div>
-            <p style={{ marginTop: 14, color: "var(--neutral)", lineHeight: 1.6, fontSize: 14 }}>
+            <p style={{ marginTop: 14, color: "var(--ink)", lineHeight: 1.6, fontSize: 14 }}>
               Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua.
             </p>
           </section>

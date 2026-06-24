@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation"
 import { getBankInfoByType, submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { NavBar } from "@/components/NavBar"
-import { Check } from "lucide-react"
+import { useToast } from "@/components/Toast"
+import { Check, Download, Copy } from "lucide-react"
 
 export default function InfaqPage() {
   const router = useRouter()
+  const { showToast } = useToast()
   const [bank, setBank] = useState<BankInfoSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -46,6 +48,33 @@ export default function InfaqPage() {
     }
   }
 
+  async function copyRekening(no: string) {
+    try {
+      await navigator.clipboard.writeText(no)
+      showToast("Nomor rekening disalin!", "success")
+    } catch {
+      showToast("Gagal menyalin nomor rekening", "error")
+    }
+  }
+
+  async function downloadQris(url: string) {
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = blobUrl
+      a.download = "qris-infaq.png"
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(blobUrl)
+      showToast("QRIS berhasil diunduh!", "success")
+    } catch {
+      showToast("Gagal mengunduh QRIS", "error")
+    }
+  }
+
   if (success) {
     return (
       <div className="app-shell">
@@ -54,8 +83,8 @@ export default function InfaqPage() {
           <div className="app-grid">
             <section className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}>
-                  <Check size={48} color="var(--emerald)" />
-                </div>
+                <Check size={48} color="var(--emerald)" />
+              </div>
               <h2 style={{ color: "var(--emerald)", marginBottom: 8 }}>Jazakumullah Khairan!</h2>
               <p style={{ color: "var(--neutral)", marginBottom: 24 }}>Infaq Anda telah kami terima.</p>
               <button type="button" className="btn btn-primary" onClick={() => router.push("/")}>
@@ -90,14 +119,46 @@ export default function InfaqPage() {
                 <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5" }}>
                   <div className="card-title">Rekening Infaq</div>
                   <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--emerald)", letterSpacing: 2, fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", letterSpacing: 2, fontVariantNumeric: "tabular-nums", wordBreak: "break-all" }}>
                     {bank.nomor_rekening}
                   </div>
                   <div style={{ fontSize: 13, color: "var(--ink)" }}>a.n. {bank.atas_nama}</div>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline"
+                    onClick={() => copyRekening(bank.nomor_rekening)}
+                    style={{ marginTop: 12, width: "100%" }}
+                  >
+                    <Copy size={16} />
+                    Salin Nomor Rekening
+                  </button>
+
                   {bank.qris_url && (
-                    <div style={{ marginTop: 12, textAlign: "center" }}>
-                      <Image src={bank.qris_url} alt="QRIS Infaq" width={160} height={160} style={{ borderRadius: 10 }} />
-                    <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Scan QRIS</div>
+                    <div style={{ marginTop: 16, textAlign: "center" }}>
+                      <div style={{
+                        position: "relative",
+                        width: "100%",
+                        maxWidth: 260,
+                        aspectRatio: "1/1",
+                        margin: "0 auto",
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        background: "white",
+                        border: "1px solid #d0e6d8",
+                      }}>
+                        <Image src={bank.qris_url} alt="QRIS Infaq" fill style={{ objectFit: "contain", padding: 8 }} sizes="260px" />
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 8 }}>Scan QRIS</div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline"
+                        onClick={() => downloadQris(bank.qris_url)}
+                        style={{ marginTop: 8, width: "100%" }}
+                      >
+                        <Download size={16} />
+                        Download QRIS
+                      </button>
                     </div>
                   )}
                 </div>
