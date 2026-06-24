@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
-import { NavBar } from "@/components/NavBar"
 import { Search } from "lucide-react"
 
 interface SiswaClientProps {
@@ -44,7 +43,6 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
 
   return (
     <div className="app-shell">
-      <NavBar />
       <main className="app-main">
         <div className="app-grid">
           <section className="card">

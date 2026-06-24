@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { NavBar } from "@/components/NavBar"
 import { ChevronDown, Users, Heart, Lightbulb, Search, UserCheck, Wallet } from "lucide-react"
 import Image from "next/image"
 import type { SchoolSettings } from "@/lib/infaq-db"
@@ -25,7 +24,6 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
 
   return (
     <div className="app-shell">
-      <NavBar />
       <main className="app-main">
         <div className="app-grid">
           {/* SCHOOL INFO */}

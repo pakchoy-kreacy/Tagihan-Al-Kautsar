@@ -5,7 +5,6 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
-import { NavBar } from "@/components/NavBar"
 import { useToast } from "@/components/Toast"
 import { Check, Download, Copy, X, Upload } from "lucide-react"
 
@@ -85,7 +84,6 @@ export function InfaqClient({ bank }: InfaqClientProps) {
   if (success) {
     return (
       <div className="app-shell">
-        <NavBar />
         <main className="app-main">
           <div className="app-grid">
             <section className="card" style={{ textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
@@ -106,7 +104,6 @@ export function InfaqClient({ bank }: InfaqClientProps) {
 
   return (
     <div className="app-shell">
-      <NavBar />
       <main className="app-main">
         <div className="app-grid">
           <section className="card">

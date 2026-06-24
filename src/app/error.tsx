@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import { NavBar } from "@/components/NavBar"
 
 export default function Error({
   error,
@@ -16,7 +15,6 @@ export default function Error({
 
   return (
     <div className="app-shell">
-      <NavBar />
       <main className="app-main">
         <div className="app-grid" style={{ maxWidth: 480, margin: "0 auto" }}>
           <section className="card" style={{ textAlign: "center", padding: 32 }}>
