@@ -1144,7 +1144,7 @@ textarea.form-input {
    NEW PUBLIC DETAIL & BAYAR PAGE (Reference UI)
    ============================================= */
 .public-header {
-  background: #0E5C4A;
+  background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -1154,6 +1154,7 @@ textarea.form-input {
   position: sticky;
   top: 0;
   z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .public-header button,
@@ -1294,7 +1295,7 @@ textarea.form-input {
 
 .bill-btn {
   margin-top: 14px;
-  background: #0E5C4A;
+  background: linear-gradient(135deg, #2BAE76 0%, #34C284 100%);
   color: white;
   width: 100%;
   padding: 14px;
@@ -1307,10 +1308,11 @@ textarea.form-input {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 14px rgba(43, 174, 118, 0.3);
 }
 
 .bill-btn:hover {
-  background: #0a4a3b;
+  background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
 }
 
 .bill-btn:disabled {
@@ -1550,6 +1552,9 @@ textarea.form-input {
   padding: 16px;
   text-align: center;
   margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .qris-box img {
@@ -1594,7 +1599,7 @@ textarea.form-input {
 
 .bottom-btn button {
   width: 100%;
-  background: #0E5C4A;
+  background: linear-gradient(135deg, #2BAE76 0%, #34C284 100%);
   color: white;
   border: none;
   border-radius: 10px;
@@ -1602,10 +1607,11 @@ textarea.form-input {
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(43, 174, 118, 0.3);
 }
 
 .bottom-btn button:hover {
-  background: #0a4a3b;
+  background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
 }
 
 .bottom-btn button:disabled {
