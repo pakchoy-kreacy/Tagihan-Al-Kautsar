@@ -271,11 +271,18 @@ export async function addSiswa(nisn: string, nama: string, kelas: string): Promi
     const classId = await ensureKelas(kelas)
     if (!classId) return false
 
-    const { error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('students')
       .insert({ nisn, name: nama, class_id: classId })
+      .select('id')
+      .single()
 
     if (error) throw error
+    if (!inserted) throw new Error("Gagal mendapatkan ID siswa")
+
+    // Auto-generate bills for the new student
+    await generateBillsForStudent(inserted.id, kelas)
+
     return true
   } catch (error) {
     console.error('Error adding student:', error)
@@ -291,14 +298,22 @@ export async function addSiswaDetailed(nisn: string, nama: string, kelas: string
     const classId = await ensureKelas(kelas)
     if (!classId) return { success: false, error: "Gagal membuat/menemukan kelas" }
 
-    const { error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('students')
       .insert({ nisn, name: nama, class_id: classId })
+      .select('id')
+      .single()
 
     if (error) {
       if (error.code === '23505') return { success: false, error: "NISN sudah terdaftar" }
       throw error
     }
+
+    if (!inserted) return { success: false, error: "Gagal mendapatkan ID siswa" }
+
+    // Auto-generate bills for the new student
+    await generateBillsForStudent(inserted.id, kelas)
+
     return { success: true }
   } catch (error) {
     console.error('Error adding student:', error)
@@ -628,6 +643,53 @@ async function generateBillsForBillType(billTypeId: string, month: string, year:
     return { count: billsToInsert.length }
   } catch (error) {
     console.error('Error generating bills for bill type:', error)
+    return { count: 0 }
+  }
+}
+
+async function generateBillsForStudent(studentId: string, className: string): Promise<{ count: number }> {
+  try {
+    const now = new Date()
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    const monthLabel = `${monthNames[now.getMonth()]} ${now.getFullYear()}`
+    const year = now.getFullYear()
+
+    const [{ data: billTypes }, { data: yearData }] = await Promise.all([
+      supabase.from('bill_types').select('*'),
+      supabase.from('academic_years').select('id').eq('is_active', true).single(),
+    ])
+
+    if (!billTypes || !yearData) return { count: 0 }
+
+    const billsToInsert = []
+    for (const bt of billTypes) {
+      const applicableClasses = (bt.berlaku_untuk_kelas || []) as string[]
+      if (applicableClasses.length > 0 && !applicableClasses.includes(className)) continue
+
+      billsToInsert.push({
+        student_id: studentId,
+        bill_type_id: bt.id,
+        academic_year_id: yearData.id,
+        month: monthLabel,
+        year,
+        amount: bt.default_amount as number,
+        status: 'belum',
+      })
+    }
+
+    if (billsToInsert.length === 0) return { count: 0 }
+
+    const { error } = await supabase
+      .from('bills')
+      .upsert(billsToInsert, {
+        onConflict: 'student_id,bill_type_id,month,year',
+        ignoreDuplicates: true,
+      })
+
+    if (error) throw error
+    return { count: billsToInsert.length }
+  } catch (error) {
+    console.error('Error generating bills for student:', error)
     return { count: 0 }
   }
 }
