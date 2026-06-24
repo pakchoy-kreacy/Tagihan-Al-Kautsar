@@ -471,9 +471,11 @@ select.admin-input {
     min-height: 100vh;
     min-height: 100dvh;
     max-height: 100dvh;
+    padding-top: 56px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     display: block;
+    box-sizing: border-box;
   }
 
   .admin-sidebar.open {
