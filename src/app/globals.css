@@ -276,6 +276,93 @@ textarea:focus-visible {
   border-radius: 4px;
 }
 
+/* =============================================
+   PETUNJUK CARD (Homepage)
+   ============================================= */
+.petunjuk-card {
+  background: linear-gradient(135deg, rgba(43, 174, 118, 0.12) 0%, rgba(230, 247, 239, 0.6) 100%);
+  border: 1px solid rgba(43, 174, 118, 0.25);
+  border-radius: 18px;
+  padding: 22px;
+  max-width: 720px;
+  margin: 4px auto 0;
+  box-shadow: 0 4px 16px rgba(43, 174, 118, 0.08);
+}
+
+.petunjuk-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.petunjuk-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+.petunjuk-list {
+  display: grid;
+  gap: 12px;
+}
+
+.petunjuk-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(43, 174, 118, 0.15);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.petunjuk-step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(43, 174, 118, 0.12);
+}
+
+.petunjuk-step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--primary-dark) 100%);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.petunjuk-step-text {
+  flex: 1;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  padding-top: 2px;
+}
+
+@media (max-width: 767px) {
+  .petunjuk-card {
+    padding: 18px;
+  }
+
+  .petunjuk-step {
+    padding: 12px 14px;
+  }
+
+  .petunjuk-step-text {
+    font-size: 14px;
+  }
+}
+
 /* Desktop responsive */
 @media (min-width: 768px) {
   .app-grid-2 {

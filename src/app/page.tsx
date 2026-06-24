@@ -5,7 +5,7 @@ import { getSchoolSettings } from "@/lib/infaq-db"
 import type { SchoolSettings } from "@/lib/infaq-db"
 import Image from "next/image"
 import { NavBar } from "@/components/NavBar"
-import { ChevronDown, Users, Heart, Lightbulb } from "lucide-react"
+import { ChevronDown, Users, Heart, Lightbulb, Search, UserCheck, Wallet } from "lucide-react"
 import { getAllClasses, type KelasData } from "@/lib/db"
 import { useRouter } from "next/navigation"
 
@@ -92,36 +92,31 @@ export default function BerandaPage() {
 
           {/* PETUNJUK */}
           {!loading && (
-            <section className="card" style={{ maxWidth: 720, margin: "4px auto 0", padding: 20 }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                marginBottom: 14,
-              }}>
-                <Lightbulb size={20} style={{ color: "var(--gold)" }} />
-                <h2 style={{
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: "var(--ink)",
-                  margin: 0,
-                  fontFamily: "var(--font-heading)",
-                }}>
-                  Petunjuk
-                </h2>
+            <section className="petunjuk-card">
+              <div className="petunjuk-header">
+                <Lightbulb size={22} style={{ color: "var(--gold)" }} />
+                <h2 className="petunjuk-title">Petunjuk Pembayaran</h2>
               </div>
-              <ol style={{
-                margin: 0,
-                paddingLeft: 22,
-                color: "var(--ink)",
-                fontSize: 15,
-                lineHeight: 1.7,
-              }}>
-                <li>Pilih kelas, lalu klik <strong>Lihat Data Siswa</strong>.</li>
-                <li>Pilih siswa yang ingin dibayar tagihannya.</li>
-                <li>Lakukan pembayaran sesuai tagihan sekolah.</li>
-              </ol>
+              <div className="petunjuk-list">
+                <div className="petunjuk-step">
+                  <div className="petunjuk-step-icon"><Search size={18} /></div>
+                  <p className="petunjuk-step-text">
+                    <strong>Pilih kelas</strong> yang sesuai, lalu klik <strong>Lihat Data Siswa</strong>.
+                  </p>
+                </div>
+                <div className="petunjuk-step">
+                  <div className="petunjuk-step-icon"><UserCheck size={18} /></div>
+                  <p className="petunjuk-step-text">
+                    <strong>Pilih siswa</strong> yang ingin dibayar tagihannya.
+                  </p>
+                </div>
+                <div className="petunjuk-step">
+                  <div className="petunjuk-step-icon"><Wallet size={18} /></div>
+                  <p className="petunjuk-step-text">
+                    <strong>Lakukan pembayaran</strong> sesuai tagihan sekolah yang tertera.
+                  </p>
+                </div>
+              </div>
             </section>
           )}
 

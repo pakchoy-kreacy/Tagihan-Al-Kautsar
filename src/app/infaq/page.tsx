@@ -116,30 +116,38 @@ export default function InfaqPage() {
               {loading ? (
                 <div className="card"><div className="loading-text">Memuat...</div></div>
               ) : bank ? (
-                <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5" }}>
-                  <div className="card-title">Rekening Infaq</div>
+                <div className="card" style={{ background: "var(--emerald-soft)", borderColor: "#a5c9b5", textAlign: "center" }}>
+                  <div className="card-title" style={{ justifyContent: "center" }}>Rekening Infaq</div>
                   <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", letterSpacing: 2, fontVariantNumeric: "tabular-nums", wordBreak: "break-all" }}>
+                  <div style={{
+                    fontSize: "clamp(18px, 5vw, 24px)",
+                    fontWeight: 700,
+                    color: "var(--emerald)",
+                    letterSpacing: 1.5,
+                    fontVariantNumeric: "tabular-nums",
+                    wordBreak: "break-all",
+                    marginTop: 4,
+                  }}>
                     {bank.nomor_rekening}
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--ink)" }}>a.n. {bank.atas_nama}</div>
+                  <div style={{ fontSize: 13, color: "var(--ink)", marginTop: 4 }}>a.n. {bank.atas_nama}</div>
 
                   <button
                     type="button"
                     className="btn btn-sm btn-outline"
                     onClick={() => copyRekening(bank.nomor_rekening)}
-                    style={{ marginTop: 12, width: "100%" }}
+                    style={{ marginTop: 14, width: "100%", maxWidth: 280, marginInline: "auto" }}
                   >
                     <Copy size={16} />
                     Salin Nomor Rekening
                   </button>
 
                   {bank.qris_url && (
-                    <div style={{ marginTop: 16, textAlign: "center" }}>
+                    <div style={{ marginTop: 18, textAlign: "center" }}>
                       <div style={{
                         position: "relative",
                         width: "100%",
-                        maxWidth: 260,
+                        maxWidth: 220,
                         aspectRatio: "1/1",
                         margin: "0 auto",
                         borderRadius: 12,
@@ -147,14 +155,14 @@ export default function InfaqPage() {
                         background: "white",
                         border: "1px solid #d0e6d8",
                       }}>
-                        <Image src={bank.qris_url} alt="QRIS Infaq" fill style={{ objectFit: "contain", padding: 8 }} sizes="260px" />
+                        <Image src={bank.qris_url} alt="QRIS Infaq" fill style={{ objectFit: "contain", padding: 8 }} sizes="220px" />
                       </div>
                       <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 8 }}>Scan QRIS</div>
                       <button
                         type="button"
                         className="btn btn-sm btn-outline"
                         onClick={() => downloadQris(bank.qris_url)}
-                        style={{ marginTop: 8, width: "100%" }}
+                        style={{ marginTop: 8, width: "100%", maxWidth: 220, marginInline: "auto" }}
                       >
                         <Download size={16} />
                         Download QRIS
