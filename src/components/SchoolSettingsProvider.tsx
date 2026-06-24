@@ -17,40 +17,43 @@ export function useSchoolSettings() {
   return useContext(SchoolSettingsContext)
 }
 
-const CACHE_KEY = "espp_school_settings"
+const SETTINGS_CACHE_KEY = "espp_school_settings"
 
 export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SchoolSettings | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 1. Load dari cache dulu (instant)
+    // 1. Langsung pakai cache (instant, no delay)
+    let cached: SchoolSettings | null = null
     try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) {
-        const parsed = JSON.parse(cached) as SchoolSettings
-        setSettings(parsed)
+      const raw = localStorage.getItem(SETTINGS_CACHE_KEY)
+      if (raw) {
+        cached = JSON.parse(raw) as SchoolSettings
+        setSettings(cached)
         setLoading(false)
-        applyFavicon(parsed.logo_url)
+        applyFavicon(cached.logo_url)
       }
     } catch {
-      // ignore cache errors
+      // ignore
     }
 
-    // 2. Fetch terbaru dari Supabase (background)
+    // 2. Fetch update di background (tidak block UI)
     getSchoolSettings().then(s => {
-      setSettings(s)
-      setLoading(false)
-      applyFavicon(s?.logo_url)
-
-      // Simpan ke cache
       if (s) {
+        setSettings(s)
+        setLoading(false)
+        applyFavicon(s.logo_url)
         try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify(s))
+          localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s))
         } catch {
-          // ignore storage errors
+          // ignore
         }
+      } else if (!cached) {
+        setLoading(false)
       }
+    }).catch(() => {
+      if (!cached) setLoading(false)
     })
   }, [])
 
@@ -62,7 +65,7 @@ export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
 }
 
 function applyFavicon(logoUrl?: string) {
-  if (!logoUrl) return
+  if (!logoUrl || typeof document === "undefined") return
   const existing = document.querySelectorAll("link[rel*='icon']")
   existing.forEach(el => el.remove())
   const link = document.createElement("link")

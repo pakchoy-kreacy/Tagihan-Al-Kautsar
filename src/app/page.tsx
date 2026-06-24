@@ -14,12 +14,12 @@ export default function BerandaPage() {
   const [selectedKelas, setSelectedKelas] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [kelasList, setKelasList] = useState<KelasData[]>([])
-  const [loading, setLoading] = useState(true)
+  const [kelasLoaded, setKelasLoaded] = useState(false)
 
   useEffect(() => {
     getAllClasses().then(classes => {
       setKelasList(classes)
-      setLoading(false)
+      setKelasLoaded(true)
     })
   }, [])
 
@@ -28,18 +28,15 @@ export default function BerandaPage() {
   const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
   const alamat = settings?.alamat || "Kabo Jaya"
 
-  const isDataReady = !loading
-  const isSettingsReady = !settingsLoading || settings !== null
-
   return (
     <div className="app-shell">
       <NavBar />
       <main className="app-main">
         <div className="app-grid">
-          {/* SCHOOL INFO */}
+          {/* SCHOOL INFO - langsung tampil, logo nunggu cache */}
           <section className="card" style={{ background: "#fff", borderRadius: 18, padding: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              {!isSettingsReady ? (
+              {settingsLoading && !settings ? (
                 <div className="skeleton skeleton-circle" />
               ) : logoUrl ? (
                 <Image src={logoUrl} alt={schoolName} width={56} height={56}
@@ -54,17 +51,10 @@ export default function BerandaPage() {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 200 }}>
-            {!isSettingsReady ? (
-              <>
-                <div className="skeleton skeleton-text" style={{ width: "60%", marginBottom: 8 }} />
-                <div className="skeleton skeleton-text-sm" style={{ width: "40%" }} />
-              </>
-            ) : (
-              <>
                 <div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", fontFamily: "var(--font-heading)" }}>ESPP MI</div>
-                <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>{schoolName} · {alamat}</div>
-              </>
-            )}
+                <div style={{ color: "var(--neutral)", fontSize: 13, marginTop: 2 }}>
+                  {settings ? `${schoolName} · ${alamat}` : "Sistem Pembayaran Siswa"}
+                </div>
               </div>
             </div>
             <p style={{ marginTop: 14, color: "var(--ink)", lineHeight: 1.6, fontSize: 14 }}>
@@ -72,50 +62,46 @@ export default function BerandaPage() {
             </p>
           </section>
 
-          {/* BANNER */}
-          {!isSettingsReady ? (
-            <div className="skeleton skeleton-banner" />
-          ) : bannerUrl ? (
+          {/* BANNER - langsung dari cache */}
+          {bannerUrl && (
             <section className="home-banner" aria-label="Banner Sekolah">
               <Image src={bannerUrl} alt="Banner Sekolah" fill priority
                 sizes="(max-width: 768px) 100vw, 1200px" />
             </section>
-          ) : null}
-
-          {/* PETUNJUK */}
-          {isSettingsReady && (
-            <section className="petunjuk-card">
-              <div className="petunjuk-header">
-                <Lightbulb size={22} style={{ color: "var(--gold)" }} />
-                <h2 className="petunjuk-title">Petunjuk Pembayaran</h2>
-              </div>
-              <div className="petunjuk-list">
-                <div className="petunjuk-step">
-                  <div className="petunjuk-step-icon"><Search size={18} /></div>
-                  <p className="petunjuk-step-text">
-                    <strong>Pilih kelas</strong> yang sesuai, lalu klik <strong>Lihat Data Siswa</strong>.
-                  </p>
-                </div>
-                <div className="petunjuk-step">
-                  <div className="petunjuk-step-icon"><UserCheck size={18} /></div>
-                  <p className="petunjuk-step-text">
-                    <strong>Pilih siswa</strong> yang ingin dibayar tagihannya.
-                  </p>
-                </div>
-                <div className="petunjuk-step">
-                  <div className="petunjuk-step-icon"><Wallet size={18} /></div>
-                  <p className="petunjuk-step-text">
-                    <strong>Lakukan pembayaran</strong> sesuai tagihan sekolah yang tertera.
-                  </p>
-                </div>
-              </div>
-            </section>
           )}
+
+          {/* PETUNJUK - statis, langsung tampil */}
+          <section className="petunjuk-card">
+            <div className="petunjuk-header">
+              <Lightbulb size={22} style={{ color: "var(--gold)" }} />
+              <h2 className="petunjuk-title">Petunjuk Pembayaran</h2>
+            </div>
+            <div className="petunjuk-list">
+              <div className="petunjuk-step">
+                <div className="petunjuk-step-icon"><Search size={18} /></div>
+                <p className="petunjuk-step-text">
+                  <strong>Pilih kelas</strong> yang sesuai, lalu klik <strong>Lihat Data Siswa</strong>.
+                </p>
+              </div>
+              <div className="petunjuk-step">
+                <div className="petunjuk-step-icon"><UserCheck size={18} /></div>
+                <p className="petunjuk-step-text">
+                  <strong>Pilih siswa</strong> yang ingin dibayar tagihannya.
+                </p>
+              </div>
+              <div className="petunjuk-step">
+                <div className="petunjuk-step-icon"><Wallet size={18} /></div>
+                <p className="petunjuk-step-text">
+                  <strong>Lakukan pembayaran</strong> sesuai tagihan sekolah yang tertera.
+                </p>
+              </div>
+            </div>
+          </section>
 
           {/* PILIH KELAS */}
           <section className="card">
             <div className="card-title">Pilih Kelas</div>
-            {loading ? (
+            {!kelasLoaded ? (
               <div className="loading-text" style={{ padding: "8px 0 4px" }}>
                 Memuat data kelas...
               </div>

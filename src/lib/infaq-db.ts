@@ -160,6 +160,12 @@ export async function updateSchoolSettings(data: Partial<SchoolSettings>): Promi
       .eq('id', data.id)
 
     if (error) throw error
+
+    // Invalidate cache
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("espp_school_settings")
+    }
+
     return true
   } catch (error) {
     console.error('Error updating school settings:', error)

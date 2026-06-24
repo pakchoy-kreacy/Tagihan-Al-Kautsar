@@ -40,7 +40,33 @@ interface Bill {
 }
 
 // Get all classes
+const CLASSES_CACHE_KEY = "espp_classes"
+let classesCache: KelasData[] | null = null
+
 export async function getAllClasses(): Promise<KelasData[]> {
+  // Return cache langsung kalau ada (instant)
+  if (classesCache) return classesCache
+
+  // Coba localStorage cache
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(CLASSES_CACHE_KEY)
+      if (raw) {
+        classesCache = JSON.parse(raw) as KelasData[]
+        // Return cache dulu, fetch di background
+        fetchClassesBackground()
+        return classesCache
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Tidak ada cache, fetch langsung
+  return fetchClassesBackground()
+}
+
+async function fetchClassesBackground(): Promise<KelasData[]> {
   try {
     const { data, error } = await supabase
       .from('classes')
@@ -48,10 +74,19 @@ export async function getAllClasses(): Promise<KelasData[]> {
       .order('name', { ascending: true })
 
     if (error) throw error
-    return (data || []) as KelasData[]
+    const result = (data || []) as KelasData[]
+    classesCache = result
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(CLASSES_CACHE_KEY, JSON.stringify(result))
+      } catch {
+        // ignore
+      }
+    }
+    return result
   } catch (error) {
     console.error('Error fetching classes:', error)
-    return []
+    return classesCache || []
   }
 }
 
