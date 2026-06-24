@@ -34,8 +34,8 @@
 
 /* Sidebar */
 .admin-sidebar {
-  width: 240px;
-  min-width: 240px;
+  width: 260px;
+  min-width: 260px;
   background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
   color: white;
   display: flex;
@@ -44,6 +44,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .admin-sidebar-header {
@@ -465,6 +466,8 @@ select.admin-input {
     z-index: 95;
     transition: left 0.3s ease;
     height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .admin-sidebar.open {
@@ -473,6 +476,7 @@ select.admin-input {
 
   .admin-main {
     padding: 70px 16px 16px 16px;
+    overflow-x: hidden;
   }
 
   .admin-stats {
@@ -1882,12 +1886,12 @@ select.admin-input {
 }
 
 /* =============================================
-   STATS GRID — 6 cols on wide desktop
+   STATS GRID — responsive, max 3 cols
    ============================================= */
 
 @media (min-width: 1280px) {
   .stats-grid {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

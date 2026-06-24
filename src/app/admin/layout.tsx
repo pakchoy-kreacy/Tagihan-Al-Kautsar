@@ -2,8 +2,10 @@
 import "./admin.css"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { getSchoolSettings, type SchoolSettings } from "@/lib/infaq-db"
 import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House } from "lucide-react"
 
 const navItems = [
@@ -23,6 +25,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingCount, setPendingCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoginPage, setIsLoginPage] = useState(false)
+  const [settings, setSettings] = useState<SchoolSettings | null>(null)
+
+  useEffect(() => {
+    getSchoolSettings().then(setSettings)
+  }, [])
 
   useEffect(() => {
     setIsLoginPage(pathname === "/admin/login")
@@ -92,7 +99,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="admin-sidebar-header">
-          <div className="admin-sidebar-logo">MI</div>
+          {settings?.logo_url ? (
+            <div className="admin-sidebar-logo">
+              <Image src={settings.logo_url} alt="Logo" width={40} height={40} style={{ borderRadius: "50%", objectFit: "cover" }} />
+            </div>
+          ) : (
+            <div className="admin-sidebar-logo">MI</div>
+          )}
           <div>
             <div className="admin-sidebar-title">MI Nurul Iman</div>
             <div className="admin-sidebar-sub">Admin Panel</div>
