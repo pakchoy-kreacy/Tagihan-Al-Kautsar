@@ -7,14 +7,13 @@ import { InfaqClient } from "./InfaqClient"
 
 export default function InfaqPage() {
   const [bank, setBank] = useState<BankInfoSettings | null>(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let mounted = true
 
     async function fetchData() {
       const b = await getBankInfoByType("infaq")
-      if (mounted) { setBank(b); setLoading(false) }
+      if (mounted) setBank(b)
     }
 
     fetchData()
@@ -28,20 +27,6 @@ export default function InfaqPage() {
       document.removeEventListener("visibilitychange", onVisible)
     }
   }, [])
-
-  if (loading) {
-    return (
-      <div className="app-shell">
-        <div style={{ padding: "16px 20px", background: "var(--emerald)" }} />
-        <main className="app-main">
-          <div className="app-grid">
-            <div className="skeleton" style={{ width: "100%", height: 80, borderRadius: 14, marginBottom: 14 }} />
-            <div className="skeleton" style={{ width: "100%", height: 300, borderRadius: 14 }} />
-          </div>
-        </main>
-      </div>
-    )
-  }
 
   return <InfaqClient bank={bank} />
 }

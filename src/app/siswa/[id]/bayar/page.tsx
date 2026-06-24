@@ -11,7 +11,6 @@ import { BayarClient } from "./BayarClient"
 export default function BayarPage() {
   const [siswa, setSiswa] = useState<Siswa | null>(null)
   const [bank, setBank] = useState<BankInfoSettings | null>(null)
-  const [loading, setLoading] = useState(true)
   const id = typeof window !== "undefined" ? window.location.pathname.split("/")[2] : ""
 
   useEffect(() => {
@@ -23,7 +22,7 @@ export default function BayarPage() {
         getSiswaById(id),
         getBankInfoByType("payment").then(b => b || getBankInfoByType("infaq")),
       ])
-      if (mounted) { setSiswa(s || null); setBank(b); setLoading(false) }
+      if (mounted) { setSiswa(s || null); setBank(b) }
     }
 
     fetchData()
@@ -39,23 +38,6 @@ export default function BayarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (loading) {
-    return (
-      <div className="app-shell">
-        <header className="public-header">
-          <div className="skeleton" style={{ width: 22, height: 22, borderRadius: 6 }} />
-          <div className="skeleton" style={{ width: 120, height: 16 }} />
-          <div className="skeleton" style={{ width: 20, height: 20, borderRadius: 6 }} />
-        </header>
-        <main className="public-page">
-          <div className="skeleton" style={{ width: "100%", height: 80, borderRadius: 14, marginBottom: 14 }} />
-          <div className="skeleton" style={{ width: "100%", height: 60, borderRadius: 14, marginBottom: 14 }} />
-          <div className="skeleton" style={{ width: "100%", height: 180, borderRadius: 14 }} />
-        </main>
-      </div>
-    )
-  }
-
   if (!siswa) {
     return (
       <div className="app-shell">
@@ -66,7 +48,7 @@ export default function BayarPage() {
         </header>
         <main className="public-page">
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
-            <p style={{ color: "var(--neutral)" }}>Siswa tidak ditemukan</p>
+            <p style={{ color: "var(--neutral)" }}>{id ? "Memuat data..." : "Siswa tidak ditemukan"}</p>
           </div>
         </main>
       </div>

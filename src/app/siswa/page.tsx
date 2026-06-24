@@ -7,12 +7,12 @@ import { getStudentsByClass, getActiveYear, type Siswa } from "@/lib/db"
 export default function DaftarSiswaPage() {
   const [allSiswa, setAllSiswa] = useState<Siswa[]>([])
   const [tahunAjaran, setTahunAjaran] = useState("")
-  const [kelas, setKelas] = useState("3A")
-  const [loading, setLoading] = useState(true)
+  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams()
+  const [kelas, setKelas] = useState(params.get("kelas") || "")
 
   const fetchData = useCallback(async () => {
-    const params = new URLSearchParams(window.location.search)
-    const k = params.get("kelas") || "3A"
+    const k = new URLSearchParams(window.location.search).get("kelas") || ""
+    if (!k) return
     setKelas(k)
     const [siswa, tahun] = await Promise.all([
       getStudentsByClass(k),
@@ -20,7 +20,6 @@ export default function DaftarSiswaPage() {
     ])
     setAllSiswa(siswa)
     setTahunAjaran(tahun)
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -36,23 +35,14 @@ export default function DaftarSiswaPage() {
     }
   }, [fetchData])
 
-  if (loading) {
+  if (!kelas) {
     return (
       <div className="app-shell">
-        <div className="app-nav rub-el-hizb">
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px" }}>
-            <div className="skeleton" style={{ width: 36, height: 36, borderRadius: "50%" }} />
-            <div className="skeleton" style={{ width: 80, height: 16 }} />
-          </div>
-        </div>
         <main className="app-main">
           <div className="app-grid">
-            <div className="skeleton" style={{ width: "100%", height: 120, borderRadius: 16 }} />
-            <div className="skeleton" style={{ width: "100%", height: 44, borderRadius: 12 }} />
-            <div className="skeleton" style={{ width: "100%", height: 80, borderRadius: 16 }} />
-            {[1,2,3].map(i => (
-              <div key={i} className="skeleton" style={{ width: "100%", height: 72, borderRadius: 14 }} />
-            ))}
+            <div className="card" style={{ textAlign: "center", padding: 40 }}>
+              <p style={{ color: "var(--neutral)" }}>Pilih kelas terlebih dahulu dari halaman beranda.</p>
+            </div>
           </div>
         </main>
       </div>
