@@ -1624,68 +1624,6 @@ textarea.form-input {
 }
 
 /* ============================================
-   LOADING SCREEN (brand logo)
-   ============================================ */
-.loading-screen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--sand);
-  z-index: 99999;
-}
-
-.loading-logo-img {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(43, 174, 118, 0.3);
-}
-
-.loading-logo-text {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2BAE76 0%, #34C284 100%);
-  color: white;
-  font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: 28px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 20px rgba(43, 174, 118, 0.35);
-}
-
-.loading-label {
-  margin-top: 14px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: 0.5px;
-  font-family: var(--font-heading), system-ui, sans-serif;
-}
-
-.loading-bar-track {
-  margin-top: 16px;
-  width: 120px;
-  height: 3px;
-  border-radius: 2px;
-  background: #e0e8e2;
-  overflow: hidden;
-}
-
-.loading-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #2BAE76, #34C284);
-  border-radius: 2px;
-  animation: barGrow 1.5s ease-out forwards;
-}
-
-/* ============================================
    NAVIGATION PROGRESS BAR
    ============================================ */
 .nav-progress-bar {
