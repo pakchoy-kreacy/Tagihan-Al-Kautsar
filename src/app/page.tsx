@@ -5,7 +5,7 @@ import { getSchoolSettings } from "@/lib/infaq-db"
 import type { SchoolSettings } from "@/lib/infaq-db"
 import Image from "next/image"
 import { NavBar } from "@/components/NavBar"
-import { ChevronDown, Users, Heart } from "lucide-react"
+import { ChevronDown, Users, Heart, Lightbulb } from "lucide-react"
 import { getAllClasses, type KelasData } from "@/lib/db"
 import { useRouter } from "next/navigation"
 
@@ -75,6 +75,9 @@ export default function BerandaPage() {
             )}
               </div>
             </div>
+            <p style={{ marginTop: 14, color: "var(--neutral)", lineHeight: 1.6, fontSize: 14 }}>
+              Sistem pembayaran siswa yang sederhana, cepat, dan mudah dipakai orang tua.
+            </p>
           </section>
 
           {/* BANNER */}
@@ -89,16 +92,28 @@ export default function BerandaPage() {
 
           {/* HINT */}
           {!loading && (
-            <p style={{
-              textAlign: "center",
-              color: "var(--neutral)",
-              fontSize: 14,
-              lineHeight: 1.6,
-              margin: "4px auto 0",
+            <div style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
               maxWidth: 720,
+              margin: "4px auto 0",
+              padding: "12px 16px",
+              background: "var(--gold-soft)",
+              border: "1px solid #e6d9b8",
+              borderRadius: 12,
             }}>
-              Pilih kelas untuk melihat data siswa, atau kirim infaq sekolah.
-            </p>
+              <Lightbulb size={18} style={{ color: "var(--gold)", flexShrink: 0, marginTop: 2 }} />
+              <p style={{
+                color: "#7a6228",
+                fontSize: 14,
+                lineHeight: 1.6,
+                textAlign: "justify",
+                margin: 0,
+              }}>
+                Pilih kelas untuk melihat data siswa, atau kirim infaq sekolah.
+              </p>
+            </div>
           )}
 
           {/* PILIH KELAS */}
