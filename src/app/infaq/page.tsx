@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { getBankInfoByType, submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { NavBar } from "@/components/NavBar"
 import { useToast } from "@/components/Toast"
-import { Check, Download, Copy } from "lucide-react"
+import { Check, Download, Copy, X, Upload } from "lucide-react"
 
 export default function InfaqPage() {
   const router = useRouter()
@@ -21,6 +21,8 @@ export default function InfaqPage() {
   const [nominal, setNominal] = useState("")
   const [pesan, setPesan] = useState("")
   const [file, setFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     getBankInfoByType("infaq").then((b) => {
@@ -28,6 +30,16 @@ export default function InfaqPage() {
       setLoading(false)
     })
   }, [])
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
 
   async function handleSubmit() {
     setError("")
@@ -177,21 +189,89 @@ export default function InfaqPage() {
             </div>
 
             <div className="card">
-              <div className="card-title">Upload Bukti Infaq</div>
+              <div className="card-title" style={{ justifyContent: "center", fontSize: 17, marginBottom: 16 }}>
+                <Upload size={18} style={{ color: "var(--emerald)" }} />
+                Upload Bukti Infaq
+              </div>
               <input className="form-input" placeholder="Nama Donatur" value={nama}
                 onChange={(e) => setNama(e.target.value)} />
               <input className="form-input" placeholder="Nominal" type="number" value={nominal}
                 onChange={(e) => setNominal(e.target.value)} />
               <textarea className="form-input" placeholder="Pesan (opsional)" rows={3} value={pesan}
                 onChange={(e) => setPesan(e.target.value)} />
-              <div className="form-input" style={{ padding: 8, background: "#fafafa" }}>
-                <input type="file" accept="image/*"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                {file && <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>{file.name}</div>}
-              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const selected = e.target.files?.[0] || null
+                  setFile(selected)
+                  if (fileInputRef.current) fileInputRef.current.value = ""
+                }}
+              />
+
+              {!file ? (
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ height: "auto", padding: "16px 20px", flexDirection: "column", gap: 6 }}
+                >
+                  <Upload size={24} style={{ color: "var(--emerald)" }} />
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>Klik untuk pilih gambar</span>
+                  <span style={{ fontSize: 12, color: "var(--neutral)", fontWeight: 400 }}>Format: JPG, PNG</span>
+                </button>
+              ) : (
+                <div style={{
+                  border: "2px dashed var(--emerald)",
+                  borderRadius: 12,
+                  padding: 12,
+                  background: "var(--emerald-soft)",
+                  textAlign: "center",
+                }}>
+                  {previewUrl && (
+                    <div style={{
+                      position: "relative",
+                      width: "100%",
+                      maxWidth: 200,
+                      aspectRatio: "1/1",
+                      margin: "0 auto 10px",
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      background: "white",
+                    }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={previewUrl} alt="Preview bukti" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12, color: "var(--neutral)", marginBottom: 10, wordBreak: "break-all" }}>{file.name}</div>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{ flex: "0 0 auto" }}
+                    >
+                      Ubah
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      onClick={() => setFile(null)}
+                      style={{ flex: "0 0 auto" }}
+                    >
+                      <X size={14} />
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {error && <div style={{ color: "var(--terracotta)", fontSize: 13, marginTop: 8 }}>{error}</div>}
               <button type="button" className="btn btn-primary" style={{ marginTop: 14 }}
-                onClick={handleSubmit} disabled={submitting}>
+                onClick={handleSubmit} disabled={submitting || !file}>
                 {submitting ? "Mengirim..." : "Kirim Infaq"}
               </button>
             </div>
