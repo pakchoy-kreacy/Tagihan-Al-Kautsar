@@ -120,13 +120,14 @@ export default function InfaqPage() {
                   <div className="card-title" style={{ justifyContent: "center" }}>Rekening Infaq</div>
                   <div style={{ fontSize: 13, color: "var(--neutral)" }}>{bank.bank_name}</div>
                   <div style={{
-                    fontSize: "clamp(18px, 5vw, 24px)",
+                    fontSize: "clamp(18px, 5vw, 22px)",
                     fontWeight: 700,
                     color: "var(--emerald)",
-                    letterSpacing: 1.5,
-                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: 1,
                     wordBreak: "break-all",
+                    overflowWrap: "anywhere",
                     marginTop: 4,
+                    maxWidth: "100%",
                   }}>
                     {bank.nomor_rekening}
                   </div>
