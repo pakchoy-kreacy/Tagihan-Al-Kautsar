@@ -36,8 +36,10 @@ export async function getBankInfo(): Promise<BankInfo | null> {
     const { data, error } = await supabase
       .from('bank_info')
       .select('*')
+      .eq('type', 'payment')
       .eq('is_active', true)
-      .single()
+      .limit(1)
+      .maybeSingle()
 
     if (error) throw error
     return data as BankInfo
