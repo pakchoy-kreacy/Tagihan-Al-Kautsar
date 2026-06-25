@@ -418,7 +418,7 @@ function SiswaContent() {
                 {detailSiswa.riwayat.map(r => (
                   <div key={r.id} className={`riwayat-row status-${r.status}`}>
                     <div>
-                      <div className="riwayat-bulan">{r.bulan}</div>
+                      <div className="riwayat-bulan">{r.bill_type_name || r.bulan}</div>
                       <div className="riwayat-tanggal">{r.tanggal}</div>
                     </div>
                     <div className="riwayat-right" style={{ alignItems: "flex-end", gap: 6 }}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { formatRupiah, updateBillStatus } from "@/lib/db"
+import { formatRupiah, updateBillStatus, getAllClasses } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox } from "lucide-react"
 // XLSX di-import dynamic untuk mengurangi bundle size
@@ -48,15 +48,22 @@ export default function RekapTagihanPage() {
   const [selectedBillType, setSelectedBillType] = useState<RekapItem | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [editingBillId, setEditingBillId] = useState<string | null>(null)
+  const [filterKelas, setFilterKelas] = useState<string>("all")
+  const [kelasList, setKelasList] = useState<string[]>([])
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [exportTarget, setExportTarget] = useState<RekapItem | null>(null)
 
   async function fetchData() {
     setLoading(true)
     try {
-      const [{ data: billTypes }, { data: students }, { data: bills }] = await Promise.all([
+      const [{ data: billTypes }, { data: students }, { data: bills }, classes] = await Promise.all([
         supabase.from("bill_types").select("*").order("name"),
         supabase.from("students").select("id, name, nisn, classes(name)"),
         supabase.from("bills").select("*").order("year", { ascending: false }).order("month"),
+        getAllClasses(),
       ])
+      
+      setKelasList(classes.map(c => c.name))
 
       if (!billTypes) return
 
@@ -168,36 +175,48 @@ export default function RekapTagihanPage() {
   }
 
   async function handleExportPerBillType() {
-    if (!selectedBillType) return
+    if (!exportTarget) return
     const XLSX = await import("xlsx")
 
-    const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu]
+    let allBills = [...exportTarget.lunas, ...exportTarget.belum, ...exportTarget.menunggu]
+    
+    // Apply class filter
+    if (filterKelas !== "all") {
+      allBills = allBills.filter(b => b.class_name === filterKelas)
+    }
+    
+    if (allBills.length === 0) {
+      showToast("Tidak ada data untuk di-export!", "error")
+      return
+    }
+    
     const rows: Record<string, unknown>[] = allBills.map(bill => ({
       "Nama Siswa": bill.student_name,
       "NISN": bill.nisn,
       "Kelas": bill.class_name,
-      "Bulan": bill.month,
       "Nominal": bill.amount,
       "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
       "Tanggal Bayar": bill.paid_date || "-",
     }))
 
-    if (rows.length === 0) {
-      showToast("Tidak ada data untuk di-export!", "error")
-      return
-    }
-
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, selectedBillType.billType.name)
+    XLSX.utils.book_append_sheet(wb, ws, exportTarget.billType.name)
 
     const colWidths = Object.keys(rows[0]).map(key => ({
       wch: Math.max(key.length, ...rows.map(r => String(r[key]).length)) + 2
     }))
     ws["!cols"] = colWidths
 
-    XLSX.writeFile(wb, `rekap-${selectedBillType.billType.name}.xlsx`)
+    // Dynamic filename based on filter
+    const kelasStr = filterKelas === "all" ? "" : `_Kelas_${filterKelas}`
+    const filename = `Rekap_${exportTarget.billType.name}${kelasStr}.xlsx`
+    
+    XLSX.writeFile(wb, filename)
     showToast("Berhasil di-export ke Excel!", "success")
+    setShowExportModal(false)
+    setExportTarget(null)
+    setFilterKelas("all")
   }
 
   return (
@@ -231,10 +250,22 @@ export default function RekapTagihanPage() {
               style={{ cursor: "pointer" }}
             >
               <div className="rekap-card-header">
-                <div className="rekap-card-title">{item.billType.name}</div>
-                {item.billType.is_recurring && (
-                  <span className="tc-badge recurring" style={{ fontSize: 10 }}>Bulanan</span>
-                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+                  <div className="rekap-card-title">{item.billType.name}</div>
+                  {item.billType.is_recurring && (
+                    <span className="tc-badge recurring" style={{ fontSize: 10 }}>Bulanan</span>
+                  )}
+                </div>
+                <button
+                  className="rekap-card-export-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setExportTarget(item)
+                    setShowExportModal(true)
+                  }}
+                >
+                  <Download size={14} /> Export
+                </button>
               </div>
 
               {item.billType.description && (
@@ -387,6 +418,42 @@ export default function RekapTagihanPage() {
               <span>Total: {selectedBillType.lunas.length + selectedBillType.belum.length + selectedBillType.menunggu.length} tagihan</span>
               <span style={{ fontWeight: 600 }}>Dibayar: {formatRupiah(selectedBillType.lunasNominal)}</span>
             </div>
+          </div>
+        </>
+      )}
+
+      {/* EXPORT MODAL */}
+      {showExportModal && exportTarget && (
+        <>
+          <div className="admin-overlay" onClick={() => setShowExportModal(false)} />
+          <div className="admin-modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3>Export {exportTarget.billType.name}</h3>
+              <button className="modal-close" onClick={() => setShowExportModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            
+            <label className="admin-label" style={{ marginBottom: 6, display: "block", fontSize: 13, fontWeight: 600 }}>Filter Kelas</label>
+            <select 
+              className="admin-select"
+              value={filterKelas}
+              onChange={e => setFilterKelas(e.target.value)}
+              style={{ marginBottom: 16 }}
+            >
+              <option value="all">Semua Kelas</option>
+              {kelasList.map(k => (
+                <option key={k} value={k}>Kelas {k}</option>
+              ))}
+            </select>
+            
+            <button 
+              className="admin-btn admin-btn-primary"
+              onClick={handleExportPerBillType}
+              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            >
+              <Download size={16} /> Export to Excel
+            </button>
           </div>
         </>
       )}

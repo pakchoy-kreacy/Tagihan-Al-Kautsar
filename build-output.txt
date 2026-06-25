@@ -1,0 +1,50 @@
+
+> spp@0.1.0 build
+> next build
+
+Warning: Custom Cache-Control headers detected for the following routes:
+  - /_next/static/(.*)
+
+Setting a custom Cache-Control header can break Next.js development behavior.
+▲ Next.js 16.2.9 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  ✓ optimizeCss
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.6s
+  Running TypeScript ...
+  Finished TypeScript in 13.5s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/18) ...
+⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+  Generating static pages using 3 workers (4/18) 
+  Generating static pages using 3 workers (8/18) 
+  Generating static pages using 3 workers (13/18) 
+✓ Generating static pages using 3 workers (18/18) in 739ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/infaq
+├ ○ /admin/kelas
+├ ○ /admin/login
+├ ○ /admin/pembayaran
+├ ○ /admin/pengaturan
+├ ○ /admin/rekap-tagihan
+├ ○ /admin/siswa
+├ ○ /admin/tagihan
+├ ○ /admin/verifikasi
+├ ○ /admin/verifikasi-infaq
+├ ○ /icon.png
+├ ○ /infaq
+├ ○ /siswa
+├ ƒ /siswa/[id]
+└ ƒ /siswa/[id]/bayar
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

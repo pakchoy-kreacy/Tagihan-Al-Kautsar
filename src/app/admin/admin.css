@@ -2364,6 +2364,32 @@ select.admin-input {
   border-top: 1px solid #f0f0f0;
 }
 
+.rekap-card-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--emerald);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.rekap-card-export-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(43,174,118,0.2);
+}
+
+.rekap-card-export-btn:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 768px) {
   .rekap-grid {
     grid-template-columns: 1fr;
