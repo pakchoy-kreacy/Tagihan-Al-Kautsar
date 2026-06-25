@@ -2407,3 +2407,18 @@ select.admin-input {
     font-size: 16px;
   }
 }
+
+/* Clickable riwayat rows */
+.riwayat-row.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.riwayat-row.clickable:hover {
+  background: rgba(43, 174, 118, 0.03);
+  transform: translateX(2px);
+}
+
+.riwayat-row.clickable:active {
+  transform: translateX(0);
+}

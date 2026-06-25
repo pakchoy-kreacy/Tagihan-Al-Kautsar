@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { formatRupiah, updateBillStatus, getAllClasses } from "@/lib/db"
+import { formatRupiah, updateBillStatus, getAllClasses, getActiveYear } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox } from "lucide-react"
 // XLSX di-import dynamic untuk mengurangi bundle size
@@ -190,14 +190,49 @@ export default function RekapTagihanPage() {
       return
     }
     
-    const rows: Record<string, unknown>[] = allBills.map(bill => ({
-      "Nama Siswa": bill.student_name,
-      "NISN": bill.nisn,
-      "Kelas": bill.class_name,
-      "Nominal": bill.amount,
-      "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
-      "Tanggal Bayar": bill.paid_date || "-",
-    }))
+    // Fetch all bills for tunggakan calculation
+    const studentIds = [...new Set(allBills.map(b => b.student_id))]
+    const activeYear = await getActiveYear()
+    
+    const { data: allStudentBills } = await supabase
+      .from('bills')
+      .select('student_id, amount, status, bill_types(name)')
+      .in('student_id', studentIds)
+      .eq('academic_year_id', activeYear)
+    
+    // Build student bills map
+    const studentBillsMap = new Map<string, typeof allStudentBills>()
+    for (const bill of allStudentBills || []) {
+      if (!studentBillsMap.has(bill.student_id)) {
+        studentBillsMap.set(bill.student_id, [])
+      }
+      studentBillsMap.get(bill.student_id)!.push(bill)
+    }
+    
+    const rows: Record<string, unknown>[] = allBills.map(bill => {
+      // Get student's all bills
+      const studentBills = studentBillsMap.get(bill.student_id) || []
+      
+      // Filter unpaid bills
+      const unpaidBills = studentBills.filter(b => b.status !== 'lunas')
+      
+      // Generate tunggakan info
+      const unpaidNames = unpaidBills
+        .map(b => ((b.bill_types as { name?: string } | null)?.name) || '-')
+        .join(', ')
+      const totalTunggakan = unpaidBills.reduce((sum, b) => sum + b.amount, 0)
+      
+      return {
+        "Nama Siswa": bill.student_name,
+        "NISN": bill.nisn,
+        "Kelas": bill.class_name,
+        "Nominal": bill.amount,
+        "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
+        "Tanggal Bayar": bill.paid_date || "-",
+        "Tagihan Belum Lunas": unpaidNames || "-",
+        "Total Tunggakan": totalTunggakan,
+      }
+    })
 
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
