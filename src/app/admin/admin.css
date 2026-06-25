@@ -106,16 +106,20 @@
 }
 
 .admin-nav-item.active {
-  background: rgba(255,255,255,0.95);
-  color: #1a5c3e;
-  font-weight: 600;
+  background: #ffffff !important;
+  color: #0f4d2e !important;
+  font-weight: 700 !important;
   border-left: 4px solid var(--gold);
   padding-left: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .admin-nav-item.active .admin-nav-icon {
-  color: #1a5c3e;
+  color: #0f4d2e !important;
+}
+
+.admin-nav-item.active span {
+  color: #0f4d2e !important;
 }
 
 .admin-nav-icon {
