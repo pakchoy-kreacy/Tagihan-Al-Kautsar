@@ -1623,4 +1623,51 @@ textarea.form-input {
   padding-bottom: 90px;
 }
 
+/* Clickable history items */
+.history-item.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-item.clickable:hover {
+  background: rgba(43, 174, 118, 0.03);
+  transform: translateX(2px);
+}
+
+.history-item.clickable:active {
+  transform: translateX(0);
+}
+
+/* Modal overlay and content */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header-public {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--sand);
+}
+
 /* No navigation progress bar - native browser handles it */

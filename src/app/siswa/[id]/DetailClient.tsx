@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
-import { ArrowLeft, Home, User, Wallet, ChevronRight } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X } from "lucide-react"
 
 interface DetailClientProps {
   siswa: Siswa | null
@@ -11,6 +12,98 @@ interface DetailClientProps {
 
 export function DetailClient({ siswa, id }: DetailClientProps) {
   const [navigating, setNavigating] = useState(false)
+  
+  interface PaymentDetail {
+    payment_id: string
+    bill_id: string
+    bill_name: string
+    student_name: string
+    kelas: string
+    nominal: number
+    tanggal_bayar: string
+    nama_pengirim: string
+    jumlah_transfer: number
+    catatan: string
+    bukti_url: string
+    status: string
+  }
+  
+  const [selectedPayment, setSelectedPayment] = useState<PaymentDetail | null>(null)
+  const [loadingPayment, setLoadingPayment] = useState(false)
+  
+  async function fetchPaymentDetail(billId: string) {
+    setLoadingPayment(true)
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          id,
+          bill_id,
+          nama_pengirim,
+          jumlah_transfer,
+          catatan,
+          bukti_url,
+          status,
+          created_at,
+          bills (
+            id,
+            amount,
+            paid_date,
+            bill_types (name),
+            students (name, nisn, classes(name))
+          )
+        `)
+        .eq('bill_id', billId)
+        .eq('status', 'approved')
+        .single()
+      
+      if (error) throw error
+      
+      if (data && data.bills) {
+        const billData = data.bills as unknown
+        const bill = billData as { id: string; amount: number; paid_date: string | null; bill_types?: { name: string }; students?: { name: string; nisn: string; classes?: { name: string } } }
+        const student = bill.students
+        const billType = bill.bill_types
+        const studentClass = student?.classes
+        
+        setSelectedPayment({
+          payment_id: data.id,
+          bill_id: data.bill_id,
+          bill_name: billType?.name || '-',
+          student_name: student?.name || '-',
+          kelas: studentClass?.name || '-',
+          nominal: bill.amount || 0,
+          tanggal_bayar: bill.paid_date || '-',
+          nama_pengirim: data.nama_pengirim || '-',
+          jumlah_transfer: data.jumlah_transfer || 0,
+          catatan: data.catatan || '-',
+          bukti_url: data.bukti_url || '',
+          status: data.status,
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching payment detail:', error)
+    } finally {
+      setLoadingPayment(false)
+    }
+  }
+  
+  async function handleDownloadBukti(url: string, filename: string) {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+      console.error('Download error:', error)
+    }
+  }
   
   if (!siswa) {
     return (
@@ -130,8 +223,14 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
           ) : (
             history.map((item) => {
               const cfg = statusConfig[item.status] || statusConfig.lunas
+              const isClickable = item.status === 'lunas'
               return (
-                <div key={item.id} className="history-item">
+                <div 
+                  key={item.id} 
+                  className={`history-item ${isClickable ? 'clickable' : ''}`}
+                  onClick={() => isClickable && fetchPaymentDetail(item.id)}
+                  style={{ cursor: isClickable ? 'pointer' : 'default' }}
+                >
                   <div className="left">
                     <div className="bill-name">{item.bill_type_name ? `${item.bill_type_name} ${item.bulan}` : item.bulan}</div>
                     <div className="bill-date">{formatDate(item.tanggal)}</div>
@@ -148,6 +247,146 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
 
         <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
       </main>
+      
+      {/* PAYMENT DETAIL MODAL */}
+      {selectedPayment && (
+        <>
+          <div className="modal-overlay" onClick={() => setSelectedPayment(null)} />
+          <div className="modal-content" style={{ maxWidth: 600, margin: '20px' }}>
+            <div className="modal-header-public">
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Detail Pembayaran</h3>
+              <button 
+                onClick={() => setSelectedPayment(null)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  padding: 8, 
+                  display: 'flex', 
+                  color: 'var(--neutral)' 
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {loadingPayment ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--neutral)' }}>
+                Memuat detail pembayaran...
+              </div>
+            ) : (
+              <>
+                {/* Student Info */}
+                <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--sand)' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
+                    {selectedPayment.student_name}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--neutral)' }}>
+                    Kelas {selectedPayment.kelas}
+                  </div>
+                </div>
+
+                {/* Payment Info */}
+                <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Jenis Tagihan</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
+                      {selectedPayment.bill_name}
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Nominal Tagihan</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--emerald)' }}>
+                        {formatRupiah(selectedPayment.nominal)}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Jumlah Transfer</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
+                        {formatRupiah(selectedPayment.jumlah_transfer)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Tanggal Bayar</div>
+                    <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                      {selectedPayment.tanggal_bayar !== '-' ? new Date(selectedPayment.tanggal_bayar).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) : '-'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Nama Pengirim</div>
+                    <div style={{ fontSize: 14, color: 'var(--ink)' }}>{selectedPayment.nama_pengirim}</div>
+                  </div>
+
+                  {selectedPayment.catatan && selectedPayment.catatan !== '-' && (
+                    <div>
+                      <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Catatan</div>
+                      <div style={{ fontSize: 14, color: 'var(--ink)' }}>{selectedPayment.catatan}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bukti Transfer */}
+                {selectedPayment.bukti_url && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 8 }}>Bukti Transfer</div>
+                    <div style={{
+                      border: '1px solid var(--sand)',
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      backgroundColor: '#f8f8f8'
+                    }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedPayment.bukti_url}
+                        alt="Bukti Transfer"
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: 400,
+                          objectFit: 'contain',
+                          display: 'block'
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <a
+                    href={selectedPayment.bukti_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline"
+                    style={{ flex: 1, minWidth: 140, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    <Eye size={16} /> Lihat Bukti
+                  </a>
+                  <button
+                    className="btn btn-primary"
+                    style={{ flex: 1, minWidth: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                    onClick={() => handleDownloadBukti(
+                      selectedPayment.bukti_url,
+                      `Bukti_${selectedPayment.student_name}_${selectedPayment.bill_name}_${selectedPayment.tanggal_bayar}.jpg`
+                    )}
+                  >
+                    <Download size={16} /> Download
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
