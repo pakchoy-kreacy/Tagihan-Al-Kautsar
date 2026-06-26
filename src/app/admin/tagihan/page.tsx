@@ -16,7 +16,6 @@ export default function AdminTagihanPage() {
   const [formName, setFormName] = useState("")
   const [formDesc, setFormDesc] = useState("")
   const [formAmount, setFormAmount] = useState("")
-  const [formRecurring, setFormRecurring] = useState(true)
   const [formBatasWaktu, setFormBatasWaktu] = useState("")
   const [formBerlakuKelas, setFormBerlakuKelas] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
@@ -43,14 +42,14 @@ export default function AdminTagihanPage() {
   }, [])
 
   function openAdd() {
-    setEditId(null); setFormName(""); setFormDesc(""); setFormAmount(""); setFormRecurring(true)
+    setEditId(null); setFormName(""); setFormDesc(""); setFormAmount("250000")
     setFormBatasWaktu(""); setFormBerlakuKelas([])
     setShowModal(true)
   }
 
   function openEdit(b: BillType) {
     setEditId(b.id); setFormName(b.name); setFormDesc(b.description)
-    setFormAmount(b.default_amount.toString()); setFormRecurring(b.is_recurring)
+    setFormAmount(b.default_amount.toString())
     setFormBatasWaktu(b.batas_waktu || "")
     setFormBerlakuKelas(b.berlaku_untuk_kelas || [])
     setShowModal(true)
@@ -72,7 +71,7 @@ export default function AdminTagihanPage() {
       name: formName.trim(),
       description: formDesc.trim(),
       default_amount: amount,
-      is_recurring: formRecurring,
+      is_recurring: true,
     }
     // Only include new fields if they have values (avoids errors if columns don't exist yet)
     if (formBatasWaktu) payload.batas_waktu = formBatasWaktu
@@ -84,7 +83,7 @@ export default function AdminTagihanPage() {
       else showToast("Gagal memperbarui!", "error")
     } else {
       const result = await addBillType(
-        formName.trim(), formDesc.trim(), amount, formRecurring,
+        formName.trim(), formDesc.trim(), amount, true,
         formBatasWaktu || undefined,
         formBerlakuKelas.length > 0 ? formBerlakuKelas : undefined
       )
@@ -185,7 +184,7 @@ export default function AdminTagihanPage() {
       {showModal && (
         <>
           <div className="admin-overlay" onClick={() => setShowModal(false)} />
-          <div className="admin-modal" style={{ maxWidth: 540 }}>
+          <div className="admin-modal" style={{ maxWidth: 540, maxHeight: '70vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>{editId ? "Edit Tagihan" : "Tambah Tagihan Baru"}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup modal"><X size={18} /></button>
@@ -200,13 +199,8 @@ export default function AdminTagihanPage() {
               value={formDesc} onChange={e => setFormDesc(e.target.value)} />
 
             <label className="form-label">Nominal Default (Rp)</label>
-            <input className="admin-input" placeholder="150000" type="number"
+            <input className="admin-input" placeholder="250000" type="number"
               value={formAmount} onChange={e => setFormAmount(e.target.value)} />
-
-            <label className="form-label" style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-              <input type="checkbox" checked={formRecurring} onChange={e => setFormRecurring(e.target.checked)} />
-              Tagihan bulanan (berulang setiap bulan)
-            </label>
 
             <label className="form-label">Batas Waktu Bayar (opsional)</label>
             <input className="admin-input" type="date"
