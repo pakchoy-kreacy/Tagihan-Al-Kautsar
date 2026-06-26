@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
-import { Search } from "lucide-react"
+import { Search, ArrowLeft, X } from "lucide-react"
 
 interface SiswaClientProps {
   kelas: string
@@ -11,16 +11,63 @@ interface SiswaClientProps {
 }
 
 export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) {
+  // Read initial filters from URL
+  const initialFilters = useMemo(() => {
+    if (typeof window === 'undefined') return { billType: 'all', status: 'all' as StatusBayar | 'all' }
+    const params = new URLSearchParams(window.location.search)
+    return {
+      billType: params.get('billType') || 'all',
+      status: (params.get('status') as StatusBayar | 'all') || 'all'
+    }
+  }, [])
+
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<StatusBayar | "all">("all")
+  const [filter, setFilter] = useState<StatusBayar | "all">(initialFilters.status)
+  const [filterBillType, setFilterBillType] = useState<string>(initialFilters.billType)
+
+  // Extract unique bill types from all siswa
+  const availableBillTypes = useMemo(() => {
+    const billTypeSet = new Set<string>()
+    allSiswa.forEach(siswa => {
+      siswa.riwayat.forEach(r => {
+        if (r.bill_type_name) {
+          billTypeSet.add(r.bill_type_name)
+        }
+      })
+    })
+    return Array.from(billTypeSet).sort()
+  }, [allSiswa])
+
+  // Update URL when filters change
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    params.set('kelas', kelas)
+    
+    if (filterBillType !== 'all') {
+      params.set('billType', filterBillType)
+    } else {
+      params.delete('billType')
+    }
+    
+    if (filter !== 'all') {
+      params.set('status', filter)
+    } else {
+      params.delete('status')
+    }
+    
+    window.history.replaceState({}, '', `?${params.toString()}`)
+  }, [kelas, filterBillType, filter])
 
   const siswaList = useMemo(() => {
     return allSiswa.filter((s) => {
       const matchSearch = s.nama.toLowerCase().includes(search.toLowerCase())
       const matchFilter = filter === "all" || s.status === filter
-      return matchSearch && matchFilter
+      const matchBillType = filterBillType === "all" || 
+        s.riwayat.some(r => r.bill_type_name === filterBillType)
+      return matchSearch && matchFilter && matchBillType
     })
-  }, [allSiswa, search, filter])
+  }, [allSiswa, search, filter, filterBillType])
 
   const stat = useMemo(() => getStatKelas(allSiswa), [allSiswa])
 
@@ -45,10 +92,26 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
         <div className="app-grid">
           <section className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-                <a href="/" className="back" style={{ textDecoration: "none", cursor: "pointer" }}>Kembali</a>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", marginLeft: 12, fontFamily: "var(--font-heading)" }}>
+                <a 
+                  href="/" 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: 6,
+                    textDecoration: 'none',
+                    color: 'var(--emerald)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'color 0.2s'
+                  }}
+                >
+                  <ArrowLeft size={16} />
+                  <span>Kembali ke Beranda</span>
+                </a>
+                <span style={{ fontSize: 22, fontWeight: 700, color: "var(--emerald)", fontFamily: "var(--font-heading)" }}>
                   Kelas {kelas}
                 </span>
               </div>
@@ -81,6 +144,43 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
             />
           </div>
 
+          {availableBillTypes.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ 
+                fontSize: 13, 
+                color: 'var(--neutral)', 
+                marginBottom: 6, 
+                display: 'block',
+                fontWeight: 500
+              }}>
+                Pilih Tagihan:
+              </label>
+              <select
+                value={filterBillType}
+                onChange={(e) => setFilterBillType(e.target.value)}
+                style={{
+                  width: '100%',
+                  maxWidth: '400px',
+                  padding: '10px 12px',
+                  fontSize: 14,
+                  border: '1px solid var(--sand)',
+                  borderRadius: 10,
+                  background: 'white',
+                  color: 'var(--ink)',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
+              >
+                <option value="all">Semua Tagihan</option>
+                {availableBillTypes.map(billType => (
+                  <option key={billType} value={billType}>
+                    {billType}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="filter-chips">
             {filters.map((f) => (
               <button
@@ -93,6 +193,35 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
               </button>
             ))}
           </div>
+
+          {(search || filter !== "all" || filterBillType !== "all") && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("")
+                setFilter("all")
+                setFilterBillType("all")
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 500,
+                background: 'var(--neutral-soft)',
+                border: '1px solid var(--sand)',
+                borderRadius: 8,
+                cursor: 'pointer',
+                color: 'var(--neutral)',
+                transition: 'all 0.2s',
+                marginBottom: 12
+              }}
+            >
+              <X size={14} />
+              <span>Reset Semua Filter</span>
+            </button>
+          )}
 
           {siswaList.length === 0 ? (
             <div className="card" style={{ textAlign: "center" }}>
@@ -128,6 +257,11 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
 
           <div className="counter">
             Menampilkan {siswaList.length} dari {stat.total} siswa
+            {filterBillType !== "all" && (
+              <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>
+                {' '}• {filterBillType}
+              </span>
+            )}
           </div>
 
           <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
