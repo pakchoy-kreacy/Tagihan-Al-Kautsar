@@ -20,18 +20,19 @@ export default function AdminPengaturanPage() {
   const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
   const [primaryColor, setPrimaryColor] = useState("#0E5C4A")
 
-  async function loadData() {
-    setLoading(true)
-    const [s, bp, bi] = await Promise.all([
-      getSchoolSettings(), getBankInfoByType('payment'), getBankInfoByType('infaq')
-    ])
-    setSekolah(s)
-    setBankPayment(bp)
-    setBankInfaq(bi)
-    setLoading(false)
-  }
-
-  useEffect(() => { loadData() }, []) // eslint-disable-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true)
+      const [s, bp, bi] = await Promise.all([
+        getSchoolSettings(), getBankInfoByType('payment'), getBankInfoByType('infaq')
+      ])
+      setSekolah(s)
+      setBankPayment(bp)
+      setBankInfaq(bi)
+      setLoading(false)
+    }
+    loadData()
+  }, [])
 
   async function saveSekolah() {
     if (!sekolah) return

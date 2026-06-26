@@ -128,14 +128,14 @@ export default function AdminInfaqPage() {
               </div>
               <div className="ic-actions">
                 {d.bukti_url && (
-                  <button type="button" className="ic-action-btn view" onClick={() => setPreviewUrl(d.bukti_url)}>
+                  <button type="button" className="ic-action-btn view" onClick={() => setPreviewUrl(d.bukti_url)} aria-label="Lihat bukti transfer">
                     <Eye size={14} /> Bukti
                   </button>
                 )}
-                <button type="button" className="ic-action-btn edit" onClick={() => openEdit(d)}>
+                <button type="button" className="ic-action-btn edit" onClick={() => openEdit(d)} aria-label="Edit infaq">
                   <Pencil size={14} /> Edit
                 </button>
-                <button type="button" className="ic-action-btn delete" onClick={() => setDeleteId(d.id)}>
+                <button type="button" className="ic-action-btn delete" onClick={() => setDeleteId(d.id)} aria-label="Hapus infaq">
                   <Trash2 size={14} /> Hapus
                 </button>
               </div>
@@ -151,7 +151,7 @@ export default function AdminInfaqPage() {
           <div className="image-preview-modal">
             <div className="image-preview-header">
               <h3>Bukti Transfer</h3>
-              <button className="modal-close" onClick={() => setPreviewUrl(null)}><X size={20} /></button>
+              <button className="modal-close" onClick={() => setPreviewUrl(null)} aria-label="Tutup preview"><X size={20} /></button>
             </div>
             <div className="image-preview-body">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -168,7 +168,7 @@ export default function AdminInfaqPage() {
           <div className="admin-modal">
             <div className="modal-header">
               <h3>Edit Infaq</h3>
-              <button className="modal-close" onClick={() => setEditItem(null)}><X size={20} /></button>
+              <button className="modal-close" onClick={() => setEditItem(null)} aria-label="Tutup edit"><X size={20} /></button>
             </div>
             <div className="modal-body">
               <label className="form-label">Nama Donatur</label>
@@ -198,7 +198,7 @@ export default function AdminInfaqPage() {
           <div className="admin-modal" style={{ maxWidth: 380 }}>
             <div className="modal-header">
               <h3>Hapus Infaq</h3>
-              <button className="modal-close" onClick={() => setDeleteId(null)}><X size={20} /></button>
+              <button className="modal-close" onClick={() => setDeleteId(null)} aria-label="Tutup konfirmasi"><X size={20} /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 14, color: "var(--ink)", textAlign: "center" }}>

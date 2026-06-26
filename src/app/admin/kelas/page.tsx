@@ -116,6 +116,7 @@ export default function AdminKelasPage() {
                 className="kelas-card-delete"
                 onClick={() => setDeleteTarget(kelas)}
                 title="Hapus kelas"
+                aria-label="Hapus kelas"
               >
                 <Trash2 size={15} />
               </button>

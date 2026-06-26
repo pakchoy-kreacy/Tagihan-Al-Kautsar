@@ -387,10 +387,10 @@ function SiswaContent() {
                       </span>
                     </td>
                     <td className="st-actions" onClick={e => e.stopPropagation()}>
-                      <button className="sca-btn sca-btn-edit" onClick={() => openEdit(s)}>
+                      <button className="sca-btn sca-btn-edit" onClick={() => openEdit(s)} aria-label="Edit siswa">
                         <Pencil size={13} style={{ verticalAlign: "middle" }} />
                       </button>
-                      <button className="sca-btn sca-btn-delete" onClick={() => setDeleteTarget(s)}>
+                      <button className="sca-btn sca-btn-delete" onClick={() => setDeleteTarget(s)} aria-label="Hapus siswa">
                         <Trash2 size={13} style={{ verticalAlign: "middle" }} />
                       </button>
                     </td>
@@ -442,7 +442,7 @@ function SiswaContent() {
           <div className="admin-modal">
             <div className="modal-header">
               <h3>{editId ? "Edit Siswa" : "Tambah Siswa"}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup modal"><X size={18} /></button>
             </div>
             <input className="admin-input" placeholder="NISN" value={formNisn}
               onChange={e => setFormNisn(e.target.value)} />
@@ -468,7 +468,7 @@ function SiswaContent() {
           <div className="admin-modal" style={{ maxWidth: 500 }}>
             <div className="modal-header">
               <h3>Detail Siswa</h3>
-              <button className="modal-close" onClick={() => setDetailSiswa(null)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setDetailSiswa(null)} aria-label="Tutup detail"><X size={18} /></button>
             </div>
             <div className="detail-siswa">
               <div className="detail-avatar">{detailSiswa.nama.charAt(0).toUpperCase()}</div>
@@ -568,7 +568,7 @@ function SiswaContent() {
           <div className="admin-modal" style={{ maxWidth: 600 }}>
             <div className="modal-header">
               <h3>Detail Pembayaran</h3>
-              <button className="modal-close" onClick={() => setSelectedPayment(null)}>
+              <button className="modal-close" onClick={() => setSelectedPayment(null)} aria-label="Tutup detail pembayaran">
                 <X size={18} />
               </button>
             </div>

@@ -149,8 +149,8 @@ export default function AdminTagihanPage() {
                   {b.is_recurring ? <RefreshCw size={24} color="var(--emerald)" /> : <Package size={24} color="var(--neutral)" />}
                 </div>
                 <div className="tc-actions">
-                  <button className="tc-btn" onClick={() => openEdit(b)} title="Edit"><Pencil size={14} /></button>
-                  <button className="tc-btn tc-btn-delete" onClick={() => setDeleteTarget(b)} title="Hapus"><Trash2 size={14} /></button>
+                  <button className="tc-btn" onClick={() => openEdit(b)} title="Edit" aria-label="Edit tagihan"><Pencil size={14} /></button>
+                  <button className="tc-btn tc-btn-delete" onClick={() => setDeleteTarget(b)} title="Hapus" aria-label="Hapus tagihan"><Trash2 size={14} /></button>
                 </div>
               </div>
               <div className="tc-name">{b.name}</div>
@@ -188,7 +188,7 @@ export default function AdminTagihanPage() {
           <div className="admin-modal" style={{ maxWidth: 540 }}>
             <div className="modal-header">
               <h3>{editId ? "Edit Tagihan" : "Tambah Tagihan Baru"}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup modal"><X size={18} /></button>
             </div>
 
             <label className="form-label">Nama Tagihan</label>

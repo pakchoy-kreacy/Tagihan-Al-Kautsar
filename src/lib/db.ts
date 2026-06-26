@@ -441,8 +441,8 @@ export async function updateBillStatus(billId: string, status: string): Promise<
 // ============================================
 export async function addKelas(name: string): Promise<boolean> {
   try {
-    const grade = parseInt(name.charAt(0))
-    const section = name.charAt(1).toUpperCase()
+    const grade = parseInt(name.charAt(0)) || 0
+    const section = name.charAt(1)?.toUpperCase() || ''
 
     const { data: yearData } = await supabase
       .from('academic_years')
