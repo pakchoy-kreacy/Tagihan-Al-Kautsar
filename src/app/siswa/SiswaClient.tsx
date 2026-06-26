@@ -78,19 +78,59 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
 
   const stat = useMemo(() => getStatKelas(allSiswa), [allSiswa])
 
-  const filters: { label: string; value: StatusBayar | "all"; color: string }[] = [
-    { label: "Semua", value: "all", color: "green" },
-    { label: "Lunas", value: "lunas", color: "green" },
-    { label: "Belum Bayar", value: "belum", color: "red" },
-    { label: "Menunggu", value: "menunggu", color: "yellow" },
-    { label: "Tidak Ada Tagihan", value: "tidak_ada_tagihan", color: "green" },
-  ]
+  // Dynamic filters based on billType filter
+  const filters = useMemo(() => {
+    const baseFilters: { label: string; value: StatusBayar | "all"; color: string }[] = [
+      { label: "Semua", value: "all", color: "green" },
+      { label: "Lunas", value: "lunas", color: "green" },
+      { label: "Belum Bayar", value: "belum", color: "red" },
+      { label: "Menunggu", value: "menunggu", color: "yellow" },
+    ]
+    
+    // Only show "Tidak Ada Tagihan" when viewing all bills
+    if (filterBillType === "all") {
+      baseFilters.push({ 
+        label: "Tidak Ada Tagihan", 
+        value: "tidak_ada_tagihan", 
+        color: "green" 
+      })
+    }
+    
+    return baseFilters
+  }, [filterBillType])
 
   const statusMap: Record<StatusBayar, string> = {
     lunas: "Lunas",
     belum: "Belum Bayar",
     menunggu: "Menunggu",
     tidak_ada_tagihan: "Tidak Ada Tagihan",
+  }
+
+  // Helper function for empty state message
+  function getEmptyStateMessage(): string {
+    if (allSiswa.length === 0) {
+      return "Belum ada data siswa"
+    }
+    
+    const parts: string[] = []
+    
+    if (filterBillType !== "all") {
+      parts.push(filterBillType)
+    }
+    
+    if (filter !== "all") {
+      parts.push(`(${statusMap[filter]})`)
+    }
+    
+    if (search) {
+      parts.push(`dengan kata kunci "${search}"`)
+    }
+    
+    if (parts.length === 0) {
+      return "Tidak ada siswa yang cocok"
+    }
+    
+    return `Tidak ada siswa dengan ${parts.join(' ')}`
   }
 
   return (
@@ -179,7 +219,15 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
               
               <select
                 value={filterBillType}
-                onChange={(e) => setFilterBillType(e.target.value)}
+                onChange={(e) => {
+                  const newBillType = e.target.value
+                  setFilterBillType(newBillType)
+                  
+                  // Auto-reset status filter when changing bill type
+                  if (newBillType !== filterBillType && filter !== "all") {
+                    setFilter("all")
+                  }
+                }}
                 style={{
                   width: '100%',
                   padding: '12px 14px',
@@ -262,32 +310,59 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
           {siswaList.length === 0 ? (
             <div className="card" style={{ textAlign: "center" }}>
               <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 16, fontFamily: "var(--font-heading)" }}>
-                {allSiswa.length === 0 ? "Belum ada data siswa" : "Tidak ada siswa yang cocok"}
+                {getEmptyStateMessage()}
               </div>
               <div className="empty-text" style={{ padding: "8px 0 0" }}>
-                Coba ubah kata kunci atau filter.
+                Coba ubah filter tagihan atau status.
               </div>
             </div>
           ) : (
             <div className="app-cards-grid">
-              {siswaList.map((siswa) => (
-                <a key={siswa.id} href={`/siswa/${siswa.id}`} className="block" style={{ textDecoration: "none", color: "inherit" }}>
-                  <div className={`siswa-card border-${siswa.status}`}>
-                    <div className="info">
-                      <h4>{siswa.nama}</h4>
-                      <p>NISN {siswa.nisn}</p>
+              {siswaList.map((siswa) => {
+                // Compute badge and border based on filter
+                let badgeStatus: StatusBayar
+                let badgeText: string
+                
+                if (filterBillType === "all") {
+                  // Show overall status with count
+                  badgeStatus = siswa.status
+                  badgeText = statusMap[siswa.status]
+                  if (siswa.riwayat.length > 0) {
+                    const lunasCount = siswa.riwayat.filter(r => r.status === 'lunas').length
+                    badgeText += ` (${lunasCount}/${siswa.riwayat.length})`
+                  }
+                } else {
+                  // Show specific bill status inline
+                  const specificBill = siswa.riwayat.find(r => r.bill_type_name === filterBillType)
+                  if (specificBill) {
+                    badgeStatus = specificBill.status
+                    const statusLabel = statusMap[specificBill.status]
+                    // Truncate bill name if too long
+                    const billName = filterBillType.length > 25 
+                      ? `${filterBillType.substring(0, 22)}...` 
+                      : filterBillType
+                    badgeText = `${statusLabel} • ${billName}`
+                  } else {
+                    // Fallback (shouldn't happen)
+                    badgeStatus = 'belum'
+                    badgeText = 'Tidak Ada'
+                  }
+                }
+                
+                return (
+                  <a key={siswa.id} href={`/siswa/${siswa.id}`} className="block" style={{ textDecoration: "none", color: "inherit" }}>
+                    <div className={`siswa-card border-${badgeStatus}`}>
+                      <div className="info">
+                        <h4>{siswa.nama}</h4>
+                        <p>NISN {siswa.nisn}</p>
+                      </div>
+                      <span className={`badge badge-${badgeStatus}`}>
+                        {badgeText}
+                      </span>
                     </div>
-                    <span className={`badge badge-${siswa.status}`}>
-                      {statusMap[siswa.status]}
-                      {siswa.riwayat.length > 0 && (
-                        <span style={{ marginLeft: 4, opacity: 0.85 }}>
-                          ({siswa.riwayat.filter(r => r.status === 'lunas').length}/{siswa.riwayat.length})
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                </a>
-              ))}
+                  </a>
+                )
+              })}
             </div>
           )}
 
