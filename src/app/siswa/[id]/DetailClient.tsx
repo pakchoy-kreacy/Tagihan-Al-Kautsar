@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { supabase } from "@/lib/supabase"
-import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X } from "lucide-react"
+import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
 
 interface DetailClientProps {
   siswa: Siswa | null
@@ -12,6 +12,7 @@ interface DetailClientProps {
 
 export function DetailClient({ siswa, id }: DetailClientProps) {
   const [navigating, setNavigating] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<'all' | 'lunas' | 'belum' | 'menunggu'>('all')
   
   interface PaymentDetail {
     payment_id: string
@@ -54,7 +55,9 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
           )
         `)
         .eq('bill_id', billId)
-        .eq('status', 'approved')
+        .in('status', ['approved', 'pending'])
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single()
       
       if (error) throw error
@@ -105,6 +108,16 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     }
   }
   
+  const activeBills = useMemo(() => siswa?.riwayat.filter((r) => r.status !== "lunas") || [], [siswa])
+  const allHistory = useMemo(() => siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu") || [], [siswa])
+  
+  const filteredHistory = useMemo(() => {
+    if (filterStatus === 'all') return allHistory
+    return allHistory.filter(r => r.status === filterStatus)
+  }, [allHistory, filterStatus])
+  
+  const totalUnpaid = useMemo(() => activeBills.reduce((sum, b) => sum + b.nominal, 0), [activeBills])
+
   if (!siswa) {
     return (
       <div className="app-shell">
@@ -147,10 +160,6 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     menunggu: { label: "MENUNGGU", className: "menunggu" },
     tidak_ada_tagihan: { label: "TIDAK ADA", className: "lunas" },
   }
-
-  const activeBills = siswa.riwayat.filter((r) => r.status !== "lunas")
-  const history = siswa.riwayat.filter((r) => r.status === "lunas")
-  const totalUnpaid = activeBills.reduce((sum, b) => sum + b.nominal, 0)
 
   return (
     <div className="app-shell">
@@ -217,13 +226,39 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
         )}
 
         <div className="history-card">
-          <div className="title">Riwayat Pembayaran</div>
-          {history.length === 0 ? (
-            <div className="empty-text" style={{ padding: "12px 0" }}>Belum ada riwayat pembayaran</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div className="title" style={{ marginBottom: 0 }}>Riwayat Pembayaran</div>
+            {allHistory.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <Filter size={14} color="var(--neutral)" />
+                <select 
+                  value={filterStatus} 
+                  onChange={(e) => setFilterStatus(e.target.value as 'all' | 'lunas' | 'belum' | 'menunggu')}
+                  style={{
+                    fontSize: 12,
+                    padding: '4px 8px',
+                    border: '1px solid var(--sand)',
+                    borderRadius: 6,
+                    background: 'white',
+                    color: 'var(--ink)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">Semua ({allHistory.length})</option>
+                  <option value="lunas">Lunas ({allHistory.filter(r => r.status === 'lunas').length})</option>
+                  <option value="menunggu">Menunggu ({allHistory.filter(r => r.status === 'menunggu').length})</option>
+                </select>
+              </div>
+            )}
+          </div>
+          {filteredHistory.length === 0 ? (
+            <div className="empty-text" style={{ padding: "12px 0" }}>
+              {filterStatus === 'all' ? 'Belum ada riwayat pembayaran' : `Tidak ada tagihan ${filterStatus}`}
+            </div>
           ) : (
-            history.map((item) => {
+            filteredHistory.map((item) => {
               const cfg = statusConfig[item.status] || statusConfig.lunas
-              const isClickable = item.status === 'lunas'
+              const isClickable = item.status === 'lunas' || item.status === 'menunggu'
               return (
                 <div 
                   key={item.id} 
@@ -232,7 +267,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
                   style={{ cursor: isClickable ? 'pointer' : 'default' }}
                 >
                   <div className="left">
-                    <div className="bill-name">{item.bill_type_name ? `${item.bill_type_name} ${item.bulan}` : item.bulan}</div>
+                    <div className="bill-name">{item.bill_type_name || item.bulan}</div>
                     <div className="bill-date">{formatDate(item.tanggal)}</div>
                   </div>
                   <div className="right">
@@ -251,8 +286,8 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
       {/* PAYMENT DETAIL MODAL */}
       {selectedPayment && (
         <>
-          <div className="modal-overlay" onClick={() => setSelectedPayment(null)} />
-          <div className="modal-content" style={{ maxWidth: 600, margin: '20px' }}>
+          <div className="modal-overlay" onClick={() => setSelectedPayment(null)}>
+            <div className="modal-content" style={{ maxWidth: 600, width: '100%' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-public">
               <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Detail Pembayaran</h3>
               <button 
@@ -384,6 +419,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
                 </div>
               </>
             )}
+            </div>
           </div>
         </>
       )}
