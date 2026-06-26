@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
-import { Search, ArrowLeft, X } from "lucide-react"
+import { Search, ArrowLeft, X, Filter } from "lucide-react"
 
 interface SiswaClientProps {
   kelas: string
@@ -62,10 +62,17 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
   const siswaList = useMemo(() => {
     return allSiswa.filter((s) => {
       const matchSearch = s.nama.toLowerCase().includes(search.toLowerCase())
-      const matchFilter = filter === "all" || s.status === filter
-      const matchBillType = filterBillType === "all" || 
-        s.riwayat.some(r => r.bill_type_name === filterBillType)
-      return matchSearch && matchFilter && matchBillType
+      
+      // Combined billType + status filter
+      const matchBillAndStatus = filterBillType === "all" 
+        ? (filter === "all" || s.status === filter)  // No bill filter, just status
+        : s.riwayat.some(r => {
+            const billTypeMatch = r.bill_type_name === filterBillType
+            const statusMatch = filter === "all" || r.status === filter
+            return billTypeMatch && statusMatch
+          })
+      
+      return matchSearch && matchBillAndStatus
     })
   }, [allSiswa, search, filter, filterBillType])
 
@@ -145,31 +152,49 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
           </div>
 
           {availableBillTypes.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ 
-                fontSize: 13, 
-                color: 'var(--neutral)', 
-                marginBottom: 6, 
-                display: 'block',
-                fontWeight: 500
+            <div style={{
+              background: filterBillType !== 'all' ? 'var(--emerald-soft)' : 'white',
+              border: `2px solid ${filterBillType !== 'all' ? 'var(--emerald)' : 'var(--sand)'}`,
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 16,
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 10
               }}>
-                Pilih Tagihan:
-              </label>
+                <Filter size={16} color={filterBillType !== 'all' ? 'var(--emerald)' : 'var(--neutral)'} />
+                <label style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  margin: 0
+                }}>
+                  Filter Berdasarkan Tagihan
+                </label>
+              </div>
+              
               <select
                 value={filterBillType}
                 onChange={(e) => setFilterBillType(e.target.value)}
                 style={{
                   width: '100%',
-                  maxWidth: '400px',
-                  padding: '10px 12px',
+                  padding: '12px 14px',
                   fontSize: 14,
-                  border: '1px solid var(--sand)',
+                  border: '2px solid var(--sand)',
                   borderRadius: 10,
                   background: 'white',
                   color: 'var(--ink)',
                   cursor: 'pointer',
-                  fontFamily: 'inherit'
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  transition: 'border-color 0.2s'
                 }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'var(--emerald)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--sand)'}
               >
                 <option value="all">Semua Tagihan</option>
                 {availableBillTypes.map(billType => (
@@ -205,20 +230,31 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                fontSize: 13,
-                fontWeight: 500,
-                background: 'var(--neutral-soft)',
-                border: '1px solid var(--sand)',
-                borderRadius: 8,
+                justifyContent: 'center',
+                gap: 8,
+                width: '100%',
+                maxWidth: '400px',
+                padding: '12px 16px',
+                fontSize: 14,
+                fontWeight: 600,
+                background: 'white',
+                border: '2px solid var(--terracotta)',
+                borderRadius: 10,
                 cursor: 'pointer',
-                color: 'var(--neutral)',
+                color: 'var(--terracotta)',
                 transition: 'all 0.2s',
-                marginBottom: 12
+                marginBottom: 16
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--terracotta)'
+                e.currentTarget.style.color = 'white'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'white'
+                e.currentTarget.style.color = 'var(--terracotta)'
               }}
             >
-              <X size={14} />
+              <X size={16} />
               <span>Reset Semua Filter</span>
             </button>
           )}
@@ -257,10 +293,18 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
 
           <div className="counter">
             Menampilkan {siswaList.length} dari {stat.total} siswa
-            {filterBillType !== "all" && (
-              <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>
-                {' '}• {filterBillType}
-              </span>
+            {(filterBillType !== "all" || filter !== "all") && (
+              <div style={{ 
+                fontSize: 13, 
+                color: 'var(--emerald)', 
+                fontWeight: 600,
+                marginTop: 4
+              }}>
+                Filter aktif:
+                {filterBillType !== "all" && ` ${filterBillType}`}
+                {filterBillType !== "all" && filter !== "all" && " •"}
+                {filter !== "all" && ` ${statusMap[filter]}`}
+              </div>
             )}
           </div>
 
