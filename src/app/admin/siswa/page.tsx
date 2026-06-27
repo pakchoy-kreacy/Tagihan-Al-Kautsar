@@ -54,8 +54,9 @@ function SiswaContent() {
       const [siswa, kelas] = await Promise.all([getAllStudentsWithBills(), getAllClasses()])
       setSiswaList(siswa)
       setKelasList(kelas)
-    } catch (e) { console.error(e) }
-    finally { setLoading(false) }
+    } catch {
+      // Silent fail - data will remain empty
+    } finally { setLoading(false) }
   }
 
   useEffect(() => {
@@ -178,13 +179,10 @@ function SiswaContent() {
           showToast(`${success} berhasil, ${failed} gagal`, "error")
         }
 
-        if (errors.length > 0) {
-          console.error("Import errors:", errors)
-        }
+        // Errors are already shown to user via toast, no need to log
 
         await fetchData()
-      } catch (err) {
-        console.error("Import error:", err)
+      } catch {
         showToast("Gagal membaca file! Pastikan format benar.", "error")
       } finally {
         setImporting(false)
@@ -262,8 +260,7 @@ function SiswaContent() {
           status: data.status,
         })
       }
-    } catch (error) {
-      console.error('Error fetching payment detail:', error)
+    } catch {
       showToast('Gagal memuat detail pembayaran', 'error')
     } finally {
       setLoadingPayment(false)
@@ -283,8 +280,7 @@ function SiswaContent() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
       showToast('Bukti berhasil diunduh!', 'success')
-    } catch (error) {
-      console.error('Download error:', error)
+    } catch {
       showToast('Gagal mengunduh bukti', 'error')
     }
   }

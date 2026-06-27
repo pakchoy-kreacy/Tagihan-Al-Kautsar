@@ -29,8 +29,8 @@ export default function AdminDashboardPage() {
         setStats(statsData)
         setPendingPayments(payments)
         setRekap(rekapData)
-      } catch (error) {
-        console.error("Failed to fetch admin data:", error)
+      } catch {
+        // Silent fail - data will remain null/empty
       } finally {
         if (mounted) setLoading(false)
       }

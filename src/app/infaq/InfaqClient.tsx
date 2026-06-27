@@ -5,6 +5,7 @@ import Image from "next/image"
 import { submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
+import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { Check, Download, Copy, X, Upload } from "lucide-react"
 
 interface InfaqClientProps {
@@ -13,6 +14,7 @@ interface InfaqClientProps {
 
 export function InfaqClient({ bank }: InfaqClientProps) {
   const { showToast } = useToast()
+  const { settings } = useSchoolSettings()
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
@@ -277,7 +279,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
             </div>
           </div>
 
-          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+          <div className="app-footer">© {new Date().getFullYear()} {settings?.nama_sekolah || 'MI Nurul Iman Kabo Jaya'}</div>
         </div>
       </main>
     </div>

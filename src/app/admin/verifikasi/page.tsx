@@ -47,13 +47,6 @@ export default function AdminVerifikasiPage() {
     }
   }, [filter])
 
-  async function fetchPayments() {
-    setLoading(true)
-    const data = await getPayments(filter === "all" ? undefined : filter)
-    setPayments(data)
-    setLoading(false)
-  }
-
   async function handleApprove() {
     if (!approveTarget) return
     setActionLoading(approveTarget.id)
@@ -72,6 +65,13 @@ export default function AdminVerifikasiPage() {
     if (ok) { showToast("Pembayaran ditolak"); await fetchPayments() }
     else showToast("Gagal reject!", "error")
     setActionLoading(null)
+  }
+
+  async function fetchPayments() {
+    setLoading(true)
+    const data = await getPayments(filter === "all" ? undefined : filter)
+    setPayments(data)
+    setLoading(false)
   }
 
   const tabs = [
