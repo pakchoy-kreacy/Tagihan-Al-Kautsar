@@ -46,6 +46,7 @@ function SiswaContent() {
   
   const [selectedPayment, setSelectedPayment] = useState<PaymentDetail | null>(null)
   const [loadingPayment, setLoadingPayment] = useState(false)
+  const [confirmStatusChange, setConfirmStatusChange] = useState<{ billId: string; billName: string } | null>(null)
 
   async function fetchData() {
     setLoading(true)
@@ -375,7 +376,7 @@ function SiswaContent() {
                   <tr key={s.id} onClick={() => setDetailSiswa(s)}>
                     <td className="st-name">{s.nama}</td>
                     <td className="st-nisn">{s.nisn}</td>
-                    <td>{s.kelas}</td>
+                    <td>Kelas {s.kelas}</td>
                     <td>
                       <span className={`badge badge-${s.status}`}>
                         {statusMap[s.status]}
@@ -420,7 +421,7 @@ function SiswaContent() {
                   </span>
                 </div>
                 <div className="sca-footer">
-                  <span className="sca-kelas">{s.kelas}</span>
+                  <span className="sca-kelas">Kelas {s.kelas}</span>
                   <span className="sca-tagihan">{s.tagihan !== "Tidak Ada Tagihan" ? s.tagihan : "—"}</span>
                 </div>
                 <div className="sca-actions">
@@ -465,7 +466,7 @@ function SiswaContent() {
       {detailSiswa && (
         <>
           <div className="admin-overlay" onClick={() => setDetailSiswa(null)} />
-          <div className="admin-modal" style={{ maxWidth: 500 }}>
+          <div className="admin-modal" style={{ maxWidth: 420 }}>
             <div className="modal-header">
               <h3>Detail Siswa</h3>
               <button className="modal-close" onClick={() => setDetailSiswa(null)} aria-label="Tutup detail"><X size={18} /></button>
@@ -473,7 +474,7 @@ function SiswaContent() {
             <div className="detail-siswa">
               <div className="detail-avatar">{detailSiswa.nama.charAt(0).toUpperCase()}</div>
               <div className="detail-name">{detailSiswa.nama}</div>
-              <div className="detail-nisn">NISN {detailSiswa.nisn} · {detailSiswa.kelas}</div>
+              <div className="detail-nisn">NISN {detailSiswa.nisn} · Kelas {detailSiswa.kelas}</div>
               <div className={`detail-status badge badge-${detailSiswa.status}`}>{statusMap[detailSiswa.status]}</div>
               {detailSiswa.riwayat.length > 0 && (
                 <div style={{ fontSize: 13, color: "var(--neutral)", marginTop: 6 }}>
@@ -527,11 +528,23 @@ function SiswaContent() {
                     <div className="riwayat-right" style={{ alignItems: "flex-end", gap: 6 }}>
                       <div className="riwayat-nominal">{formatRupiah(r.nominal)}</div>
                       <div className="riwayat-status">{statusMap[r.status]}</div>
-                      {r.status !== 'lunas' && (
+                      {r.status === 'lunas' ? (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn-sm admin-btn-outline"
+                          style={{ fontSize: 11, padding: "3px 8px" }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setConfirmStatusChange({ billId: r.id, billName: r.bill_type_name || r.bulan })
+                          }}
+                        >
+                          Ubah Status
+                        </button>
+                      ) : (
                         <button
                           type="button"
                           className="admin-btn admin-btn-sm"
-                          style={{ fontSize: 11, padding: "4px 10px" }}
+                          style={{ fontSize: 11, padding: "3px 8px" }}
                           onClick={async (e) => {
                             e.stopPropagation()
                             const ok = await markBillAsPaid(r.id)
@@ -699,6 +712,34 @@ function SiswaContent() {
         danger
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmModal
+        open={!!confirmStatusChange}
+        title="Ubah Status Pembayaran"
+        message={`Ubah status ${confirmStatusChange?.billName || 'tagihan ini'} dari Lunas ke Belum Bayar?`}
+        confirmLabel="Ubah"
+        danger
+        onConfirm={async () => {
+          if (!confirmStatusChange) return
+          const { error } = await supabase
+            .from('bills')
+            .update({ 
+              status: 'belum',
+              paid_date: null 
+            })
+            .eq('id', confirmStatusChange.billId)
+          
+          if (!error) {
+            showToast("Status diubah ke Belum Bayar!")
+            setDetailSiswa(null)
+            await fetchData()
+          } else {
+            showToast("Gagal mengubah status!", "error")
+          }
+          setConfirmStatusChange(null)
+        }}
+        onCancel={() => setConfirmStatusChange(null)}
       />
     </div>
   )
