@@ -96,7 +96,7 @@ export default function AdminKelasPage() {
             <div key={kelas.id} className="kelas-card-wrapper">
               <a href={`/admin/siswa?kelas=${kelas.name}`} className="kelas-card" style={{ textDecoration: "none", color: "inherit" }}>
                 <div className="kelas-card-header">
-                  <span className="kelas-badge">{kelas.name}</span>
+                  <span className="kelas-badge">Kelas {kelas.name}</span>
                   <span className={`kelas-status ${kelas.tunggakan > 0 ? "has-tunggakan" : "all-paid"}`}>
                     {kelas.tunggakan > 0 ? `${kelas.tunggakan} tunggakan` : "Semua lunas"}
                   </span>

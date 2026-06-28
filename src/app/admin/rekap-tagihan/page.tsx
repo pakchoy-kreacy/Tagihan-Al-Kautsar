@@ -196,9 +196,11 @@ export default function RekapTagihanPage() {
     
     const { data: allStudentBills } = await supabase
       .from('bills')
-      .select('student_id, amount, status, bill_types(name)')
+      .select('student_id, amount, status, month, year, bill_types(name)')
       .in('student_id', studentIds)
-      .eq('academic_year_id', activeYear)
+      // Remove academic_year filter to include ALL unpaid bills
+      .in('status', ['belum', 'menunggu'])
+      .order('year', { ascending: true })
     
     // Build student bills map
     const studentBillsMap = new Map<string, typeof allStudentBills>()
@@ -216,11 +218,24 @@ export default function RekapTagihanPage() {
       // Filter unpaid bills
       const unpaidBills = studentBills.filter(b => b.status !== 'lunas')
       
-      // Generate tunggakan info
+      // Generate tunggakan info with month details
       const unpaidNames = unpaidBills
-        .map(b => ((b.bill_types as { name?: string } | null)?.name) || '-')
+        .map(b => {
+          const billData = b as { bill_types?: { name?: string } | null; month?: string; year?: number }
+          const name = billData.bill_types?.name || '-'
+          const month = billData.month || ''
+          const year = billData.year || ''
+          return month ? `${name} ${month} ${year}` : name
+        })
         .join(', ')
       const totalTunggakan = unpaidBills.reduce((sum, b) => sum + b.amount, 0)
+      
+      // Get unique months from unpaid bills
+      const unpaidMonths = [...new Set(
+        unpaidBills
+          .map(b => (b as { month?: string }).month)
+          .filter(Boolean)
+      )].join(', ')
       
       return {
         "Nama Siswa": bill.student_name,
@@ -229,7 +244,8 @@ export default function RekapTagihanPage() {
         "Nominal": bill.amount,
         "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
         "Tanggal Bayar": bill.paid_date || "-",
-        "Tagihan Belum Lunas": unpaidNames || "-",
+        "Bulan-Bulan Tunggakan": unpaidMonths || "-",
+        "Detail Tagihan Belum Lunas": unpaidNames || "-",
         "Total Tunggakan": totalTunggakan,
       }
     })

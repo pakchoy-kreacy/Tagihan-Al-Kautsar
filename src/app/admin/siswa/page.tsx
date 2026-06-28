@@ -339,7 +339,7 @@ function SiswaContent() {
             key={k.id}
             className={`filter-chip green ${selectedKelas === k.name ? "active" : ""}`}
             onClick={() => setSelectedKelas(k.name)}
-          >{k.name}</button>
+          >Kelas {k.name}</button>
         ))}
       </div>
 

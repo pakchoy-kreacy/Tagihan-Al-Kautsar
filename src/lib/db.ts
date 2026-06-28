@@ -618,6 +618,8 @@ export interface BillType {
   is_recurring: boolean
   batas_waktu: string | null
   berlaku_untuk_kelas: string[] | null
+  assignment_mode?: string | null
+  applicable_months?: string[] | null
 }
 
 export async function getAllBillTypes(): Promise<BillType[]> {
@@ -635,6 +637,33 @@ export async function getAllBillTypes(): Promise<BillType[]> {
   }
 }
 
+// Helper function to extract month from bill type name
+function extractMonthFromName(name: string): string | null {
+  const nameLower = name.toLowerCase()
+  const monthMap: Record<string, string> = {
+    'januari': 'Januari',
+    'februari': 'Februari',
+    'maret': 'Maret',
+    'april': 'April',
+    'mei': 'Mei',
+    'juni': 'Juni',
+    'juli': 'Juli',
+    'agustus': 'Agustus',
+    'september': 'September',
+    'oktober': 'Oktober',
+    'november': 'November',
+    'desember': 'Desember'
+  }
+  
+  for (const [key, value] of Object.entries(monthMap)) {
+    if (nameLower.includes(key)) {
+      return value
+    }
+  }
+  
+  return null
+}
+
 export async function addBillType(name: string, description: string, default_amount: number, is_recurring: boolean, batas_waktu?: string, berlaku_untuk_kelas?: string[]): Promise<{ success: boolean; billsGenerated?: number; error?: string }> {
   try {
     const payload: Record<string, unknown> = {
@@ -642,9 +671,16 @@ export async function addBillType(name: string, description: string, default_amo
       description,
       default_amount,
       is_recurring,
+      assignment_mode: 'manual',  // Default to manual for backward compatibility
     }
     if (batas_waktu) payload.batas_waktu = batas_waktu
     if (berlaku_untuk_kelas && berlaku_untuk_kelas.length > 0) payload.berlaku_untuk_kelas = berlaku_untuk_kelas
+
+    // Extract month from name for applicable_months
+    const extractedMonth = extractMonthFromName(name)
+    if (extractedMonth) {
+      payload.applicable_months = [extractedMonth]
+    }
 
     const { data: inserted, error } = await supabase
       .from('bill_types')
@@ -655,13 +691,14 @@ export async function addBillType(name: string, description: string, default_amo
     if (error) throw error
     if (!inserted) throw new Error("Gagal mendapatkan ID tagihan")
 
-    // Auto-generate bills for current month/year
-    const now = new Date()
-    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-    const monthLabel = `${monthNames[now.getMonth()]} ${now.getFullYear()}`
-    const year = now.getFullYear()
+    // Generate bills with CORRECT month extracted from name
+    if (!extractedMonth) {
+      // No month in name, skip auto-generation
+      return { success: true, billsGenerated: 0 }
+    }
 
-    const generated = await generateBillsForBillType(inserted.id, monthLabel, year)
+    const year = new Date().getFullYear()
+    const generated = await generateBillsForBillType(inserted.id, extractedMonth, year)
 
     return { success: true, billsGenerated: generated.count }
   } catch (error) {
