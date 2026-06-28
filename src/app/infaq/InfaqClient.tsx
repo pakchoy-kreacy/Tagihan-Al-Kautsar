@@ -29,11 +29,21 @@ export function InfaqClient({ bank }: InfaqClientProps) {
     return URL.createObjectURL(file)
   }, [file])
 
+  function validateFile(f: File): string | null {
+    const maxSize = 5 * 1024 * 1024
+    if (f.size > maxSize) return "File terlalu besar! Maksimal 5 MB."
+    const allowed = ['image/jpeg', 'image/png', 'image/jpg']
+    if (!allowed.includes(f.type)) return "Hanya file JPG/PNG yang diperbolehkan."
+    return null
+  }
+
   async function handleSubmit() {
     setError("")
     if (!nama) return setError("Isi nama donatur!")
     if (!nominal) return setError("Isi nominal infaq!")
     if (!file) return setError("Pilih file bukti transfer!")
+    const fileErr = validateFile(file)
+    if (fileErr) return setError(fileErr)
 
     setSubmitting(true)
     try {
@@ -41,8 +51,8 @@ export function InfaqClient({ bank }: InfaqClientProps) {
       const ok = await submitDonasi({ nama_donatur: nama, nominal: parseInt(nominal), pesan, bukti_url })
       if (ok) setSuccess(true)
       else setError("Gagal mengirim!")
-    } catch {
-      setError("Gagal upload!")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal upload!")
     } finally {
       setSubmitting(false)
     }
@@ -188,7 +198,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png"
                 style={{ display: "none" }}
                 onChange={(e) => {
                   const selected = e.target.files?.[0] || null

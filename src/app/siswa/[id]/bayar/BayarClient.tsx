@@ -41,9 +41,19 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     return URL.createObjectURL(file)
   }, [file])
 
+  function validateFile(f: File): string | null {
+    const maxSize = 5 * 1024 * 1024
+    if (f.size > maxSize) return "File terlalu besar! Maksimal 5 MB."
+    const allowed = ['image/jpeg', 'image/png', 'image/jpg']
+    if (!allowed.includes(f.type)) return "Hanya file JPG/PNG yang diperbolehkan."
+    return null
+  }
+
   async function handleSubmit() {
     setError("")
     if (!file) return setError("Pilih file bukti transfer!")
+    const fileErr = validateFile(file)
+    if (fileErr) return setError(fileErr)
     if (!form.nama_pengirim) return setError("Isi nama pengirim!")
     if (!form.jumlah_transfer) return setError("Isi jumlah transfer!")
     if (!selectedBill) return setError("Pilih tagihan yang ingin dibayar!")
@@ -61,8 +71,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
       })
       if (result.success) setSuccess(true)
       else setError(result.error || "Gagal mengirim. Coba lagi.")
-    } catch {
-      setError("Gagal upload. Coba lagi.")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal upload. Coba lagi.")
     } finally {
       setSubmitting(false)
     }
@@ -236,7 +246,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
           <textarea className="form-input" placeholder="Catatan (opsional)" rows={3} value={form.catatan}
             onChange={(e) => setForm((f) => ({ ...f, catatan: e.target.value }))} />
 
-          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
+          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" style={{ display: "none" }}
             onChange={(e) => { const s = e.target.files?.[0] || null; setFile(s); if (fileInputRef.current) fileInputRef.current.value = "" }} />
 
           {!file ? (

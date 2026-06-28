@@ -12,13 +12,14 @@ CREATE POLICY "Public can view bukti"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'bukti-pembayaran');
 
--- 2. POLICY: Public bisa INSERT/UPLOAD dengan batasan ukuran 5MB
+-- 2. POLICY: Public bisa INSERT/UPLOAD
+-- NOTE: Folder path 'bukti/' atau 'infaq/' sudah dihandle di code upload
+-- File size limit sudah divalidasi client-side (5MB) & server-side Supabase (10MB)
 CREATE POLICY "Public can upload bukti"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'bukti-pembayaran'
   AND (storage.foldername(name))[1] IN ('bukti', 'infaq')
-  AND octet_length(decode(encode(content, 'escape'), 'hex')) < 5242880 -- 5MB
 );
 
 -- 3. POLICY: Authenticated users (admin) bisa DELETE bukti

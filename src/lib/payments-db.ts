@@ -55,7 +55,7 @@ export async function getBankInfo(): Promise<BankInfo | null> {
 export async function uploadBukti(file: File, studentId: string): Promise<string> {
   try {
     const ext = file.name.split('.').pop()
-    const fileName = `bukti_${studentId}_${Date.now()}.${ext}`
+    const fileName = `bukti/${studentId}_${Date.now()}.${ext}`
 
     const { data, error } = await supabase.storage
       .from('bukti-pembayaran')

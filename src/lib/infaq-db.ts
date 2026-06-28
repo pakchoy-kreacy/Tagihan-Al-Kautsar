@@ -255,7 +255,7 @@ export async function updateSchoolSettings(data: Partial<SchoolSettings>): Promi
 export async function uploadBuktiInfaq(file: File, prefix: string = 'infaq'): Promise<string> {
   try {
     const ext = file.name.split('.').pop()
-    const fileName = `${prefix}_${Date.now()}.${ext}`
+    const fileName = `infaq/${Date.now()}.${ext}`
 
     const { data, error } = await supabase.storage
       .from('bukti-pembayaran')
