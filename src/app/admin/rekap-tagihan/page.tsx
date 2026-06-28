@@ -218,16 +218,6 @@ export default function RekapTagihanPage() {
       // Filter unpaid bills
       const unpaidBills = studentBills.filter(b => b.status !== 'lunas')
       
-      // Generate tunggakan info with month details
-      const unpaidNames = unpaidBills
-        .map(b => {
-          const billData = b as { bill_types?: { name?: string } | null; month?: string; year?: number }
-          const name = billData.bill_types?.name || '-'
-          const month = billData.month || ''
-          const year = billData.year || ''
-          return month ? `${name} ${month} ${year}` : name
-        })
-        .join(', ')
       const totalTunggakan = unpaidBills.reduce((sum, b) => sum + b.amount, 0)
       
       // Get unique months from unpaid bills
@@ -245,7 +235,6 @@ export default function RekapTagihanPage() {
         "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
         "Tanggal Bayar": bill.paid_date || "-",
         "Bulan-Bulan Tunggakan": unpaidMonths || "-",
-        "Detail Tagihan Belum Lunas": unpaidNames || "-",
         "Total Tunggakan": totalTunggakan,
       }
     })
