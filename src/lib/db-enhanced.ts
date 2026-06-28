@@ -1,5 +1,4 @@
 import { supabase } from './supabase'
-import { getActiveYear } from './db'
 
 // Enhanced function for creating bill types with flexible month generation
 export async function createBillTypeWithGeneration(payload: {
@@ -70,7 +69,7 @@ export async function createBillTypeWithGeneration(payload: {
         success: true, 
         billType, 
         billsGenerated: 0,
-        message: 'Bill type created. No students to generate bills for.'
+        message: 'Tagihan dibuat, tapi tidak ada siswa untuk digenerate.'
       }
     }
     
@@ -88,13 +87,18 @@ export async function createBillTypeWithGeneration(payload: {
         success: true,
         billType,
         billsGenerated: 0,
-        message: 'Bill type created. No students match the selected classes.'
+        message: 'Tagihan dibuat, tapi tidak ada siswa yang cocok dengan kelas terpilih.'
       }
     }
     
-    // Get active academic year
-    const activeYear = await getActiveYear()
-    const currentYear = payload.year
+    // Get active academic year ID (UUID)
+    const { data: yearData } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('is_active', true)
+      .single()
+    if (!yearData) throw new Error('No active academic year found')
+    const activeYearId = yearData.id
     
     // Generate bills for selected months
     const billsToInsert = []
@@ -103,9 +107,9 @@ export async function createBillTypeWithGeneration(payload: {
         billsToInsert.push({
           student_id: student.id,
           bill_type_id: billType.id,
-          academic_year_id: activeYear,
-          month: month,  // Clean month name only!
-          year: currentYear,
+          academic_year_id: activeYearId,
+          month: month,
+          year: payload.year,
           amount: payload.default_amount,
           status: 'belum'
         })
@@ -120,21 +124,21 @@ export async function createBillTypeWithGeneration(payload: {
       
       if (billsError) {
         console.error('Bills generation error:', billsError)
+        // Clean up orphan bill type
+        await supabase.from('bill_types').delete().eq('id', billType.id)
         return { 
-          success: true, 
-          billType, 
+          success: false, 
           billsGenerated: 0,
-          error: 'Bill type created but bills generation failed. Check console.'
+          error: 'Gagal membuat tagihan siswa: ' + billsError.message
         }
       }
     }
     
-    const modeLabel = payload.assignment_mode === 'auto' ? 'Auto-generated' : 'Created'
     return { 
       success: true, 
       billType, 
       billsGenerated: billsToInsert.length,
-      message: `${modeLabel} ${billsToInsert.length} bills (${targetStudents.length} students × ${payload.applicable_months.length} months)`
+      message: `${billsToInsert.length} tagihan siswa dibuat (${targetStudents.length} siswa × ${payload.applicable_months.length} bulan)`
     }
     
   } catch (error) {
