@@ -8,6 +8,7 @@ export async function createBillTypeWithGeneration(payload: {
   default_amount: number
   assignment_mode: 'auto' | 'manual'
   applicable_months: string[]
+  year: number
   batas_waktu?: string
   berlaku_untuk_kelas?: string[]
 }): Promise<{ 
@@ -77,8 +78,7 @@ export async function createBillTypeWithGeneration(payload: {
     let targetStudents = students
     if (payload.berlaku_untuk_kelas && payload.berlaku_untuk_kelas.length > 0) {
       targetStudents = students.filter(s => {
-        const classArr = s.classes as { name: string }[] | null
-        const className = classArr?.[0]?.name
+        const className = (s.classes as unknown as { name: string } | null)?.name || ''
         return className && payload.berlaku_untuk_kelas?.includes(className)
       })
     }
@@ -94,7 +94,7 @@ export async function createBillTypeWithGeneration(payload: {
     
     // Get active academic year
     const activeYear = await getActiveYear()
-    const currentYear = new Date().getFullYear()
+    const currentYear = payload.year
     
     // Generate bills for selected months
     const billsToInsert = []

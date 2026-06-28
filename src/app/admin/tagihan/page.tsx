@@ -21,15 +21,15 @@ export default function AdminTagihanPage() {
   const [formBerlakuKelas, setFormBerlakuKelas] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
   
-  // New states for dropdown toggle
   const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual'>('manual')
-  const [allMonths, setAllMonths] = useState(false)
-  const [selectedMonths, setSelectedMonths] = useState<string[]>([])
+  const [formYear, setFormYear] = useState(new Date().getFullYear())
+  const [manualMonth, setManualMonth] = useState('Januari')
   
   const MONTHS = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ]
+  const YEARS = Array.from({ length: 14 }, (_, i) => new Date().getFullYear() - 2 + i)
 
   async function fetchData() {
     setLoading(true)
@@ -55,7 +55,8 @@ export default function AdminTagihanPage() {
   function openAdd() {
     setEditId(null); setFormName(""); setFormDesc(""); setFormAmount("250000")
     setFormBatasWaktu(""); setFormBerlakuKelas([])
-    setAssignmentMode('manual'); setAllMonths(false); setSelectedMonths([])
+    setAssignmentMode('manual'); setManualMonth('Januari')
+    setFormYear(new Date().getFullYear())
     setShowModal(true)
   }
 
@@ -74,18 +75,11 @@ export default function AdminTagihanPage() {
   }
 
   async function handleSubmit() {
-    if (!formName.trim()) return showToast("Isi nama tagihan!", "error")
     if (!formAmount || isNaN(Number(formAmount))) return showToast("Isi nominal valid!", "error")
     const amount = parseInt(formAmount)
     if (amount < 0) return showToast("Nominal tidak boleh negatif!", "error")
 
-    // Validate months for auto mode
-    if (assignmentMode === 'auto' && selectedMonths.length === 0) {
-      return showToast("Mode auto: Pilih minimal 1 bulan!", "error")
-    }
-
     if (editId) {
-      // Edit mode - use old function for backward compatibility
       const payload: Record<string, unknown> = {
         name: formName.trim(),
         description: formDesc.trim(),
@@ -98,16 +92,47 @@ export default function AdminTagihanPage() {
       const ok = await updateBillType(editId, payload)
       if (ok) { setShowModal(false); showToast("Tagihan diperbarui!"); await fetchData() }
       else showToast("Gagal memperbarui!", "error")
+    } else if (assignmentMode === 'auto') {
+      if (!formYear) return showToast("Pilih tahun!", "error")
+      
+      setShowModal(false)
+      
+      const promises = MONTHS.map(month =>
+        createBillTypeWithGeneration({
+          name: `SPP ${month} ${formYear}`,
+          description: formDesc.trim(),
+          default_amount: amount,
+          assignment_mode: 'manual',
+          applicable_months: [month],
+          year: formYear,
+          batas_waktu: formBatasWaktu || undefined,
+          berlaku_untuk_kelas: formBerlakuKelas.length > 0 ? formBerlakuKelas : undefined
+        })
+      )
+      
+      const results = await Promise.all(promises)
+      const successCount = results.filter(r => r.success).length
+      const totalBills = results.reduce((sum, r) => sum + r.billsGenerated, 0)
+      
+      if (successCount > 0) {
+        showToast(`Berhasil! ${successCount} tagihan dibuat (${totalBills} tagihan siswa).`)
+      } else {
+        showToast("Gagal membuat tagihan!", "error")
+      }
+      await fetchData()
     } else {
-      // Create mode - use new enhanced function
-      const monthsToApply = assignmentMode === 'auto' ? selectedMonths : []
+      if (!manualMonth) return showToast("Pilih bulan!", "error")
+      if (!formYear) return showToast("Pilih tahun!", "error")
+      
+      const name = `SPP ${manualMonth} ${formYear}`
       
       const result = await createBillTypeWithGeneration({
-        name: formName.trim(),
+        name,
         description: formDesc.trim(),
         default_amount: amount,
-        assignment_mode: assignmentMode,
-        applicable_months: monthsToApply,
+        assignment_mode: 'manual',
+        applicable_months: [manualMonth],
+        year: formYear,
         batas_waktu: formBatasWaktu || undefined,
         berlaku_untuk_kelas: formBerlakuKelas.length > 0 ? formBerlakuKelas : undefined
       })
@@ -217,40 +242,28 @@ export default function AdminTagihanPage() {
               <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup modal"><X size={18} /></button>
             </div>
 
-            <label className="form-label">Nama Tagihan</label>
-            <input className="admin-input" placeholder="Contoh: SPP Bulanan, Seragam, Ujian"
-              value={formName} onChange={e => setFormName(e.target.value)} autoFocus />
-
-            <label className="form-label">Deskripsi</label>
-            <input className="admin-input" placeholder="Keterangan (opsional)"
-              value={formDesc} onChange={e => setFormDesc(e.target.value)} />
-
-            <label className="form-label">Nominal Default (Rp)</label>
-            <input className="admin-input" placeholder="250000" type="number"
-              value={formAmount} onChange={e => setFormAmount(e.target.value)} />
-
-            {/* Mode Toggle - Only for new bill types */}
-            {!editId && (
+            {editId ? (
               <>
-                <div className="form-label" style={{ marginTop: 16 }}>Mode Penagihan</div>
+                <label className="form-label">Nama Tagihan</label>
+                <input className="admin-input" placeholder="Nama tagihan"
+                  value={formName} onChange={e => setFormName(e.target.value)} autoFocus />
+              </>
+            ) : (
+              <>
+                <div className="form-label" style={{ marginTop: 0 }}>Mode Penagihan</div>
                 <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
                   <label style={{
                     cursor: 'pointer', flex: 1, padding: 12,
                     border: '2px solid', borderRadius: 10,
                     borderColor: assignmentMode === 'auto' ? 'var(--emerald)' : '#e0e0e0',
                     background: assignmentMode === 'auto' ? 'var(--emerald-soft)' : 'white',
-                    transition: 'all 0.2s'
                   }}>
                     <input type="radio" checked={assignmentMode === 'auto'}
-                      onChange={() => {
-                        setAssignmentMode('auto')
-                        setAllMonths(true)
-                        setSelectedMonths(MONTHS)
-                      }} />
+                      onChange={() => setAssignmentMode('auto')} />
                     <div style={{ marginTop: 8 }}>
                       <strong>Auto-Generate</strong>
                       <p style={{ fontSize: 12, color: 'var(--neutral)', marginTop: 4 }}>
-                        Buat 1 tagihan, pilih bulan (1-12), auto-generate untuk semua siswa
+                        Buat 12 tagihan (Jan-Des) otomatis untuk tahun tertentu
                       </p>
                     </div>
                   </label>
@@ -260,139 +273,72 @@ export default function AdminTagihanPage() {
                     border: '2px solid', borderRadius: 10,
                     borderColor: assignmentMode === 'manual' ? 'var(--emerald)' : '#e0e0e0',
                     background: assignmentMode === 'manual' ? 'var(--emerald-soft)' : 'white',
-                    transition: 'all 0.2s'
                   }}>
                     <input type="radio" checked={assignmentMode === 'manual'}
-                      onChange={() => {
-                        setAssignmentMode('manual')
-                        setSelectedMonths([])
-                      }} />
+                      onChange={() => setAssignmentMode('manual')} />
                     <div style={{ marginTop: 8 }}>
                       <strong>Manual per Bulan</strong>
                       <p style={{ fontSize: 12, color: 'var(--neutral)', marginTop: 4 }}>
-                        Buat tagihan terpisah untuk setiap bulan (seperti sekarang)
+                        Buat 1 tagihan untuk bulan & tahun tertentu
                       </p>
                     </div>
                   </label>
                 </div>
 
-                {/* Month Selector - Only for Auto mode */}
-                {assignmentMode === 'auto' && (
-                  <>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <input type="checkbox" checked={allMonths}
-                        onChange={(e) => {
-                          setAllMonths(e.target.checked)
-                          if (e.target.checked) setSelectedMonths(MONTHS)
-                          else setSelectedMonths([])
-                        }} />
-                      <span className="form-label" style={{ marginBottom: 0 }}>
-                        Semua bulan (Januari - Desember)
-                      </span>
-                    </label>
-
-                    {!allMonths && (
-                      <>
-                        <div className="form-label">Pilih Bulan yang Berlaku:</div>
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(3, 1fr)',
-                          gap: 8,
-                          padding: 12,
-                          border: '1px solid #e0e0e0',
-                          borderRadius: 10,
-                          maxHeight: 240,
-                          overflowY: 'auto'
-                        }}>
-                          {MONTHS.map(month => (
-                            <label key={month} style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              cursor: 'pointer',
-                              padding: '6px 8px',
-                              borderRadius: 6,
-                              background: selectedMonths.includes(month) ? 'var(--emerald-soft)' : 'transparent',
-                              transition: 'background 0.2s'
-                            }}>
-                              <input
-                                type="checkbox"
-                                checked={selectedMonths.includes(month)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedMonths(prev => [...prev, month])
-                                  } else {
-                                    setSelectedMonths(prev => prev.filter(m => m !== month))
-                                  }
-                                }}
-                              />
-                              <span style={{ fontSize: 13 }}>{month}</span>
-                            </label>
-                          ))}
-                        </div>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginTop: 8,
-                          padding: '8px 12px',
-                          background: 'var(--emerald-soft)',
-                          borderRadius: 8
-                        }}>
-                          <span style={{ fontSize: 12, color: 'var(--emerald)', fontWeight: 600 }}>
-                            {selectedMonths.length} bulan terpilih
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedMonths([])}
-                            style={{
-                              fontSize: 11,
-                              color: 'var(--terracotta)',
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              textDecoration: 'underline'
-                            }}
-                          >
-                            Clear semua
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Preview */}
-                    {selectedMonths.length > 0 && (
-                      <div style={{
-                        marginTop: 12,
-                        padding: 12,
-                        background: '#f0f9ff',
-                        border: '1px solid #0ea5e9',
-                        borderRadius: 10,
-                        fontSize: 13
-                      }}>
-                        <strong>Preview:</strong> Akan generate {selectedMonths.length} × jumlah siswa tagihan
-                        {formBerlakuKelas.length > 0 && ` (hanya kelas ${formBerlakuKelas.join(', ')})`}
+                {assignmentMode === 'auto' ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <label className="form-label">Tahun</label>
+                    <select className="admin-input" value={formYear}
+                      onChange={e => setFormYear(Number(e.target.value))}>
+                      {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                    <div style={{
+                      marginTop: 12, padding: 12,
+                      background: 'var(--emerald-soft)',
+                      border: '1px solid var(--emerald)',
+                      borderRadius: 10, fontSize: 13
+                    }}>
+                      <strong>Akan membuat 12 tagihan:</strong>
+                      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
+                        {MONTHS.map(m => (
+                          <span key={m}>• SPP {m} {formYear}</span>
+                        ))}
                       </div>
-                    )}
-                  </>
-                )}
-
-                {/* Manual mode helper */}
-                {assignmentMode === 'manual' && (
-                  <div style={{
-                    padding: 12,
-                    background: '#fef3c7',
-                    border: '1px solid #f59e0b',
-                    borderRadius: 10,
-                    fontSize: 13,
-                    marginTop: 12
-                  }}>
-                    <strong>Mode Manual:</strong> Nama tagihan harus include nama bulan (contoh: "SPP Januari", "SPP Februari").
-                    Tagihan akan di-generate untuk 1 bulan saja sesuai nama.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                      <div style={{ flex: 1 }}>
+                        <label className="form-label">Bulan</label>
+                        <select className="admin-input" value={manualMonth}
+                          onChange={e => setManualMonth(e.target.value)}>
+                          {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label className="form-label">Tahun</label>
+                        <select className="admin-input" value={formYear}
+                          onChange={e => setFormYear(Number(e.target.value))}>
+                          {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <label className="form-label" style={{ marginTop: 12 }}>Nama Tagihan</label>
+                    <input className="admin-input" value={`SPP ${manualMonth} ${formYear}`} readOnly
+                      style={{ background: '#f5f5f5', color: '#666' }} />
                   </div>
                 )}
               </>
             )}
+
+            <label className="form-label">Deskripsi</label>
+            <input className="admin-input" placeholder="Keterangan (opsional)"
+              value={formDesc} onChange={e => setFormDesc(e.target.value)} />
+
+            <label className="form-label">Nominal Default (Rp)</label>
+            <input className="admin-input" placeholder="250000" type="number"
+              value={formAmount} onChange={e => setFormAmount(e.target.value)} />
 
             <label className="form-label">Batas Waktu Bayar (opsional)</label>
             <input className="admin-input" type="date"
