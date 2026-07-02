@@ -5,7 +5,8 @@ import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
-import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House, FileSpreadsheet } from "lucide-react"
+import { AdminRoleProvider, useAdminRole } from "@/context/AdminRoleContext"
+import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House, FileSpreadsheet, Eye } from "lucide-react"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -18,6 +19,20 @@ const navItems = [
   { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
 ]
 
+function RoleBanner() {
+  const { role, loading } = useAdminRole()
+  if (loading || role !== 'viewer') return null
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+      padding: "8px 16px", background: "#fef3c7", borderBottom: "2px solid #f59e0b",
+      fontSize: 13, fontWeight: 600, color: "#92400e"
+    }}>
+      <Eye size={16} /> Mode Demo — Anda hanya bisa melihat data
+    </div>
+  )
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -29,7 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = pathname === "/admin/login"
 
   useEffect(() => {
-    if (pathname === "/admin/login") return
+    if (isLoginPage) return
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session && pathname !== "/admin/login") {
@@ -47,9 +62,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return () => subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname])
+  }, [pathname, isLoginPage])
 
   useEffect(() => {
+    if (isLoginPage) return
+
     async function fetchPendingCount() {
       const { count } = await supabase
         .from('payments')
@@ -60,7 +77,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     fetchPendingCount()
 
-    // Realtime: update badge langsung saat data payments berubah
     const channel = supabase
       .channel('pending-payments-badge')
       .on(
@@ -72,14 +88,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )
       .subscribe()
 
-    // Polling cadangan tiap 10 detik
     const interval = setInterval(fetchPendingCount, 10000)
 
     return () => {
       clearInterval(interval)
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [isLoginPage])
+
+  // Halaman login tidak perlu sidebar admin
+  if (isLoginPage) {
+    return <>{children}</>
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -101,68 +121,71 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="admin-layout">
-      <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        <LayoutDashboard size={18} />
-        <span>Menu</span>
-      </button>
+    <AdminRoleProvider>
+      <div className="admin-layout">
+        <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <LayoutDashboard size={18} />
+          <span>Menu</span>
+        </button>
 
-      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <nav className="admin-nav">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            const Icon = item.icon
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                className={`admin-nav-item ${isActive ? "active" : ""}`}
-                onClick={() => setSidebarOpen(false)}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <span className="admin-nav-icon"><Icon size={18} /></span>
-                <span>{item.label}</span>
-                {item.hasBadge && pendingCount > 0 && (
-                  <span className="admin-nav-badge">{pendingCount}</span>
-                )}
-              </a>
-            )
-          })}
-        </nav>
+        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+          <nav className="admin-nav">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+              const Icon = item.icon
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`admin-nav-item ${isActive ? "active" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <span className="admin-nav-icon"><Icon size={18} /></span>
+                  <span>{item.label}</span>
+                  {item.hasBadge && pendingCount > 0 && (
+                    <span className="admin-nav-badge">{pendingCount}</span>
+                  )}
+                </a>
+              )
+            })}
+          </nav>
 
-        <div className="admin-sidebar-footer">
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
-            <House size={14} /> Kembali ke Beranda
-          </a>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="admin-logout-btn"
-          >
-            <LogOut size={14} /> Logout
-          </button>
-        </div>
-      </aside>
+          <div className="admin-sidebar-footer">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
+              <House size={14} /> Kembali ke Beranda
+            </a>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="admin-logout-btn"
+            >
+              <LogOut size={14} /> Logout
+            </button>
+          </div>
+        </aside>
 
-      {sidebarOpen && (
-        <div className="admin-overlay" onClick={() => setSidebarOpen(false)} />
-      )}
+        {sidebarOpen && (
+          <div className="admin-overlay" onClick={() => setSidebarOpen(false)} />
+        )}
 
-      <main className="admin-main">
-        <nav className="breadcrumb">
-          <a href="/admin" className="breadcrumb-link" style={{ textDecoration: "none" }}>Admin</a>
-          {pathname !== "/admin" && (
-            <>
-              <span className="breadcrumb-sep">/</span>
-              <span className="breadcrumb-current">
-                {navItems.find(n => n.href === pathname)?.label || pathname.replace("/admin/", "")}
-              </span>
-            </>
-          )}
-        </nav>
-        {children}
-      </main>
-    </div>
+        <main className="admin-main">
+          <RoleBanner />
+          <nav className="breadcrumb">
+            <a href="/admin" className="breadcrumb-link" style={{ textDecoration: "none" }}>Admin</a>
+            {pathname !== "/admin" && (
+              <>
+                <span className="breadcrumb-sep">/</span>
+                <span className="breadcrumb-current">
+                  {navItems.find(n => n.href === pathname)?.label || pathname.replace("/admin/", "")}
+                </span>
+              </>
+            )}
+          </nav>
+          {children}
+        </main>
+      </div>
+    </AdminRoleProvider>
   )
 }

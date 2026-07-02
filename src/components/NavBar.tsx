@@ -17,7 +17,7 @@ export function NavBar() {
 
   const links = [
     { href: "/", label: "Beranda" },
-    { href: "/admin", label: "Admin" },
+    ...(!pathname.startsWith("/admin/login") ? [{ href: "/admin", label: "Admin" }] : []),
   ]
 
   return (

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { supabase } from "@/lib/supabase"
-import { NavBar } from "@/components/NavBar"
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
@@ -40,7 +39,6 @@ export default function AdminLoginPage() {
 
   return (
     <div className="app-shell">
-      <NavBar />
       <main className="app-main">
         <div className="app-grid" style={{ maxWidth: 440, margin: "0 auto" }}>
           <section className="card" style={{ padding: 28 }}>

@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { ArrowLeft, Home } from "lucide-react"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { BayarClient } from "./BayarClient"
 
 export default function BayarPage() {
+  const params = useParams()
+  const id = params.id as string
   const [siswa, setSiswa] = useState<Siswa | null>(null)
   const { bankPayment, bankInfaq } = useSchoolSettings()
   const bank = bankPayment || bankInfaq
-  const id = typeof window !== "undefined" ? window.location.pathname.split("/")[2] : ""
 
   useEffect(() => {
     if (!id) return
@@ -32,8 +34,7 @@ export default function BayarPage() {
       clearInterval(interval)
       document.removeEventListener("visibilitychange", onVisible)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [id])
 
   if (!siswa) {
     return (

@@ -7,10 +7,12 @@ import { addKelas, deleteKelas } from "@/lib/db"
 import type { KelasWithStats } from "@/lib/admin-db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
+import { useAdminRole } from "@/context/AdminRoleContext"
 import { Building2, Users, Plus, Inbox, Trash2 } from "lucide-react"
 
 export default function AdminKelasPage() {
   const { showToast } = useToast()
+  const { role } = useAdminRole()
   const [kelasList, setKelasList] = useState<KelasWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [formName, setFormName] = useState("")
@@ -62,22 +64,23 @@ export default function AdminKelasPage() {
       <div className="page-title">Kelola Kelas</div>
       <p className="page-subtitle">Klik kartu kelas untuk melihat siswa di kelas tersebut</p>
 
-      {/* ADD FORM */}
-      <div className="card-add">
-        <div className="card-add-inner">
-          <Building2 size={20} color="var(--emerald)" style={{ flexShrink: 0 }} />
-          <input
-            className="admin-input card-add-input"
-            placeholder="Nama kelas baru (contoh: 3C)"
-            value={formName}
-            onChange={e => setFormName(e.target.value.toUpperCase())}
-            onKeyDown={e => e.key === "Enter" && handleAdd()}
-          />
-          <button className="admin-btn card-add-btn" onClick={handleAdd}>
-            <Plus size={15} /> Tambah
-          </button>
+      {role === 'admin' && (
+        <div className="card-add">
+          <div className="card-add-inner">
+            <Building2 size={20} color="var(--emerald)" style={{ flexShrink: 0 }} />
+            <input
+              className="admin-input card-add-input"
+              placeholder="Nama kelas baru (contoh: 3C)"
+              value={formName}
+              onChange={e => setFormName(e.target.value.toUpperCase())}
+              onKeyDown={e => e.key === "Enter" && handleAdd()}
+            />
+            <button className="admin-btn card-add-btn" onClick={handleAdd}>
+              <Plus size={15} /> Tambah
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* CARD GRID */}
       {loading ? (
@@ -112,14 +115,16 @@ export default function AdminKelasPage() {
                   <span className="kelas-card-action">Lihat Siswa →</span>
                 </div>
               </a>
-              <button
-                className="kelas-card-delete"
-                onClick={() => setDeleteTarget(kelas)}
-                title="Hapus kelas"
-                aria-label="Hapus kelas"
-              >
-                <Trash2 size={15} />
-              </button>
+              {role === 'admin' && (
+                <button
+                  className="kelas-card-delete"
+                  onClick={() => setDeleteTarget(kelas)}
+                  title="Hapus kelas"
+                  aria-label="Hapus kelas"
+                >
+                  <Trash2 size={15} />
+                </button>
+              )}
             </div>
           ))}
         </div>

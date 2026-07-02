@@ -49,18 +49,8 @@ export default function DemoPage() {
         </div>
       </div>
 
-      {/* Header */}
-      <header style={{
-        background: "linear-gradient(135deg, #059669, #10b981)", color: "white", padding: "40px 20px 60px",
-        textAlign: "center", position: "relative"
-      }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>📚</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, margin: "0 0 8px" }}>ESPP</h1>
-        <p style={{ fontSize: 16, opacity: 0.9, margin: 0 }}>Management Pembayaran Sekolah Digital</p>
-      </header>
-
       {/* Stats */}
-      <div style={{ maxWidth: 960, margin: "-30px auto 0", padding: "0 16px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, position: "relative" }}>
+      <div style={{ maxWidth: 960, margin: "20px auto 0", padding: "0 16px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, position: "relative" }}>
         {stats.map((s, i) => (
           <div key={i} style={{ background: "white", borderRadius: 12, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
             <div style={{ fontSize: 24, marginBottom: 4 }}>{s.icon}</div>
@@ -125,15 +115,15 @@ export default function DemoPage() {
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1e293b", margin: "0 0 8px" }}>Tertarik?</h2>
         <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 20px" }}>Hubungi kami untuk info lebih lanjut dan demo gratis.</p>
         <div style={{ display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
-          <a href="mailto:info@espp.sch.id" style={{
+          <a href="mailto:info@sekolah.sch.id" style={{
             display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px",
             background: "#059669", color: "white", borderRadius: 8, fontWeight: 600, fontSize: 14,
             textDecoration: "none"
-          }}>📧 info@espp.sch.id</a>
+          }}>📧 info@sekolah.sch.id</a>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px",
             background: "#f1f5f9", color: "#475569", borderRadius: 8, fontWeight: 600, fontSize: 14
-          }}>📞 08xx-xxxx-xxxx</span>
+          }}>📞 Hubungi sekolah</span>
         </div>
       </div>
 

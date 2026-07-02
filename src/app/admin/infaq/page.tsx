@@ -4,9 +4,11 @@ import { useEffect, useState } from "react"
 import { getDonations, updateDonasi, deleteDonasi } from "@/lib/infaq-db"
 import { formatRupiah } from "@/lib/db"
 import type { Donation } from "@/lib/infaq-db"
+import { useAdminRole } from "@/context/AdminRoleContext"
 import { Heart, Eye, Inbox, X, Pencil, Trash2, Search } from "lucide-react"
 
 export default function AdminInfaqPage() {
+  const { role } = useAdminRole()
   const [donations, setDonations] = useState<Donation[]>([])
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -132,12 +134,16 @@ export default function AdminInfaqPage() {
                     <Eye size={14} /> Bukti
                   </button>
                 )}
-                <button type="button" className="ic-action-btn edit" onClick={() => openEdit(d)} aria-label="Edit infaq">
-                  <Pencil size={14} /> Edit
-                </button>
-                <button type="button" className="ic-action-btn delete" onClick={() => setDeleteId(d.id)} aria-label="Hapus infaq">
-                  <Trash2 size={14} /> Hapus
-                </button>
+                {role === 'admin' && (
+                  <button type="button" className="ic-action-btn edit" onClick={() => openEdit(d)} aria-label="Edit infaq">
+                    <Pencil size={14} /> Edit
+                  </button>
+                )}
+                {role === 'admin' && (
+                  <button type="button" className="ic-action-btn delete" onClick={() => setDeleteId(d.id)} aria-label="Hapus infaq">
+                    <Trash2 size={14} /> Hapus
+                  </button>
+                )}
               </div>
             </div>
           ))}

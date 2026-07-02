@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 import { getRecentPayments, type RecentPayment } from "@/lib/admin-db"
 import { formatRupiah } from "@/lib/db"
 
@@ -9,7 +10,30 @@ export default function AdminPembayaranPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getRecentPayments(50).then(data => { setPayments(data); setLoading(false) })
+    let mounted = true
+
+    async function fetchData() {
+      const data = await getRecentPayments(50)
+      if (mounted) { setPayments(data); setLoading(false) }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 30000)
+
+    const onVisible = () => { if (!document.hidden) fetchData() }
+    document.addEventListener("visibilitychange", onVisible)
+
+    const channel = supabase
+      .channel("pembayaran-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { fetchData() })
+      .subscribe()
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", onVisible)
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return (

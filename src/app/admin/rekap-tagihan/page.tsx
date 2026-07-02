@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { formatRupiah, updateBillStatus, getAllClasses, getActiveYear } from "@/lib/db"
+import { formatRupiah, updateBillStatus, getAllClasses } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox } from "lucide-react"
 // XLSX di-import dynamic untuk mengurangi bundle size
@@ -192,8 +192,6 @@ export default function RekapTagihanPage() {
     
     // Fetch all bills for tunggakan calculation
     const studentIds = [...new Set(allBills.map(b => b.student_id))]
-    const activeYear = await getActiveYear()
-    
     const { data: allStudentBills } = await supabase
       .from('bills')
       .select('student_id, amount, status, month, year, bill_types(name)')

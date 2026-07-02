@@ -47,7 +47,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
 
     setSubmitting(true)
     try {
-      const bukti_url = await uploadBuktiInfaq(file, "infaq")
+      const bukti_url = await uploadBuktiInfaq(file)
       const ok = await submitDonasi({ nama_donatur: nama, nominal: parseInt(nominal), pesan, bukti_url })
       if (ok) setSuccess(true)
       else setError("Gagal mengirim!")

@@ -239,7 +239,7 @@ export async function updateSchoolSettings(data: Partial<SchoolSettings>): Promi
 
     // Invalidate cache
     if (typeof window !== "undefined") {
-      localStorage.removeItem("espp_school_settings")
+      localStorage.removeItem(SETTINGS_CACHE_KEY)
     }
 
     return true
@@ -252,7 +252,7 @@ export async function updateSchoolSettings(data: Partial<SchoolSettings>): Promi
 // ============================================
 // UPLOAD BUKTI
 // ============================================
-export async function uploadBuktiInfaq(file: File, prefix: string = 'infaq'): Promise<string> {
+export async function uploadBuktiInfaq(file: File): Promise<string> {
   try {
     const ext = file.name.split('.').pop()
     const fileName = `infaq/${Date.now()}.${ext}`

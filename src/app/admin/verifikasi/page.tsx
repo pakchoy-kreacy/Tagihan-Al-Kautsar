@@ -7,10 +7,12 @@ import { formatRupiah } from "@/lib/db"
 import type { PaymentWithStudent } from "@/lib/payments-db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
+import { useAdminRole } from "@/context/AdminRoleContext"
 import { Check, X } from "lucide-react"
 
 export default function AdminVerifikasiPage() {
   const { showToast } = useToast()
+  const { role } = useAdminRole()
   const [payments, setPayments] = useState<PaymentWithStudent[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("pending")
@@ -19,24 +21,30 @@ export default function AdminVerifikasiPage() {
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
+  async function fetchPayments() {
+    setLoading(true)
+    const data = await getPayments(filter === "all" ? undefined : filter)
+    setPayments(data)
+    setLoading(false)
+  }
+
   useEffect(() => {
     let mounted = true
 
-    async function fetchPayments() {
-      setLoading(true)
+    async function load() {
       const data = await getPayments(filter === "all" ? undefined : filter)
       if (mounted) { setPayments(data); setLoading(false) }
     }
 
-    fetchPayments()
-    const interval = setInterval(fetchPayments, 15000)
+    load()
+    const interval = setInterval(load, 15000)
 
-    const onVisible = () => { if (!document.hidden) fetchPayments() }
+    const onVisible = () => { if (!document.hidden) load() }
     document.addEventListener("visibilitychange", onVisible)
 
     const channel = supabase
       .channel("verifikasi-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { fetchPayments() })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { load() })
       .subscribe()
 
     return () => {
@@ -65,13 +73,6 @@ export default function AdminVerifikasiPage() {
     if (ok) { showToast("Pembayaran ditolak"); await fetchPayments() }
     else showToast("Gagal reject!", "error")
     setActionLoading(null)
-  }
-
-  async function fetchPayments() {
-    setLoading(true)
-    const data = await getPayments(filter === "all" ? undefined : filter)
-    setPayments(data)
-    setLoading(false)
   }
 
   const tabs = [
@@ -138,7 +139,7 @@ export default function AdminVerifikasiPage() {
                       </td>
                       <td style={{ fontSize: 12 }}>{new Date(p.created_at).toLocaleDateString("id-ID")}</td>
                       <td>
-                        {p.status === "pending" && (
+                        {p.status === "pending" && role === 'admin' && (
                           <div style={{ display: "flex", gap: 4 }}>
                             <button className="admin-btn admin-btn-sm"
                               onClick={() => setApproveTarget(p)}

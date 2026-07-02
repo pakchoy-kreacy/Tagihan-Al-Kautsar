@@ -7,6 +7,7 @@ import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { supabase } from "@/lib/supabase"
+import { useAdminRole } from "@/context/AdminRoleContext"
 import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox, FileSpreadsheet, Eye } from "lucide-react"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
@@ -14,6 +15,7 @@ function SiswaContent() {
   const searchParams = useSearchParams()
   const initialKelas = searchParams.get("kelas") || ""
   const { showToast } = useToast()
+  const { role } = useAdminRole()
 
   const [siswaList, setSiswaList] = useState<Siswa[]>([])
   const [kelasList, setKelasList] = useState<KelasData[]>([])
@@ -308,12 +310,16 @@ function SiswaContent() {
       {/* TOOLBAR */}
       <div className="siswa-toolbar">
         <div className="siswa-toolbar-left">
-          <button className="admin-btn" onClick={openAdd}>
-            <Plus size={15} /> Tambah Siswa
-          </button>
-          <button className="admin-btn admin-btn-outline" onClick={handleImportExcel} disabled={importing}>
-            {importing ? <><FileSpreadsheet size={15} /> Mengimpor...</> : <><Upload size={15} /> Import Excel</>}
-          </button>
+          {role === 'admin' && (
+            <button className="admin-btn" onClick={openAdd}>
+              <Plus size={15} /> Tambah Siswa
+            </button>
+          )}
+          {role === 'admin' && (
+            <button className="admin-btn admin-btn-outline" onClick={handleImportExcel} disabled={importing}>
+              {importing ? <><FileSpreadsheet size={15} /> Mengimpor...</> : <><Upload size={15} /> Import Excel</>}
+            </button>
+          )}
           <button className="admin-btn admin-btn-outline" onClick={handleDownloadTemplate}>
             <Download size={15} /> Template
           </button>
@@ -383,14 +389,16 @@ function SiswaContent() {
                         )}
                       </span>
                     </td>
-                    <td className="st-actions" onClick={e => e.stopPropagation()}>
-                      <button className="sca-btn sca-btn-edit" onClick={() => openEdit(s)} aria-label="Edit siswa">
-                        <Pencil size={13} style={{ verticalAlign: "middle" }} />
-                      </button>
-                      <button className="sca-btn sca-btn-delete" onClick={() => setDeleteTarget(s)} aria-label="Hapus siswa">
-                        <Trash2 size={13} style={{ verticalAlign: "middle" }} />
-                      </button>
-                    </td>
+                    {role === 'admin' && (
+                      <td className="st-actions" onClick={e => e.stopPropagation()}>
+                        <button className="sca-btn sca-btn-edit" onClick={() => openEdit(s)} aria-label="Edit siswa">
+                          <Pencil size={13} style={{ verticalAlign: "middle" }} />
+                        </button>
+                        <button className="sca-btn sca-btn-delete" onClick={() => setDeleteTarget(s)} aria-label="Hapus siswa">
+                          <Trash2 size={13} style={{ verticalAlign: "middle" }} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -420,10 +428,12 @@ function SiswaContent() {
                   <span className="sca-kelas">Kelas {s.kelas}</span>
                   <span className="sca-tagihan">{s.tagihan !== "Tidak Ada Tagihan" ? s.tagihan : "—"}</span>
                 </div>
-                <div className="sca-actions">
-                  <button className="sca-btn sca-btn-edit" onClick={(e) => { e.stopPropagation(); openEdit(s) }}>Edit</button>
-                  <button className="sca-btn sca-btn-delete" onClick={(e) => { e.stopPropagation(); setDeleteTarget(s) }}>Hapus</button>
-                </div>
+                {role === 'admin' && (
+                  <div className="sca-actions">
+                    <button className="sca-btn sca-btn-edit" onClick={(e) => { e.stopPropagation(); openEdit(s) }}>Edit</button>
+                    <button className="sca-btn sca-btn-delete" onClick={(e) => { e.stopPropagation(); setDeleteTarget(s) }}>Hapus</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -481,33 +491,33 @@ function SiswaContent() {
 
             {detailSiswa.riwayat.length > 0 ? (
               <div className="detail-riwayat">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div className="detail-riwayat-title" style={{ marginBottom: 0 }}>Riwayat Pembayaran</div>
-                  {detailSiswa.riwayat.some(r => r.status !== 'lunas') && (
-                    <button
-                      type="button"
-                      className="admin-btn admin-btn-sm"
-                      style={{ fontSize: 12, padding: "6px 12px" }}
-                      onClick={async () => {
-                        const unpaid = detailSiswa.riwayat.filter(r => r.status !== 'lunas')
-                        let okCount = 0
-                        for (const bill of unpaid) {
-                          const ok = await markBillAsPaid(bill.id)
-                          if (ok) okCount++
-                        }
-                        if (okCount === unpaid.length) {
-                          showToast(`${okCount} tagihan ditandai lunas!`)
-                        } else {
-                          showToast(`${okCount} dari ${unpaid.length} tagihan berhasil ditandai lunas`, "error")
-                        }
-                        setDetailSiswa(null)
-                        await fetchData()
-                      }}
-                    >
-                      Tandai Semua Lunas
-                    </button>
-                  )}
-                </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div className="detail-riwayat-title" style={{ marginBottom: 0 }}>Riwayat Pembayaran</div>
+                    {role === 'admin' && detailSiswa.riwayat.some(r => r.status !== 'lunas') && (
+                      <button
+                        type="button"
+                        className="admin-btn admin-btn-sm"
+                        style={{ fontSize: 12, padding: "6px 12px" }}
+                        onClick={async () => {
+                          const unpaid = detailSiswa.riwayat.filter(r => r.status !== 'lunas')
+                          let okCount = 0
+                          for (const bill of unpaid) {
+                            const ok = await markBillAsPaid(bill.id)
+                            if (ok) okCount++
+                          }
+                          if (okCount === unpaid.length) {
+                            showToast(`${okCount} tagihan ditandai lunas!`)
+                          } else {
+                            showToast(`${okCount} dari ${unpaid.length} tagihan berhasil ditandai lunas`, "error")
+                          }
+                          setDetailSiswa(null)
+                          await fetchData()
+                        }}
+                      >
+                        Tandai Semua Lunas
+                      </button>
+                    )}
+                  </div>
                 {detailSiswa.riwayat.map(r => {
                   const isClickable = r.status === 'lunas' || r.status === 'menunggu'
                   return (
@@ -524,7 +534,7 @@ function SiswaContent() {
                     <div className="riwayat-right" style={{ alignItems: "flex-end", gap: 6 }}>
                       <div className="riwayat-nominal">{formatRupiah(r.nominal)}</div>
                       <div className="riwayat-status">{statusMap[r.status]}</div>
-                      {r.status === 'lunas' ? (
+                      {role === 'admin' && r.status === 'lunas' ? (
                         <button
                           type="button"
                           className="admin-btn admin-btn-sm admin-btn-outline"
@@ -536,7 +546,7 @@ function SiswaContent() {
                         >
                           Ubah Status
                         </button>
-                      ) : (
+                      ) : role === 'admin' ? (
                         <button
                           type="button"
                           className="admin-btn admin-btn-sm"
@@ -555,7 +565,7 @@ function SiswaContent() {
                         >
                           Tandai Lunas
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                   )

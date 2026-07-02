@@ -24,7 +24,7 @@ export function useSchoolSettings() {
   return useContext(SchoolSettingsContext)
 }
 
-const SETTINGS_CACHE_KEY = "espp_school_settings"
+const SETTINGS_CACHE_KEY = "espp_school_settings_data"
 
 function getCachedSettings(): SchoolSettings | null {
   if (typeof window === "undefined") return null

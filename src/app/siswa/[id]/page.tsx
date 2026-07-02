@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { DetailClient } from "./DetailClient"
 
 export default function DetailSiswaPage() {
+  const params = useParams()
+  const id = params.id as string
   const [siswa, setSiswa] = useState<Siswa | null>(null)
-  const id = typeof window !== "undefined" ? window.location.pathname.split("/").pop() || "" : ""
 
   useEffect(() => {
     if (!id) return
@@ -27,8 +29,7 @@ export default function DetailSiswaPage() {
       clearInterval(interval)
       document.removeEventListener("visibilitychange", onVisible)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [id])
 
   return <DetailClient siswa={siswa} id={id} />
 }

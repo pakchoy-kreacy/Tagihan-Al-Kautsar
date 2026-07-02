@@ -1,14 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllBillTypes, getAllClasses, addBillType, updateBillType, deleteBillType, formatRupiah, type BillType, type KelasData } from "@/lib/db"
+import { getAllBillTypes, getAllClasses, updateBillType, deleteBillType, formatRupiah, type BillType, type KelasData } from "@/lib/db"
 import { createBillTypeWithGeneration } from "@/lib/db-enhanced"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
+import { useAdminRole } from "@/context/AdminRoleContext"
 import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox, CalendarDays } from "lucide-react"
 
 export default function AdminTagihanPage() {
   const { showToast } = useToast()
+  const { role } = useAdminRole()
   const [billTypes, setBillTypes] = useState<BillType[]>([])
   const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [loading, setLoading] = useState(true)
@@ -174,11 +176,13 @@ export default function AdminTagihanPage() {
       <p className="page-subtitle">Tambah dan kelola jenis tagihan sekolah (SPP, Ujian, Seragam, dll)</p>
 
       {/* TOOLBAR */}
-      <div className="tagihan-toolbar">
-        <button className="admin-btn" onClick={openAdd}>
-          <Plus size={15} /> Tambah Tagihan
-        </button>
-      </div>
+      {role === 'admin' && (
+        <div className="tagihan-toolbar">
+          <button className="admin-btn" onClick={openAdd}>
+            <Plus size={15} /> Tambah Tagihan
+          </button>
+        </div>
+      )}
 
       {/* CARD GRID */}
       {loading ? (
@@ -199,10 +203,12 @@ export default function AdminTagihanPage() {
                 <div className="tc-icon">
                   {b.is_recurring ? <RefreshCw size={24} color="var(--emerald)" /> : <Package size={24} color="var(--neutral)" />}
                 </div>
-                <div className="tc-actions">
-                  <button className="tc-btn" onClick={() => openEdit(b)} title="Edit" aria-label="Edit tagihan"><Pencil size={14} /></button>
-                  <button className="tc-btn tc-btn-delete" onClick={() => setDeleteTarget(b)} title="Hapus" aria-label="Hapus tagihan"><Trash2 size={14} /></button>
-                </div>
+                {role === 'admin' && (
+                  <div className="tc-actions">
+                    <button className="tc-btn" onClick={() => openEdit(b)} title="Edit" aria-label="Edit tagihan"><Pencil size={14} /></button>
+                    <button className="tc-btn tc-btn-delete" onClick={() => setDeleteTarget(b)} title="Hapus" aria-label="Hapus tagihan"><Trash2 size={14} /></button>
+                  </div>
+                )}
               </div>
               <div className="tc-name">{b.name}</div>
               {b.description && <div className="tc-desc">{b.description}</div>}
