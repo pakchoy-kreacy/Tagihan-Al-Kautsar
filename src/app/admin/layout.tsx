@@ -97,10 +97,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [isLoginPage])
 
   // Halaman login tidak perlu sidebar admin
-  if (isLoginPage) {
-    return <>{children}</>
-  }
-
   async function handleLogout() {
     await supabase.auth.signOut()
     window.location.href = "/"
