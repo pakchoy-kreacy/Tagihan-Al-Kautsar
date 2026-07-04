@@ -12,8 +12,9 @@ export function NavBar() {
   const [open, setOpen] = useState(false)
   const { settings } = useSchoolSettings()
 
-  const schoolName = settings?.nama_sekolah || "MI Nurul Iman"
-  const logoUrl = settings?.logo_url
+  const isDemo = pathname.startsWith("/demo")
+  const schoolName = isDemo ? "Sekolah Demo" : (settings?.nama_sekolah || "MI Nurul Iman")
+  const logoUrl = isDemo ? null : settings?.logo_url
 
   const links = [
     { href: "/", label: "Beranda" },
