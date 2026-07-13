@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -42,6 +42,19 @@ export default function AdminLoginPage() {
         setError(error.message === "Invalid login credentials"
           ? "Email atau password salah!"
           : error.message)
+        setLoading(false)
+        return
+      }
+
+      if (data?.session) {
+        redirecting.current = true
+        localStorage.setItem("espp_admin_session", JSON.stringify({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        }))
+        window.location.href = "/admin"
+      } else {
+        setError("Gagal mendapatkan sesi. Coba lagi.")
         setLoading(false)
       }
     } catch {
