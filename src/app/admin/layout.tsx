@@ -56,6 +56,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const isLoginPage = pathname === "/admin/login"
 
+  // Restore session from localStorage before AdminRoleProvider mounts
+  useEffect(() => {
+    async function restore() {
+      const raw = localStorage.getItem("espp_supabase_auth") || localStorage.getItem("espp_admin_session")
+      if (!raw) return
+      try {
+        const parsed = JSON.parse(raw)
+        const accessToken = parsed.access_token
+        const refreshToken = parsed.refresh_token || ""
+        if (accessToken) {
+          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        }
+      } catch { /* ignore */ }
+    }
+    restore()
+  }, [])
+
   useEffect(() => {
     if (isLoginPage) return
 
