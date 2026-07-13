@@ -30,6 +30,10 @@ export default function AdminLoginPage() {
         if (data?.session) {
           try {
             localStorage.setItem("espp_supabase_auth", JSON.stringify(data.session))
+            localStorage.setItem("espp_admin_session", JSON.stringify({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            }))
           } catch { /* ignore */ }
         }
         window.location.href = "/admin"
