@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
@@ -9,6 +9,36 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  useEffect(() => {
+    if (!submitted) return
+
+    let mounted = true
+
+    async function waitForSession() {
+      for (let i = 0; i < 12; i += 1) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!mounted) return
+
+        if (session?.user?.email) {
+          window.location.href = "/admin"
+          return
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 150))
+      }
+
+      if (mounted) {
+        window.location.href = "/admin"
+      }
+    }
+
+    void waitForSession()
+
+    return () => {
+      mounted = false
+    }
+  }, [submitted])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +59,6 @@ export default function AdminLoginPage() {
         setLoading(false)
       } else {
         setSubmitted(true)
-        window.location.href = "/admin"
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")

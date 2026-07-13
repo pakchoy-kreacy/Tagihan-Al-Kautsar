@@ -46,26 +46,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoginPage) return
 
     let mounted = true
-    let resolved = false
 
-    async function verifySession(session: { user?: { email?: string | null } } | null) {
-      if (resolved || !mounted) return
+    let attempts = 0
+    const maxAttempts = 12
+
+    async function checkAccess() {
+      if (!mounted) return
+
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!mounted) return
 
       if (!session?.user?.email) {
-        resolved = true
-        if (mounted) {
-          setAuthChecked(true)
-          setAuthorized(false)
+        attempts += 1
+        if (attempts < maxAttempts) {
+          window.setTimeout(() => {
+            void checkAccess()
+          }, 150)
+          return
         }
+
+        setAuthChecked(true)
+        setAuthorized(false)
         router.replace("/admin/login")
         return
       }
 
-      resolved = true
-      if (mounted) {
-        setAuthChecked(true)
-        setAuthorized(true)
-      }
+      setAuthChecked(true)
+      setAuthorized(true)
 
       const { data: adminUser, error } = await supabase
         .from("admin_users")
@@ -77,39 +85,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (error || !adminUser) {
         await supabase.auth.signOut()
-        if (mounted) setAuthorized(false)
+        setAuthorized(false)
         router.replace("/admin/login")
       }
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        if (mounted) {
-          setAuthChecked(true)
-          setAuthorized(false)
-        }
-        router.replace("/admin/login")
-        return
-      }
-
-      if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        window.setTimeout(() => {
-          void verifySession(session)
-        }, 0)
-      }
-    })
-
-    const timer = setTimeout(() => {
-      if (resolved) return
-      void supabase.auth.getSession().then(({ data: { session } }) => {
-        void verifySession(session)
-      })
-    }, 500)
+    void checkAccess()
 
     return () => {
       mounted = false
-      clearTimeout(timer)
-      subscription.unsubscribe()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isLoginPage])
