@@ -32,68 +32,29 @@ function RoleBanner() {
   )
 }
 
+function AccessGuard({ children }: { children: React.ReactNode }) {
+  const { loading, role } = useAdminRole()
+
+  if (loading) {
+    return (
+      <div className="admin-layout" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <div className="loading-text">Memuat...</div>
+      </div>
+    )
+  }
+
+  if (!role) return null
+
+  return <>{children}</>
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
-  const [authChecked, setAuthChecked] = useState(false)
-  const [authorized, setAuthorized] = useState(false)
 
   const isLoginPage = pathname === "/admin/login"
-
-  useEffect(() => {
-    if (isLoginPage) return
-
-    let mounted = true
-    let retries = 0
-
-    async function checkAccess() {
-      if (!mounted) return
-
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!mounted) return
-
-      if (session?.user?.email) {
-        setAuthChecked(true)
-        setAuthorized(true)
-        return
-      }
-
-      if (retries === 0) {
-        try {
-          const raw = localStorage.getItem("espp_admin_session")
-          if (raw) {
-            const tokens = JSON.parse(raw) as { access_token: string; refresh_token: string }
-            if (tokens?.access_token) {
-              await supabase.auth.setSession({
-                access_token: tokens.access_token,
-                refresh_token: tokens.refresh_token,
-              })
-              localStorage.removeItem("espp_admin_session")
-            }
-          }
-        } catch { /* ignore */ }
-      }
-
-      retries += 1
-      if (retries < 6) {
-        await new Promise(r => setTimeout(r, 500))
-        return void checkAccess()
-      }
-
-      setAuthChecked(true)
-      setAuthorized(false)
-      router.replace("/admin/login")
-    }
-
-    void checkAccess()
-
-    return () => {
-      mounted = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, isLoginPage])
 
   useEffect(() => {
     if (isLoginPage) return
@@ -127,7 +88,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [isLoginPage])
 
-  // Halaman login tidak perlu sidebar admin
   async function handleLogout() {
     try {
       await supabase.auth.signOut()
@@ -138,86 +98,77 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }
 
-  // Halaman login tidak perlu sidebar admin
   if (isLoginPage) {
     return <>{children}</>
   }
 
-  // Tampilkan loading saat mengecek autentikasi
-  if (!authChecked || !authorized) {
-    return (
-      <div className="admin-layout" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <div className="loading-text">Memuat...</div>
-      </div>
-    )
-  }
-
   return (
     <AdminRoleProvider>
-      <div className="admin-layout">
-        <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          <LayoutDashboard size={18} />
-          <span>Menu</span>
-        </button>
+      <AccessGuard>
+        <div className="admin-layout">
+          <button className="admin-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <LayoutDashboard size={18} />
+            <span>Menu</span>
+          </button>
 
-        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-          <nav className="admin-nav">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-              const Icon = item.icon
-              return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`admin-nav-item ${isActive ? "active" : ""}`}
-                  onClick={() => setSidebarOpen(false)}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  <span className="admin-nav-icon"><Icon size={18} /></span>
-                  <span>{item.label}</span>
-                  {item.hasBadge && pendingCount > 0 && (
-                    <span className="admin-nav-badge">{pendingCount}</span>
-                  )}
-                </a>
-              )
-            })}
-          </nav>
+          <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+            <nav className="admin-nav">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                const Icon = item.icon
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className={`admin-nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => setSidebarOpen(false)}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <span className="admin-nav-icon"><Icon size={18} /></span>
+                    <span>{item.label}</span>
+                    {item.hasBadge && pendingCount > 0 && (
+                      <span className="admin-nav-badge">{pendingCount}</span>
+                    )}
+                  </a>
+                )
+              })}
+            </nav>
 
-          <div className="admin-sidebar-footer">
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
-              <House size={14} /> Kembali ke Beranda
-            </a>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="admin-logout-btn"
-            >
-              <LogOut size={14} /> Logout
-            </button>
-          </div>
-        </aside>
+            <div className="admin-sidebar-footer">
+              <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
+                <House size={14} /> Kembali ke Beranda
+              </a>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="admin-logout-btn"
+              >
+                <LogOut size={14} /> Logout
+              </button>
+            </div>
+          </aside>
 
-        {sidebarOpen && (
-          <div className="admin-overlay" onClick={() => setSidebarOpen(false)} />
-        )}
+          {sidebarOpen && (
+            <div className="admin-overlay" onClick={() => setSidebarOpen(false)} />
+          )}
 
-        <main className="admin-main">
-          <RoleBanner />
-          <nav className="breadcrumb">
-            <a href="/admin" className="breadcrumb-link" style={{ textDecoration: "none" }}>Admin</a>
-            {pathname !== "/admin" && (
-              <>
-                <span className="breadcrumb-sep">/</span>
-                <span className="breadcrumb-current">
-                  {navItems.find(n => n.href === pathname)?.label || pathname.replace("/admin/", "")}
-                </span>
-              </>
-            )}
-          </nav>
-          {children}
-        </main>
-      </div>
+          <main className="admin-main">
+            <RoleBanner />
+            <nav className="breadcrumb">
+              <a href="/admin" className="breadcrumb-link" style={{ textDecoration: "none" }}>Admin</a>
+              {pathname !== "/admin" && (
+                <>
+                  <span className="breadcrumb-sep">/</span>
+                  <span className="breadcrumb-current">
+                    {navItems.find(n => n.href === pathname)?.label || pathname.replace("/admin/", "")}
+                  </span>
+                </>
+              )}
+            </nav>
+            {children}
+          </main>
+        </div>
+      </AccessGuard>
     </AdminRoleProvider>
   )
 }
