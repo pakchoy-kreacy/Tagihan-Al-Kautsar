@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useState, useRef, type ReactNode } from "react"
 
 type ToastType = "success" | "error" | "info"
 
@@ -16,9 +16,10 @@ const ToastContext = createContext<{
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const idCounter = useRef(0)
 
   const showToast = useCallback((message: string, type: ToastType = "success") => {
-    const id = Date.now() + Math.random()
+    const id = ++idCounter.current
     setToasts((prev) => [...prev, { id, message, type }])
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))

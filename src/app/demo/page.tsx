@@ -129,7 +129,7 @@ export default function DemoPage() {
 
       {/* Footer */}
       <footer style={{ textAlign: "center", padding: "16px 20px", fontSize: 12, color: "#94a3b8" }}>
-        © {new Date().getFullYear()} ESPP - Management Pembayaran Sekolah Digital
+        © 2024 ESPP - Management Pembayaran Sekolah Digital
       </footer>
     </div>
   )

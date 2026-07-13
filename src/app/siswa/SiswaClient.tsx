@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
 import { Search, ArrowLeft, X, Filter } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
+import { Footer } from "@/components/Footer"
 
 interface SiswaClientProps {
   kelas: string
@@ -12,19 +13,20 @@ interface SiswaClientProps {
 }
 
 export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) {
-  // Read initial filters from URL
-  const initialFilters = useMemo(() => {
-    if (typeof window === 'undefined') return { billType: 'all', status: 'all' as StatusBayar | 'all' }
-    const params = new URLSearchParams(window.location.search)
-    return {
-      billType: params.get('billType') || 'all',
-      status: (params.get('status') as StatusBayar | 'all') || 'all'
-    }
-  }, [])
-
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<StatusBayar | "all">(initialFilters.status)
-  const [filterBillType, setFilterBillType] = useState<string>(initialFilters.billType)
+  const [filter, setFilter] = useState<StatusBayar | "all">("all")
+  const [filterBillType, setFilterBillType] = useState<string>("all")
+  const [mounted, setMounted] = useState(false)
+
+  // Read initial filters from URL after mount (client-only)
+  useEffect(() => {
+    setMounted(true)
+    const params = new URLSearchParams(window.location.search)
+    const billType = params.get('billType') || 'all'
+    const status = (params.get('status') as StatusBayar | 'all') || 'all'
+    setFilterBillType(billType)
+    setFilter(status)
+  }, [])
 
   // Extract unique bill types from all siswa
   const availableBillTypes = useMemo(() => {
@@ -386,7 +388,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
 
           <ContactAduan />
 
-          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+          <Footer />
         </div>
       </main>
     </div>

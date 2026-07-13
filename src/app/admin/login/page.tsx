@@ -147,7 +147,7 @@ export default function AdminLoginPage() {
             </form>
           </section>
 
-          <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+          <div className="app-footer">© 2024 MI Nurul Iman Kabo Jaya</div>
         </div>
       </main>
     </div>

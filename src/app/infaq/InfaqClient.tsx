@@ -8,6 +8,7 @@ import { useToast } from "@/components/Toast"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { Check, Download, Copy, X, Upload } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
+import { Footer } from "@/components/Footer"
 
 interface InfaqClientProps {
   bank: BankInfoSettings | null
@@ -292,7 +293,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
 
           <ContactAduan />
 
-          <div className="app-footer">© {new Date().getFullYear()} {settings?.nama_sekolah || 'MI Nurul Iman Kabo Jaya'}</div>
+          <Footer schoolName={settings?.nama_sekolah} />
         </div>
       </main>
     </div>

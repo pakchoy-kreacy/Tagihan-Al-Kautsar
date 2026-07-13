@@ -6,6 +6,7 @@ import Image from "next/image"
 import type { SchoolSettings } from "@/lib/infaq-db"
 import type { KelasData } from "@/lib/db"
 import { ContactAduan } from "@/components/ContactAduan"
+import { Footer } from "@/components/Footer"
 
 interface HomeClientProps {
   settings: SchoolSettings | null
@@ -163,7 +164,7 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
 
           <ContactAduan />
 
-          <div className="app-footer">© {new Date().getFullYear()} {schoolName}</div>
+          <Footer schoolName={schoolName} />
         </div>
       </main>
     </div>

@@ -8,6 +8,7 @@ import type { BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
 import { ArrowLeft, Home, Banknote, QrCode, Copy, Upload, X, Check } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
+import { Footer } from "@/components/Footer"
 
 interface BayarClientProps {
   siswa: Siswa
@@ -284,7 +285,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
         <ContactAduan />
 
-        <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+        <Footer />
       </main>
 
       <div className="bottom-btn">

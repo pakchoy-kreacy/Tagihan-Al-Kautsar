@@ -24,14 +24,20 @@ export default function AdminTagihanPage() {
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
   
   const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual'>('manual')
-  const [formYear, setFormYear] = useState(new Date().getFullYear())
+  const [formYear, setFormYear] = useState(2024)
   const [manualMonth, setManualMonth] = useState('Januari')
+  const [mounted, setMounted] = useState(false)
   
   const MONTHS = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ]
-  const YEARS = Array.from({ length: 14 }, (_, i) => new Date().getFullYear() - 2 + i)
+  const YEARS = Array.from({ length: 14 }, (_, i) => 2024 - 2 + i)
+
+  useEffect(() => {
+    setMounted(true)
+    setFormYear(new Date().getFullYear())
+  }, [])
 
   async function fetchData() {
     setLoading(true)
@@ -58,7 +64,7 @@ export default function AdminTagihanPage() {
     setEditId(null); setFormName(""); setFormDesc(""); setFormAmount("250000")
     setFormBatasWaktu(""); setFormBerlakuKelas([])
     setAssignmentMode('manual'); setManualMonth('Januari')
-    setFormYear(new Date().getFullYear())
+    if (mounted) setFormYear(new Date().getFullYear())
     setShowModal(true)
   }
 

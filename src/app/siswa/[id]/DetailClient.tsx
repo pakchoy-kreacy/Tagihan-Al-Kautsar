@@ -5,6 +5,7 @@ import { formatRupiah, type Siswa } from "@/lib/db"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
+import { Footer } from "@/components/Footer"
 
 interface DetailClientProps {
   siswa: Siswa | null
@@ -283,7 +284,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
 
         <ContactAduan />
 
-        <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
+        <Footer />
       </main>
       
       {/* PAYMENT DETAIL MODAL */}
