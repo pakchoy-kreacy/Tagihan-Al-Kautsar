@@ -5,6 +5,7 @@ import { ChevronDown, Users, Heart, Lightbulb, Search, UserCheck, Wallet } from 
 import Image from "next/image"
 import type { SchoolSettings } from "@/lib/infaq-db"
 import type { KelasData } from "@/lib/db"
+import { ContactAduan } from "@/components/ContactAduan"
 
 interface HomeClientProps {
   settings: SchoolSettings | null
@@ -159,6 +160,8 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
               {navigatingInfaq ? "Memuat..." : "Infaq Sekolah"}
             </a>
           </div>
+
+          <ContactAduan />
 
           <div className="app-footer">© {new Date().getFullYear()} {schoolName}</div>
         </div>

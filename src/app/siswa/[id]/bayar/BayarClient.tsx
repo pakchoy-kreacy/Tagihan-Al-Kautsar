@@ -7,6 +7,7 @@ import { submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
 import { ArrowLeft, Home, Banknote, QrCode, Copy, Upload, X, Check } from "lucide-react"
+import { ContactAduan } from "@/components/ContactAduan"
 
 interface BayarClientProps {
   siswa: Siswa
@@ -280,6 +281,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
           {error && <div style={{ color: "var(--terracotta)", fontSize: 13, marginTop: 8 }}>{error}</div>}
         </div>
+
+        <ContactAduan />
 
         <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
       </main>

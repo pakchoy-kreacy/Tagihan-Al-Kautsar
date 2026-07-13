@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
+import { ContactAduan } from "@/components/ContactAduan"
 
 interface DetailClientProps {
   siswa: Siswa | null
@@ -279,6 +280,8 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
             })
           )}
         </div>
+
+        <ContactAduan />
 
         <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
       </main>
