@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { AdminRoleProvider, useAdminRole } from "@/context/AdminRoleContext"
 import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, House, FileSpreadsheet, Eye } from "lucide-react"
 
@@ -40,7 +39,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingCount, setPendingCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
   const [authorized, setAuthorized] = useState(false)
-  useSchoolSettings()
 
   const isLoginPage = pathname === "/admin/login"
 
@@ -53,8 +51,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session?.user?.email) {
+        if (mounted) {
+          setAuthChecked(true)
+          setAuthorized(false)
+        }
         router.replace("/admin/login")
         return
+      }
+
+      if (mounted) {
+        setAuthChecked(true)
+        setAuthorized(true)
       }
 
       const { data: adminUser, error } = await supabase
@@ -65,46 +72,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (error || !adminUser) {
         await supabase.auth.signOut()
+        if (mounted) setAuthorized(false)
         router.replace("/admin/login")
         return
-      }
-
-      if (mounted) {
-        setAuthorized(true)
-        setAuthChecked(true)
       }
     }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user?.email) {
-        router.replace("/admin/login")
-        return
-      }
-
-      supabase
-        .from("admin_users")
-        .select("role")
-        .eq("email", session.user.email)
-        .maybeSingle()
-        .then(async ({ data, error }) => {
-          if (error || !data) {
-            await supabase.auth.signOut()
-            router.replace("/admin/login")
-            return
-          }
-
-          if (mounted) {
-            setAuthorized(true)
-            setAuthChecked(true)
-          }
-        })
-    })
 
     checkAccess()
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isLoginPage])
