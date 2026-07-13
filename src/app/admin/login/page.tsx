@@ -29,13 +29,14 @@ export default function AdminLoginPage() {
       } else {
         if (data?.session) {
           try {
-            sessionStorage.setItem("espp_admin_tokens", JSON.stringify({
+            localStorage.setItem("espp_supabase_auth", JSON.stringify(data.session))
+            localStorage.setItem("espp_admin_session", JSON.stringify({
               access_token: data.session.access_token,
               refresh_token: data.session.refresh_token,
             }))
           } catch { /* ignore */ }
         }
-        window.location.href = "/admin"
+        setTimeout(() => { window.location.href = "/admin" }, 0)
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")

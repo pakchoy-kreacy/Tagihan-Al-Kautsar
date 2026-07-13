@@ -50,13 +50,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     async function tryRestore() {
       try {
-        const raw = sessionStorage.getItem("espp_admin_tokens")
+        const raw = localStorage.getItem("espp_admin_session")
         if (!raw) return false
         const tokens = JSON.parse(raw) as { access_token: string; refresh_token: string }
         if (!tokens?.access_token) return false
         const { data, error } = await supabase.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token })
         if (error || !data?.session) return false
-        sessionStorage.removeItem("espp_admin_tokens")
+        localStorage.removeItem("espp_admin_session")
         return true
       } catch {
         return false
