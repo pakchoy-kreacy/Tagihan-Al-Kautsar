@@ -62,13 +62,19 @@ export default function AdminError({
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20 }}>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
           <button type="button" className="admin-btn" onClick={() => window.location.reload()}>
             Refresh Halaman
           </button>
           <a href="/admin" className="admin-btn admin-btn-outline" style={{ textDecoration: "none" }}>
             Dashboard
           </a>
+          <button type="button" className="admin-btn admin-btn-outline" onClick={() => {
+            try { localStorage.clear(); sessionStorage.clear() } catch { /* ignore */ }
+            window.location.href = "/admin/login"
+          }}>
+            Reset &amp; Login Ulang
+          </button>
         </div>
       </div>
     </div>
