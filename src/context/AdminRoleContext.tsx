@@ -24,7 +24,7 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
       if (!mounted.current) return
 
       if (session?.user?.email) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("admin_users")
           .select("role")
           .eq("email", session.user.email)
@@ -39,6 +39,11 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      setLoading(false)
+      window.location.href = "/admin/login"
+    }).catch((err) => {
+      console.error("AdminRoleProvider error:", err)
+      if (!mounted.current) return
       setLoading(false)
       window.location.href = "/admin/login"
     })
