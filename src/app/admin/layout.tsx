@@ -71,21 +71,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (session?.user?.email) {
         setAuthChecked(true)
-        setAuthorized(true)
 
-        const { data: adminUser, error } = await supabase
-          .from("admin_users")
-          .select("role")
-          .eq("email", session.user.email)
-          .maybeSingle()
+        let adminUser: { role: string } | null = null
+        let adminError: unknown = null
+        for (let i = 0; i < 3; i++) {
+          const result = await supabase
+            .from("admin_users")
+            .select("role")
+            .eq("email", session.user.email)
+            .maybeSingle()
+          if (!mounted) return
+          adminUser = result.data as { role: string } | null
+          adminError = result.error
+          if (adminUser && !adminError) break
+          await new Promise(r => setTimeout(r, 500))
+        }
 
         if (!mounted) return
 
-        if (error || !adminUser) {
-          await supabase.auth.signOut()
+        if (!adminUser || adminError) {
           setAuthorized(false)
           router.replace("/admin/login")
+          return
         }
+
+        setAuthorized(true)
         return
       }
 
