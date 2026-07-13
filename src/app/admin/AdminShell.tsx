@@ -41,37 +41,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const isLoginPage = pathname === "/admin/login"
 
   useEffect(() => {
-    async function restore() {
-      const raw = localStorage.getItem("espp_supabase_auth") || localStorage.getItem("espp_admin_session")
-      if (!raw) return
-      try {
-        const parsed = JSON.parse(raw)
-        const accessToken = parsed.access_token
-        const refreshToken = parsed.refresh_token || ""
-        if (accessToken) {
-          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        }
-      } catch { /* ignore */ }
-    }
-    restore()
-  }, [])
-
-  // Auto-reload on chunk load error (Vercel stale cache issue)
-  useEffect(() => {
-    if (isLoginPage) return
-    const key = '__espp_reloaded'
-    if (sessionStorage.getItem(key)) return
-    function onError(e: ErrorEvent) {
-      if (e.message?.includes('Failed to load chunk') || e.message?.includes('Loading chunk')) {
-        sessionStorage.setItem(key, '1')
-        window.location.reload()
-      }
-    }
-    window.addEventListener('error', onError)
-    return () => window.removeEventListener('error', onError)
-  }, [isLoginPage])
-
-  useEffect(() => {
     if (isLoginPage) return
 
     async function fetchPendingCount() {
