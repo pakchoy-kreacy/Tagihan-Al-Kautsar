@@ -16,7 +16,7 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -27,6 +27,11 @@ export default function AdminLoginPage() {
           : error.message)
         setLoading(false)
       } else {
+        if (data?.session) {
+          try {
+            localStorage.setItem("espp_supabase_auth", JSON.stringify(data.session))
+          } catch { /* ignore */ }
+        }
         window.location.href = "/admin"
       }
     } catch {
