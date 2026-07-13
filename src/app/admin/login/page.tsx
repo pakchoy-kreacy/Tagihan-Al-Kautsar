@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
@@ -8,6 +8,23 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const redirecting = useRef(false)
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session && !redirecting.current) {
+        redirecting.current = true
+        try {
+          localStorage.setItem("espp_admin_session", JSON.stringify({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          }))
+        } catch { /* ignore */ }
+        setTimeout(() => { window.location.href = "/admin" }, 100)
+      }
+    })
+    return () => { subscription.unsubscribe() }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -16,7 +33,7 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -26,17 +43,6 @@ export default function AdminLoginPage() {
           ? "Email atau password salah!"
           : error.message)
         setLoading(false)
-      } else {
-        if (data?.session) {
-          try {
-            localStorage.setItem("espp_supabase_auth", JSON.stringify(data.session))
-            localStorage.setItem("espp_admin_session", JSON.stringify({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            }))
-          } catch { /* ignore */ }
-        }
-        setTimeout(() => { window.location.href = "/admin" }, 0)
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")
