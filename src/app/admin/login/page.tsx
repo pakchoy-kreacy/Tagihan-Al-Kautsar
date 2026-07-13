@@ -29,13 +29,12 @@ export default function AdminLoginPage() {
       } else {
         if (data?.session) {
           try {
-            localStorage.setItem("espp_admin_session", JSON.stringify({
+            sessionStorage.setItem("espp_admin_tokens", JSON.stringify({
               access_token: data.session.access_token,
               refresh_token: data.session.refresh_token,
             }))
           } catch { /* ignore */ }
         }
-        await new Promise(r => setTimeout(r, 300))
         window.location.href = "/admin"
       }
     } catch {
