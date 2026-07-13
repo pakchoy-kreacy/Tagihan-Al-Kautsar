@@ -38,7 +38,6 @@ function getCachedSettings(): SchoolSettings | null {
 
 export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SchoolSettings | null>(getCachedSettings)
-  const [loading, setLoading] = useState(!getCachedSettings)
   const [kelasList, setKelasList] = useState<KelasData[]>([])
   const [bankPayment, setBankPayment] = useState<BankInfoSettings | null>(null)
   const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
@@ -68,14 +67,11 @@ export function SchoolSettingsProvider({ children }: { children: ReactNode }) {
       if (k) setKelasList(k)
       if (bp) setBankPayment(bp)
       if (bi) setBankInfaq(bi)
-      setLoading(false)
-    }).catch(() => {
-      if (!cached) setLoading(false)
-    })
+    }).catch(() => { /* ignore, use cache */ })
   }, [])
 
   return (
-    <SchoolSettingsContext.Provider value={{ settings, loading, kelasList, bankPayment, bankInfaq }}>
+    <SchoolSettingsContext.Provider value={{ settings, loading: false, kelasList, bankPayment, bankInfaq }}>
       {children}
     </SchoolSettingsContext.Provider>
   )

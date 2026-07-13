@@ -53,22 +53,19 @@ export default function AdminLoginPage() {
           refresh_token: data.session.refresh_token,
         }))
 
-        // Cache role to localStorage with retry
-        try {
-          for (let r = 0; r < 5; r++) {
-            const roleResult = await supabase
-              .from("admin_users")
-              .select("role")
-              .eq("email", email)
-              .maybeSingle()
-            if (roleResult.data?.role) {
-              localStorage.setItem("espp_role", roleResult.data.role)
-              break
+        // Fetch role in background (don't block redirect)
+        void supabase
+          .from("admin_users")
+          .select("role")
+          .eq("email", email)
+          .maybeSingle()
+          .then(({ data: roleData }) => {
+            if (roleData?.role) {
+              localStorage.setItem("espp_role", roleData.role)
             }
-            await new Promise(x => setTimeout(x, 300))
-          }
-        } catch { /* ignore */ }
+          })
 
+        // Redirect immediately
         window.location.href = "/admin"
       } else {
         setError("Gagal mendapatkan sesi. Coba lagi.")

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { getSchoolSettings, updateSchoolSettings, getBankInfoByType, updateBankInfo, uploadBuktiInfaq } from "@/lib/infaq-db"
+import { updateSchoolSettings, updateBankInfo, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { SchoolSettings, BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
 import { useAdminRole } from "@/context/AdminRoleContext"
+import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { GraduationCap, CreditCard, Heart, Palette, Upload, Save, Eye } from "lucide-react"
 
 type Tab = "sekolah" | "pembayaran" | "infaq" | "tampilan"
@@ -13,28 +14,20 @@ type Tab = "sekolah" | "pembayaran" | "infaq" | "tampilan"
 export default function AdminPengaturanPage() {
   const { role } = useAdminRole()
   const { showToast } = useToast()
+  const { settings, bankPayment: ctxBankPayment, bankInfaq: ctxBankInfaq } = useSchoolSettings()
   const [tab, setTab] = useState<Tab>("sekolah")
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const [sekolah, setSekolah] = useState<SchoolSettings | null>(null)
-  const [bankPayment, setBankPayment] = useState<BankInfoSettings | null>(null)
-  const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(null)
+  // Initialize from context (no fetch, no useEffect)
+  const [sekolah, setSekolah] = useState<SchoolSettings | null>(settings)
+  const [bankPayment, setBankPayment] = useState<BankInfoSettings | null>(ctxBankPayment)
+  const [bankInfaq, setBankInfaq] = useState<BankInfoSettings | null>(ctxBankInfaq)
   const [primaryColor, setPrimaryColor] = useState("#0E5C4A")
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true)
-      const [s, bp, bi] = await Promise.all([
-        getSchoolSettings(), getBankInfoByType('payment'), getBankInfoByType('infaq')
-      ])
-      setSekolah(s)
-      setBankPayment(bp)
-      setBankInfaq(bi)
-      setLoading(false)
-    }
-    loadData()
-  }, [])
+  // Sync when context updates
+  if (settings && sekolah?.id !== settings.id) setSekolah(settings)
+  if (ctxBankPayment && bankPayment?.id !== ctxBankPayment.id) setBankPayment(ctxBankPayment)
+  if (ctxBankInfaq && bankInfaq?.id !== ctxBankInfaq.id) setBankInfaq(ctxBankInfaq)
 
   async function saveSekolah() {
     if (!sekolah) return
@@ -97,8 +90,6 @@ export default function AdminPengaturanPage() {
     }
     showToast("Pengaturan tampilan tersimpan!")
   }
-
-  if (loading) return <div className="admin-page"><div className="loading-text">Memuat...</div></div>
 
   const tabs: { key: Tab; label: string; icon: typeof GraduationCap }[] = [
     { key: "sekolah", label: "Sekolah", icon: GraduationCap },
