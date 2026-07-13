@@ -80,11 +80,12 @@
 
 .admin-nav {
   flex: 1;
-  padding: 12px 10px;
+  padding: 12px 10px 20px 10px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 
 .admin-nav-item {
