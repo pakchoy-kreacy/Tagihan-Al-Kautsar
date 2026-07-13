@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export default function AdminError({
   error,
@@ -9,8 +9,11 @@ export default function AdminError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const [msg, setMsg] = useState("")
+
   useEffect(() => {
     console.error(error)
+    setMsg(error?.message || "(tidak ada detail error)")
   }, [error])
 
   return (
@@ -19,12 +22,17 @@ export default function AdminError({
         <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--ink)", marginBottom: 12, fontFamily: "var(--font-heading)" }}>
           Terjadi Kesalahan
         </h1>
-        <p style={{ color: "var(--neutral)", fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
-          Halaman admin mengalami error. Coba lagi atau kembali ke dashboard.
+        <p style={{ color: "var(--neutral)", fontSize: 14, marginBottom: 8, lineHeight: 1.6 }}>
+          Halaman admin mengalami error. Coba refresh halaman atau kembali ke dashboard.
         </p>
+        {msg && (
+          <p style={{ color: "var(--terracotta)", fontSize: 12, marginBottom: 20, fontFamily: "monospace", background: "var(--terracotta-soft)", padding: "8px 12px", borderRadius: 6, display: "inline-block" }}>
+            {msg}
+          </p>
+        )}
         <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          <button type="button" className="admin-btn" onClick={reset}>
-            Coba Lagi
+          <button type="button" className="admin-btn" onClick={() => window.location.reload()}>
+            Refresh Halaman
           </button>
           <a href="/admin" className="admin-btn admin-btn-outline" style={{ textDecoration: "none" }}>
             Dashboard
