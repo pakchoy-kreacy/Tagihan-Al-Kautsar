@@ -133,8 +133,8 @@
 
 .admin-sidebar-footer {
   flex-shrink: 0;
-  padding: 14px 18px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.15);
 }
 
 .admin-back-link {
