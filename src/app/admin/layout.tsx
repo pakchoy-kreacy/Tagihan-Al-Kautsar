@@ -46,6 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoginPage) return
 
     let mounted = true
+    let retries = 0
 
     async function checkAccess() {
       if (!mounted) return
@@ -54,6 +55,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (!mounted) return
 
       if (!session?.user?.email) {
+        retries += 1
+        if (retries < 5) {
+          await new Promise(r => setTimeout(r, 400))
+          return void checkAccess()
+        }
         setAuthChecked(true)
         setAuthorized(false)
         router.replace("/admin/login")
