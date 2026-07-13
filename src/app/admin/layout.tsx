@@ -46,33 +46,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoginPage) return
 
     let mounted = true
-    let attempts = 0
-    const maxAttempts = 20
-
-    const loginPending = (() => {
-      try {
-        return sessionStorage.getItem("espp_admin_login_pending") === "1"
-      } catch {
-        return false
-      }
-    })()
 
     async function checkAccess() {
       if (!mounted) return
 
       const { data: { session } } = await supabase.auth.getSession()
-
       if (!mounted) return
 
       if (!session?.user?.email) {
-        attempts += 1
-        if (attempts < (loginPending ? maxAttempts : 3)) {
-          window.setTimeout(() => {
-            void checkAccess()
-          }, loginPending ? 200 : 300)
-          return
-        }
-
         setAuthChecked(true)
         setAuthorized(false)
         router.replace("/admin/login")
@@ -93,19 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (error || !adminUser) {
         await supabase.auth.signOut()
         setAuthorized(false)
-        try {
-          sessionStorage.removeItem("espp_admin_login_pending")
-        } catch {
-          // ignore
-        }
         router.replace("/admin/login")
-        return
-      }
-
-      try {
-        sessionStorage.removeItem("espp_admin_login_pending")
-      } catch {
-        // ignore
       }
     }
 

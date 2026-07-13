@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <Preconnect />
       </head>
-      <body className="min-h-full">
+      <body className="min-h-full" suppressHydrationWarning>
         <SchoolSettingsProvider>
           <NavBar />
           <ToastProvider>
