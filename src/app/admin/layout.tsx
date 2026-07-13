@@ -93,7 +93,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        void verifySession(session)
+        window.setTimeout(() => {
+          void verifySession(session)
+        }, 0)
       }
     })
 
