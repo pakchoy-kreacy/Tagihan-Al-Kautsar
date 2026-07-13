@@ -29,6 +29,11 @@ export default function AdminLoginPage() {
           : error.message)
         setLoading(false)
       } else {
+        try {
+          sessionStorage.setItem("espp_admin_login_pending", "1")
+        } catch {
+          // ignore
+        }
         router.replace("/admin")
         router.refresh()
       }
