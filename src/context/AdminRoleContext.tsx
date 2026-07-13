@@ -27,6 +27,22 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // Don't render children until auth check is complete
+  if (loading) {
+    return (
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        fontSize: 14,
+        color: "#666"
+      }}>
+        Memuat...
+      </div>
+    )
+  }
+
   return (
     <AdminRoleContext.Provider value={{ role, loading }}>
       {children}

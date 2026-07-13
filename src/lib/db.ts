@@ -641,6 +641,7 @@ export async function getAllBillTypes(): Promise<BillType[]> {
     const { data, error } = await supabase
       .from('bill_types')
       .select('*')
+      .order('batas_waktu', { ascending: true, nullsFirst: false })
       .order('name', { ascending: true })
 
     if (error) throw error

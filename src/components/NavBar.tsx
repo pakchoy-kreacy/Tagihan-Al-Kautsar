@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Menu } from "lucide-react"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
+import { supabase } from "@/lib/supabase"
 
 export function NavBar() {
   const pathname = usePathname()
@@ -18,8 +19,13 @@ export function NavBar() {
 
   const links = [
     { href: "/", label: "Beranda" },
-    { href: "/admin", label: "Admin" },
   ]
+
+  async function handleAdminClick(e: React.MouseEvent) {
+    e.preventDefault()
+    const { data: { session } } = await supabase.auth.getSession()
+    window.location.href = session ? "/admin" : "/admin/login"
+  }
 
   return (
     <nav className="app-nav rub-el-hizb">
@@ -55,6 +61,19 @@ export function NavBar() {
             {link.label}
           </a>
         ))}
+        {!pathname.startsWith("/admin/login") && (
+          <a
+            href="#"
+            className={`app-nav-link ${pathname.startsWith("/admin") ? "active" : ""}`}
+            onClick={(e) => {
+              handleAdminClick(e)
+              setOpen(false)
+            }}
+            style={{ textDecoration: "none" }}
+          >
+            Admin
+          </a>
+        )}
       </div>
     </nav>
   )
