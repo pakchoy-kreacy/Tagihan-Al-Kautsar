@@ -48,58 +48,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     let mounted = true
     let retries = 0
 
-    async function restoreSession() {
+    async function tryRestore() {
       try {
         const raw = sessionStorage.getItem("espp_admin_tokens")
-        if (!raw) return null
+        if (!raw) return false
         const tokens = JSON.parse(raw) as { access_token: string; refresh_token: string }
-        if (!tokens?.access_token) return null
+        if (!tokens?.access_token) return false
+        const { data, error } = await supabase.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token })
+        if (error || !data?.session) return false
         sessionStorage.removeItem("espp_admin_tokens")
-        const { data } = await supabase.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token })
-        return data?.session ?? null
+        return true
       } catch {
-        return null
+        return false
       }
     }
 
     async function checkAccess() {
       if (!mounted) return
 
-      let { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
       if (!mounted) return
 
-      if (!session?.user?.email) {
-        session = await restoreSession()
-      }
-
-      if (!session?.user?.email) {
-        retries += 1
-        if (retries < 5) {
-          await new Promise(r => setTimeout(r, 400))
-          return void checkAccess()
-        }
+      if (session?.user?.email) {
         setAuthChecked(true)
-        setAuthorized(false)
-        router.replace("/admin/login")
+        setAuthorized(true)
+
+        const { data: adminUser, error } = await supabase
+          .from("admin_users")
+          .select("role")
+          .eq("email", session.user.email)
+          .maybeSingle()
+
+        if (!mounted) return
+
+        if (error || !adminUser) {
+          await supabase.auth.signOut()
+          setAuthorized(false)
+          router.replace("/admin/login")
+        }
         return
       }
 
-      setAuthChecked(true)
-      setAuthorized(true)
-
-      const { data: adminUser, error } = await supabase
-        .from("admin_users")
-        .select("role")
-        .eq("email", session.user.email)
-        .maybeSingle()
-
-      if (!mounted) return
-
-      if (error || !adminUser) {
-        await supabase.auth.signOut()
-        setAuthorized(false)
-        router.replace("/admin/login")
+      const restored = await tryRestore()
+      if (restored) {
+        return void checkAccess()
       }
+
+      retries += 1
+      if (retries < 5) {
+        await new Promise(r => setTimeout(r, 400))
+        return void checkAccess()
+      }
+
+      setAuthChecked(true)
+      setAuthorized(false)
+      router.replace("/admin/login")
     }
 
     void checkAccess()
