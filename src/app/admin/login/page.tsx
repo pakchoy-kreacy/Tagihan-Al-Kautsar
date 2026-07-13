@@ -56,17 +56,7 @@ export default function AdminLoginPage() {
           refresh_token: data.session.refresh_token,
         }))
 
-        // Fetch role in background (don't block redirect)
-        void supabase
-          .from("admin_users")
-          .select("role")
-          .eq("email", email)
-          .maybeSingle()
-          .then(({ data: roleData }) => {
-            if (roleData?.role) {
-              localStorage.setItem("espp_role", roleData.role)
-            }
-          })
+        // Role is automatically set to "admin" by AdminRoleProvider
 
         // Redirect immediately
         window.location.href = "/admin"
