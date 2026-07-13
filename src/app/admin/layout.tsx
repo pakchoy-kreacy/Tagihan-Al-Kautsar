@@ -46,6 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoginPage) return
 
     let mounted = true
+    const startedAt = Date.now()
 
     let attempts = 0
     const maxAttempts = 12
@@ -62,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (attempts < maxAttempts) {
           window.setTimeout(() => {
             void checkAccess()
-          }, 150)
+          }, Date.now() - startedAt < 1200 ? 200 : 150)
           return
         }
 

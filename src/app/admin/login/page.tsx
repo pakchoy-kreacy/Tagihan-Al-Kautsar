@@ -1,48 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-
-  useEffect(() => {
-    if (!submitted) return
-
-    let mounted = true
-
-    async function waitForSession() {
-      for (let i = 0; i < 12; i += 1) {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!mounted) return
-
-        if (session?.user?.email) {
-          window.location.href = "/admin"
-          return
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 150))
-      }
-
-      if (mounted) {
-        window.location.href = "/admin"
-      }
-    }
-
-    void waitForSession()
-
-    return () => {
-      mounted = false
-    }
-  }, [submitted])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (submitted || loading) return
+    if (loading) return
     setError("")
     setLoading(true)
 
@@ -58,7 +29,8 @@ export default function AdminLoginPage() {
           : error.message)
         setLoading(false)
       } else {
-        setSubmitted(true)
+        router.replace("/admin")
+        router.refresh()
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")
