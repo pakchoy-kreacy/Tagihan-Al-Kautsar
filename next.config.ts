@@ -35,13 +35,13 @@ const nextConfig: NextConfig = {
       {
         source: "/_next/static/(.*)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "Cache-Control", value: "public, max-age=31536000, must-revalidate" },
         ],
       },
       {
         source: "/(.*).(js|css|png|jpg|jpeg|webp|avif|svg|ico|woff2)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "Cache-Control", value: "public, max-age=31536000, must-revalidate" },
         ],
       },
     ];
