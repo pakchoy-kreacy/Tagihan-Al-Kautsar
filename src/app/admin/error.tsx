@@ -13,7 +13,20 @@ export default function AdminError({
 
   useEffect(() => {
     console.error(error)
-    setMsg(error?.message || "(tidak ada detail error)")
+    const message = error?.message || "(tidak ada detail error)"
+    setMsg(message)
+
+    // Auto-reload on chunk loading error (allow up to 3 attempts)
+    if (message.includes('Failed to load chunk') || message.includes('Loading chunk')) {
+      const KEY = '__espp_chunk_reload_count'
+      const count = parseInt(sessionStorage.getItem(KEY) || '0', 10)
+      if (count < 3) {
+        sessionStorage.setItem(KEY, String(count + 1))
+        setTimeout(() => {
+          window.location.href = '/admin'
+        }, 600)
+      }
+    }
   }, [error])
 
   return (
@@ -23,7 +36,7 @@ export default function AdminError({
           Terjadi Kesalahan
         </h1>
         <p style={{ color: "var(--neutral)", fontSize: 14, marginBottom: 8, lineHeight: 1.6 }}>
-          Halaman admin mengalami error. Coba refresh halaman atau kembali ke dashboard.
+          Halaman admin mengalami error. Mencoba memuat ulang...
         </p>
         {msg && (
           <p style={{ color: "var(--terracotta)", fontSize: 12, marginBottom: 20, fontFamily: "monospace", background: "var(--terracotta-soft)", padding: "8px 12px", borderRadius: 6, display: "inline-block" }}>
