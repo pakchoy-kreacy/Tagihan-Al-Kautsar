@@ -52,6 +52,19 @@ export default function AdminLoginPage() {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         }))
+
+        // Cache role to localStorage so admin page doesn't need to query admin_users
+        try {
+          const roleResult = await supabase
+            .from("admin_users")
+            .select("role")
+            .eq("email", email)
+            .maybeSingle()
+          if (roleResult.data?.role) {
+            localStorage.setItem("espp_role", roleResult.data.role)
+          }
+        } catch { /* ignore */ }
+
         window.location.href = "/admin"
       } else {
         setError("Gagal mendapatkan sesi. Coba lagi.")
