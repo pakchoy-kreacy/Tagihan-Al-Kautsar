@@ -56,6 +56,21 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     restore()
   }, [])
 
+  // Auto-reload on chunk load error (Vercel stale cache issue)
+  useEffect(() => {
+    if (isLoginPage) return
+    const key = '__espp_reloaded'
+    if (sessionStorage.getItem(key)) return
+    function onError(e: ErrorEvent) {
+      if (e.message?.includes('Failed to load chunk') || e.message?.includes('Loading chunk')) {
+        sessionStorage.setItem(key, '1')
+        window.location.reload()
+      }
+    }
+    window.addEventListener('error', onError)
+    return () => window.removeEventListener('error', onError)
+  }, [isLoginPage])
+
   useEffect(() => {
     if (isLoginPage) return
 
