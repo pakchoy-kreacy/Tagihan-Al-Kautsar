@@ -13,19 +13,46 @@ interface AdminRoleContextType {
 
 const AdminRoleContext = createContext<AdminRoleContextType>({ role: null, loading: true })
 
-let singletonPromise: Promise<AdminRole> | null = null
-
 async function resolveRole(): Promise<AdminRole> {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user?.email) return null
+  for (let i = 0; i < 10; i++) {
+    // 1) Try getSession first (fast if session already in memory)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.email) {
+      const { data } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", session.user.email)
+        .maybeSingle()
+      const role = (data as { role: AdminRole } | null)?.role
+      if (role) return role
+    }
 
-  const { data } = await supabase
-    .from("admin_users")
-    .select("role")
-    .eq("email", session.user.email)
-    .maybeSingle()
+    // 2) Try restoring from localStorage directly
+    const raw = localStorage.getItem("espp_supabase_auth") || localStorage.getItem("espp_admin_session")
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw)
+        const accessToken = parsed.access_token
+        const refreshToken = parsed.refresh_token || ""
+        if (accessToken) {
+          const { data } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          if (data?.session?.user?.email) {
+            const result = await supabase
+              .from("admin_users")
+              .select("role")
+              .eq("email", data.session.user.email)
+              .maybeSingle()
+            const role = (result.data as { role: AdminRole } | null)?.role
+            if (role) return role
+          }
+        }
+      } catch { /* ignore */ }
+    }
 
-  return (data as { role: AdminRole } | null)?.role || null
+    await new Promise(r => setTimeout(r, 500))
+  }
+
+  return null
 }
 
 export function AdminRoleProvider({ children }: { children: ReactNode }) {
@@ -39,36 +66,20 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
     started.current = true
 
     let mounted = true
-    let attempts = 0
 
-    async function check() {
-      while (mounted && attempts < 15) {
-        attempts++
-
-        if (!singletonPromise) {
-          singletonPromise = resolveRole()
-        }
-
-        const result = await singletonPromise
-
-        if (!mounted) return
-
-        if (result !== null) {
-          setRole(result)
-          setLoading(false)
-          return
-        }
-
-        singletonPromise = null
-        await new Promise(r => setTimeout(r, 500))
-      }
-
+    resolveRole().then((result) => {
       if (!mounted) return
-      setLoading(false)
-      router.replace("/admin/login")
-    }
 
-    check()
+      if (result) {
+        setRole(result)
+        setLoading(false)
+      } else {
+        setLoading(false)
+        router.replace("/admin/login")
+      }
+    })
+
+    return () => { mounted = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
