@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -29,7 +31,7 @@ export default function AdminLoginPage() {
         setLoading(false)
       } else {
         setSubmitted(true)
-        window.location.href = "/admin"
+        router.replace("/admin")
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")

@@ -46,11 +46,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoginPage) return
 
     let mounted = true
+    let resolved = false
 
-    async function checkAccess() {
-      const { data: { session } } = await supabase.auth.getSession()
+    async function verifySession(session: { user?: { email?: string | null } } | null) {
+      if (resolved || !mounted) return
 
       if (!session?.user?.email) {
+        resolved = true
         if (mounted) {
           setAuthChecked(true)
           setAuthorized(false)
@@ -59,6 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return
       }
 
+      resolved = true
       if (mounted) {
         setAuthChecked(true)
         setAuthorized(true)
@@ -70,18 +73,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .eq("email", session.user.email)
         .maybeSingle()
 
+      if (!mounted) return
+
       if (error || !adminUser) {
         await supabase.auth.signOut()
         if (mounted) setAuthorized(false)
         router.replace("/admin/login")
-        return
       }
     }
 
-    checkAccess()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        if (mounted) {
+          setAuthChecked(true)
+          setAuthorized(false)
+        }
+        router.replace("/admin/login")
+        return
+      }
+
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        void verifySession(session)
+      }
+    })
+
+    const timer = setTimeout(() => {
+      if (resolved) return
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        void verifySession(session)
+      })
+    }, 500)
 
     return () => {
       mounted = false
+      clearTimeout(timer)
+      subscription.unsubscribe()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isLoginPage])
