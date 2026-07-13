@@ -3,22 +3,41 @@
 import Image from "next/image"
 
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Menu } from "lucide-react"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
+import { supabase } from "@/lib/supabase"
 
 export function NavBar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [hasAdminSession, setHasAdminSession] = useState(false)
   const { settings } = useSchoolSettings()
 
   const isDemo = pathname.startsWith("/demo")
   const schoolName = isDemo ? "Sekolah Demo" : (settings?.nama_sekolah || "MI Nurul Iman")
   const logoUrl = isDemo ? null : settings?.logo_url
 
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) setHasAdminSession(!!session?.user?.email)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setHasAdminSession(!!session?.user?.email)
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
   const links = [
     { href: "/", label: "Beranda" },
-    ...(!pathname.startsWith("/admin/login") ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(hasAdminSession && !pathname.startsWith("/admin/login") ? [{ href: "/admin", label: "Admin" }] : []),
   ]
 
   return (

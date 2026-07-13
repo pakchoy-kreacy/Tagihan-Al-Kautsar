@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/Toast"
 import { SchoolSettingsProvider } from "@/components/SchoolSettingsProvider"
 import { Preconnect } from "@/components/Preconnect"
 import { NavBar } from "@/components/NavBar"
+import { ContactAduan } from "@/components/ContactAduan"
 
 const sora = Sora({
   subsets: ["latin"],
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ToastProvider>
             {children}
           </ToastProvider>
+          <ContactAduan />
         </SchoolSettingsProvider>
       </body>
     </html>

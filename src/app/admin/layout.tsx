@@ -39,6 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
+  const [authorized, setAuthorized] = useState(false)
   useSchoolSettings()
 
   const isLoginPage = pathname === "/admin/login"
@@ -52,7 +53,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session?.user?.email) {
-        if (mounted) setAuthChecked(true)
         router.replace("/admin/login")
         return
       }
@@ -65,12 +65,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (error || !adminUser) {
         await supabase.auth.signOut()
-        if (mounted) setAuthChecked(true)
         router.replace("/admin/login")
         return
       }
 
-      if (mounted) setAuthChecked(true)
+      if (mounted) {
+        setAuthorized(true)
+        setAuthChecked(true)
+      }
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -91,7 +93,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             return
           }
 
-          if (mounted) setAuthChecked(true)
+          if (mounted) {
+            setAuthorized(true)
+            setAuthChecked(true)
+          }
         })
     })
 
@@ -153,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // Tampilkan loading saat mengecek autentikasi
-  if (!authChecked) {
+  if (!authChecked || !authorized) {
     return (
       <div className="admin-layout" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
         <div className="loading-text">Memuat...</div>
