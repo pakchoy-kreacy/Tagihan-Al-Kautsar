@@ -11,6 +11,7 @@ export default function AdminLoginPage() {
   const redirecting = useRef(false)
 
   useEffect(() => {
+    // Only redirect on fresh SIGNED_IN event, not existing sessions
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session && !redirecting.current) {
         redirecting.current = true
@@ -20,7 +21,7 @@ export default function AdminLoginPage() {
             refresh_token: session.refresh_token,
           }))
         } catch { /* ignore */ }
-        setTimeout(() => { window.location.href = "/admin" }, 100)
+        window.location.href = "/admin"
       }
     })
     return () => { subscription.unsubscribe() }
