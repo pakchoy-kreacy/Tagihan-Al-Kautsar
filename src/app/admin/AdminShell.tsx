@@ -40,9 +40,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   const isLoginPage = pathname === "/admin/login"
 
-  useEffect(() => {
-    if (isLoginPage) return
+  // Early return BEFORE any side effects or context providers
+  if (isLoginPage) {
+    return <>{children}</>
+  }
 
+  return <AdminShellContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} pendingCount={pendingCount} setPendingCount={setPendingCount} router={router} pathname={pathname}>{children}</AdminShellContent>
+}
+
+function AdminShellContent({ children, sidebarOpen, setSidebarOpen, pendingCount, setPendingCount, router, pathname }: { children: React.ReactNode; sidebarOpen: boolean; setSidebarOpen: (v: boolean) => void; pendingCount: number; setPendingCount: (v: number) => void; router: ReturnType<typeof useRouter>; pathname: string }) {
+
+  useEffect(() => {
     async function fetchPendingCount() {
       const { count } = await supabase
         .from('payments')
@@ -68,7 +76,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       clearInterval(interval)
       supabase.removeChannel(channel)
     }
-  }, [isLoginPage])
+  }, [setPendingCount])
 
   async function handleLogout() {
     try { await supabase.auth.signOut() } finally {
@@ -76,10 +84,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       router.replace("/")
       router.refresh()
     }
-  }
-
-  if (isLoginPage) {
-    return <>{children}</>
   }
 
   return (
@@ -112,6 +116,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </nav>
 
           <div className="admin-sidebar-footer">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
               <House size={14} /> Kembali ke Beranda
             </a>

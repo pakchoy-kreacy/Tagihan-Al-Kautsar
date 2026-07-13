@@ -85,7 +85,6 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
     })
 
     return () => { mounted.current = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

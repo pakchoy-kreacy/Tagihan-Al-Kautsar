@@ -1,18 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo } from "react"
 
 export default function AdminError({
   error,
-  reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  const [info, setInfo] = useState<Record<string, string>>({})
-
-  useEffect(() => {
-    console.error(error)
+  const info = useMemo(() => {
     const message = error?.message || "(tidak ada detail error)"
 
     let hasAuth = "no"
@@ -24,14 +20,18 @@ export default function AdminError({
       lsLen = String(localStorage.length)
     } catch { /* ignore */ }
 
-    const diag: Record<string, string> = {
+    return {
       pesan: message,
       url: typeof window !== "undefined" ? window.location.href : "-",
       session_lokal: hasAuth,
       backup_session: hasBackup,
       jumlah_ls: lsLen,
     }
-    setInfo(diag)
+  }, [error])
+
+  useEffect(() => {
+    console.error(error)
+    const message = error?.message || "(tidak ada detail error)"
 
     if (message.includes('Failed to load chunk') || message.includes('Loading chunk')) {
       const KEY = '__espp_chunk_reload_count'
