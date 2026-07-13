@@ -27,12 +27,7 @@ export default function AdminLoginPage() {
           : error.message)
         setLoading(false)
       } else {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        if (!sessionError && session?.user?.email) {
-          window.location.href = "/admin"
-        } else {
-          window.location.href = "/admin"
-        }
+        window.location.href = "/admin"
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")

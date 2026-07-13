@@ -17,6 +17,7 @@ export const supabase = supabaseUrl && supabaseAnonKey
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
+        storageKey: 'espp_supabase_auth',
       },
       global: {
         fetch: (url, options) => {
