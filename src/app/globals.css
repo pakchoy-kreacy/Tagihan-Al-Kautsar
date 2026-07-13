@@ -168,6 +168,76 @@ textarea:focus-visible {
   margin: 0 auto;
 }
 
+.contact-aduan-wrap {
+  width: 100%;
+  padding: 12px 16px 0;
+}
+
+.contact-aduan-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(31, 143, 92, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(230, 247, 239, 0.9) 0%, rgba(255, 255, 255, 0.96) 100%);
+  box-shadow: 0 4px 14px rgba(31, 143, 92, 0.08);
+}
+
+.contact-aduan-copy {
+  min-width: 0;
+}
+
+.contact-aduan-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.contact-aduan-text {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--neutral);
+  line-height: 1.5;
+}
+
+.contact-aduan-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #25d366;
+  color: white;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.22);
+}
+
+.contact-aduan-btn:hover {
+  background: #1fa855;
+}
+
+@media (max-width: 767px) {
+  .contact-aduan-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contact-aduan-btn {
+    width: 100%;
+  }
+}
+
 .app-grid {
   display: grid;
   gap: 16px;
@@ -318,12 +388,13 @@ textarea:focus-visible {
   border: 1px solid rgba(43, 174, 118, 0.15);
   border-radius: 14px;
   padding: 14px 16px;
+  cursor: default;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .petunjuk-step:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(43, 174, 118, 0.12);
+  transform: none;
+  box-shadow: 0 4px 12px rgba(43, 174, 118, 0.08);
 }
 
 .petunjuk-step-icon {

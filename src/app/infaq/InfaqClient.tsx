@@ -7,6 +7,7 @@ import type { BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { Check, Download, Copy, X, Upload } from "lucide-react"
+import { ContactAduan } from "@/components/ContactAduan"
 
 interface InfaqClientProps {
   bank: BankInfoSettings | null
@@ -288,6 +289,8 @@ export function InfaqClient({ bank }: InfaqClientProps) {
               </button>
             </div>
           </div>
+
+          <ContactAduan />
 
           <div className="app-footer">© {new Date().getFullYear()} {settings?.nama_sekolah || 'MI Nurul Iman Kabo Jaya'}</div>
         </div>

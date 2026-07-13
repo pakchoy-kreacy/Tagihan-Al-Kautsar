@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react"
 import { getStatKelas, type Siswa, type StatusBayar } from "@/lib/db"
 import { Search, ArrowLeft, X, Filter } from "lucide-react"
+import { ContactAduan } from "@/components/ContactAduan"
 
 interface SiswaClientProps {
   kelas: string
@@ -382,6 +383,8 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
               </div>
             )}
           </div>
+
+          <ContactAduan />
 
           <div className="app-footer">© {new Date().getFullYear()} MI Nurul Iman Kabo Jaya</div>
         </div>

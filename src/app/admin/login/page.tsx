@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
@@ -8,16 +8,32 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const redirecting = useRef(false)
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session && !redirecting.current) {
+        redirecting.current = true
+        try {
+          localStorage.setItem("espp_admin_session", JSON.stringify({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          }))
+        } catch { /* ignore */ }
+        setTimeout(() => { window.location.href = "/admin" }, 100)
+      }
+    })
+    return () => { subscription.unsubscribe() }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (submitted || loading) return
+    if (loading) return
     setError("")
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -27,9 +43,36 @@ export default function AdminLoginPage() {
           ? "Email atau password salah!"
           : error.message)
         setLoading(false)
-      } else {
-        setSubmitted(true)
+        return
+      }
+
+      if (data?.session) {
+        redirecting.current = true
+        localStorage.setItem("espp_admin_session", JSON.stringify({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        }))
+
+        // Cache role to localStorage with retry
+        try {
+          for (let r = 0; r < 5; r++) {
+            const roleResult = await supabase
+              .from("admin_users")
+              .select("role")
+              .eq("email", email)
+              .maybeSingle()
+            if (roleResult.data?.role) {
+              localStorage.setItem("espp_role", roleResult.data.role)
+              break
+            }
+            await new Promise(x => setTimeout(x, 300))
+          }
+        } catch { /* ignore */ }
+
         window.location.href = "/admin"
+      } else {
+        setError("Gagal mendapatkan sesi. Coba lagi.")
+        setLoading(false)
       }
     } catch {
       setError("Gagal masuk. Coba lagi.")
