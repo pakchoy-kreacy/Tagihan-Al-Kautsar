@@ -53,15 +53,19 @@ export default function AdminLoginPage() {
           refresh_token: data.session.refresh_token,
         }))
 
-        // Cache role to localStorage so admin page doesn't need to query admin_users
+        // Cache role to localStorage with retry
         try {
-          const roleResult = await supabase
-            .from("admin_users")
-            .select("role")
-            .eq("email", email)
-            .maybeSingle()
-          if (roleResult.data?.role) {
-            localStorage.setItem("espp_role", roleResult.data.role)
+          for (let r = 0; r < 5; r++) {
+            const roleResult = await supabase
+              .from("admin_users")
+              .select("role")
+              .eq("email", email)
+              .maybeSingle()
+            if (roleResult.data?.role) {
+              localStorage.setItem("espp_role", roleResult.data.role)
+              break
+            }
+            await new Promise(x => setTimeout(x, 300))
           }
         } catch { /* ignore */ }
 

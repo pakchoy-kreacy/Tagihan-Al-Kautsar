@@ -60,13 +60,20 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
             setLoading(false)
             return
           }
+
+          // Session exists but role not found → default to viewer
+          setRole("viewer")
+          setLoading(false)
+          return
         }
 
         await new Promise(r => setTimeout(r, 300))
       }
 
+      // No session after retries → redirect to login
       if (!mounted.current) return
       setLoading(false)
+      setRole(null)
       window.location.href = "/admin/login"
     }
 
