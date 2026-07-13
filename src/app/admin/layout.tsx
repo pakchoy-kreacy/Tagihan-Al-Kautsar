@@ -48,21 +48,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     let mounted = true
     let retries = 0
 
-    async function tryRestore() {
-      try {
-        const raw = localStorage.getItem("espp_admin_session")
-        if (!raw) return false
-        const tokens = JSON.parse(raw) as { access_token: string; refresh_token: string }
-        if (!tokens?.access_token) return false
-        const { data, error } = await supabase.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token })
-        if (error || !data?.session) return false
-        localStorage.removeItem("espp_admin_session")
-        return true
-      } catch {
-        return false
-      }
-    }
-
     async function checkAccess() {
       if (!mounted) return
 
@@ -71,42 +56,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (session?.user?.email) {
         setAuthChecked(true)
-
-        let adminUser: { role: string } | null = null
-        let adminError: unknown = null
-        for (let i = 0; i < 3; i++) {
-          const result = await supabase
-            .from("admin_users")
-            .select("role")
-            .eq("email", session.user.email)
-            .maybeSingle()
-          if (!mounted) return
-          adminUser = result.data as { role: string } | null
-          adminError = result.error
-          if (adminUser && !adminError) break
-          await new Promise(r => setTimeout(r, 500))
-        }
-
-        if (!mounted) return
-
-        if (!adminUser || adminError) {
-          setAuthorized(false)
-          router.replace("/admin/login")
-          return
-        }
-
         setAuthorized(true)
         return
       }
 
-      const restored = await tryRestore()
-      if (restored) {
-        return void checkAccess()
+      if (retries === 0) {
+        try {
+          const raw = localStorage.getItem("espp_admin_session")
+          if (raw) {
+            const tokens = JSON.parse(raw) as { access_token: string; refresh_token: string }
+            if (tokens?.access_token) {
+              await supabase.auth.setSession({
+                access_token: tokens.access_token,
+                refresh_token: tokens.refresh_token,
+              })
+              localStorage.removeItem("espp_admin_session")
+            }
+          }
+        } catch { /* ignore */ }
       }
 
       retries += 1
-      if (retries < 5) {
-        await new Promise(r => setTimeout(r, 400))
+      if (retries < 6) {
+        await new Promise(r => setTimeout(r, 500))
         return void checkAccess()
       }
 
