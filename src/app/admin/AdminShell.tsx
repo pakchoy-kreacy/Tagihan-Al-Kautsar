@@ -34,16 +34,20 @@ function RoleBanner() {
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  
+  // Early return BEFORE any other hooks
+  if (pathname === "/admin/login") {
+    return <>{children}</>
+  }
+
+  return <AdminShellInner>{children}</AdminShellInner>
+}
+
+function AdminShellInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
-
-  const isLoginPage = pathname === "/admin/login"
-
-  // Early return BEFORE any side effects or context providers
-  if (isLoginPage) {
-    return <>{children}</>
-  }
 
   return <AdminShellContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} pendingCount={pendingCount} setPendingCount={setPendingCount} router={router} pathname={pathname}>{children}</AdminShellContent>
 }
