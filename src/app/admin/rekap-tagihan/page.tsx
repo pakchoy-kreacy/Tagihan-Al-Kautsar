@@ -57,7 +57,7 @@ export default function RekapTagihanPage() {
     setLoading(true)
     try {
       const [{ data: billTypes }, { data: students }, { data: bills }, classes] = await Promise.all([
-        supabase.from("bill_types").select("*").order("name"),
+        supabase.from("bill_types").select("*").order("batas_waktu", { ascending: true, nullsFirst: false }).order("name"),
         supabase.from("students").select("id, name, nisn, classes(name)"),
         supabase.from("bills").select("*").order("year", { ascending: false }).order("month"),
         getAllClasses(),
