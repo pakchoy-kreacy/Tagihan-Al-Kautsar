@@ -122,12 +122,8 @@ function AdminShellContent({ children, sidebarOpen, setSidebarOpen, pendingCount
           </nav>
 
           <div className="admin-sidebar-footer">
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/" className="admin-back-link" style={{ textDecoration: "none", color: "inherit" }}>
-              <House size={14} /> Kembali ke Beranda
-            </a>
             <button type="button" onClick={handleLogout} className="admin-logout-btn">
-              <LogOut size={14} /> Logout
+              <LogOut size={16} /> Logout
             </button>
           </div>
         </aside>
