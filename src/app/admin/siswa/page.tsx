@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { getAllStudentsWithBills, addSiswa, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses, markBillAsPaid } from "@/lib/db"
+import { getAllStudentsWithBills, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses, markBillAsPaid } from "@/lib/db"
 import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
@@ -88,13 +88,22 @@ function SiswaContent() {
     if (!formNisn || !formNama || !formKelas) return showToast("Isi semua field!", "error")
     if (editId) {
       const classData = kelasList.find(k => k.name === formKelas)
+      if (!classData) {
+        showToast("Kelas tidak ditemukan. Coba pilih ulang kelasnya.", "error")
+        return
+      }
       const ok = await updateSiswa(editId, { nisn: formNisn, name: formNama, class_id: classData?.id })
       if (ok) { setShowModal(false); showToast("Siswa diperbarui!"); await fetchData() }
       else showToast("Gagal memperbarui!", "error")
     } else {
-      const ok = await addSiswa(formNisn, formNama, formKelas)
-      if (ok) { setShowModal(false); showToast("Siswa ditambahkan!"); await fetchData() }
-      else showToast("Gagal menambah siswa!", "error")
+      const result = await addSiswaDetailed(formNisn, formNama, formKelas)
+      if (result.success) {
+        setShowModal(false)
+        showToast("Siswa ditambahkan!")
+        await fetchData()
+      } else {
+        showToast(result.error || "Gagal menambah siswa!", "error")
+      }
     }
   }
 
@@ -161,7 +170,6 @@ function SiswaContent() {
 
         let success = 0
         let failed = 0
-        const errors: string[] = []
 
         for (const row of rows) {
           const result = await addSiswaDetailed(row.nisn, row.nama, row.kelas)
@@ -169,7 +177,6 @@ function SiswaContent() {
             success++
           } else {
             failed++
-            errors.push(`${row.nama} (${row.nisn}): ${result.error}`)
           }
         }
 

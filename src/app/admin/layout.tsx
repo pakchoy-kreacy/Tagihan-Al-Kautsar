@@ -46,21 +46,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (isLoginPage) return
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session && pathname !== "/admin/login") {
+    let mounted = true
+
+    async function checkAccess() {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.user?.email) {
+        if (mounted) setAuthChecked(true)
         router.replace("/admin/login")
+        return
       }
-      setAuthChecked(true)
+
+      const { data: adminUser, error } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", session.user.email)
+        .maybeSingle()
+
+      if (error || !adminUser) {
+        await supabase.auth.signOut()
+        if (mounted) setAuthChecked(true)
+        router.replace("/admin/login")
+        return
+      }
+
+      if (mounted) setAuthChecked(true)
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user?.email) {
+        router.replace("/admin/login")
+        return
+      }
+
+      supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", session.user.email)
+        .maybeSingle()
+        .then(async ({ data, error }) => {
+          if (error || !data) {
+            await supabase.auth.signOut()
+            router.replace("/admin/login")
+            return
+          }
+
+          if (mounted) setAuthChecked(true)
+        })
     })
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session && pathname !== "/admin/login") {
-        router.replace("/admin/login")
-      }
-      setAuthChecked(true)
-    })
+    checkAccess()
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isLoginPage])
 
@@ -98,8 +138,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Halaman login tidak perlu sidebar admin
   async function handleLogout() {
-    await supabase.auth.signOut()
-    window.location.href = "/"
+    try {
+      await supabase.auth.signOut()
+    } finally {
+      setSidebarOpen(false)
+      router.replace("/")
+      router.refresh()
+    }
   }
 
   // Halaman login tidak perlu sidebar admin

@@ -268,31 +268,38 @@ export function getStatKelas(siswaList: Siswa[]) {
 // CRUD SISWA
 // ============================================
 
+function normalizeClassName(name: string): string {
+  return name.trim().toUpperCase().replace(/\s+/g, "")
+}
+
 // Ensure a class exists by name, create if missing. Returns class id or null.
 export async function ensureKelas(name: string): Promise<string | null> {
   try {
+    const normalizedName = normalizeClassName(name)
+
     const { data: existing } = await supabase
       .from('classes')
       .select('id')
-      .eq('name', name)
+      .eq('name', normalizedName)
       .maybeSingle()
 
     if (existing) return existing.id
 
     // Auto-create the class
-    const grade = parseInt(name.charAt(0)) || 0
-    const section = name.charAt(1)?.toUpperCase() || ''
+    const gradeMatch = normalizedName.match(/^\d+/)
+    const grade = gradeMatch ? parseInt(gradeMatch[0], 10) || 0 : 0
+    const section = normalizedName.replace(/^\d+/, '').charAt(0) || ''
 
     const { data: yearData } = await supabase
       .from('academic_years')
       .select('id')
       .eq('is_active', true)
-      .single()
+      .maybeSingle()
 
     const { data: newClass, error } = await supabase
       .from('classes')
       .insert({
-        name,
+        name: normalizedName,
         grade,
         section,
         academic_year_id: yearData?.id || null,
@@ -310,12 +317,13 @@ export async function ensureKelas(name: string): Promise<string | null> {
 
 export async function addSiswa(nisn: string, nama: string, kelas: string): Promise<boolean> {
   try {
-    const classId = await ensureKelas(kelas)
+    const normalizedKelas = normalizeClassName(kelas)
+    const classId = await ensureKelas(normalizedKelas)
     if (!classId) return false
 
     const { data: inserted, error } = await supabase
       .from('students')
-      .insert({ nisn, name: nama, class_id: classId })
+      .insert({ nisn: nisn.trim(), name: nama.trim(), class_id: classId })
       .select('id')
       .single()
 
@@ -323,7 +331,7 @@ export async function addSiswa(nisn: string, nama: string, kelas: string): Promi
     if (!inserted) throw new Error("Gagal mendapatkan ID siswa")
 
     // Auto-generate bills for the new student
-    await generateBillsForStudent(inserted.id, kelas)
+    await generateBillsForStudent(inserted.id, normalizedKelas)
 
     return true
   } catch (error) {
@@ -335,14 +343,18 @@ export async function addSiswa(nisn: string, nama: string, kelas: string): Promi
 // Returns detailed result for import: { success, error? }
 export async function addSiswaDetailed(nisn: string, nama: string, kelas: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!nisn || !nama || !kelas) return { success: false, error: "Data tidak lengkap" }
+    const cleanNisn = nisn.trim()
+    const cleanNama = nama.trim()
+    const cleanKelas = normalizeClassName(kelas)
 
-    const classId = await ensureKelas(kelas)
-    if (!classId) return { success: false, error: "Gagal membuat/menemukan kelas" }
+    if (!cleanNisn || !cleanNama || !cleanKelas) return { success: false, error: "Data tidak lengkap" }
+
+    const classId = await ensureKelas(cleanKelas)
+    if (!classId) return { success: false, error: "Kelas belum siap. Cek data kelas atau tahun ajaran aktif." }
 
     const { data: inserted, error } = await supabase
       .from('students')
-      .insert({ nisn, name: nama, class_id: classId })
+      .insert({ nisn: cleanNisn, name: cleanNama, class_id: classId })
       .select('id')
       .single()
 
@@ -354,7 +366,7 @@ export async function addSiswaDetailed(nisn: string, nama: string, kelas: string
     if (!inserted) return { success: false, error: "Gagal mendapatkan ID siswa" }
 
     // Auto-generate bills for the new student
-    await generateBillsForStudent(inserted.id, kelas)
+    await generateBillsForStudent(inserted.id, cleanKelas)
 
     return { success: true }
   } catch (error) {
@@ -441,19 +453,21 @@ export async function updateBillStatus(billId: string, status: string): Promise<
 // ============================================
 export async function addKelas(name: string): Promise<boolean> {
   try {
-    const grade = parseInt(name.charAt(0)) || 0
-    const section = name.charAt(1)?.toUpperCase() || ''
+    const normalizedName = normalizeClassName(name)
+    const gradeMatch = normalizedName.match(/^\d+/)
+    const grade = gradeMatch ? parseInt(gradeMatch[0], 10) || 0 : 0
+    const section = normalizedName.replace(/^\d+/, '').charAt(0) || ''
 
     const { data: yearData } = await supabase
       .from('academic_years')
       .select('id')
       .eq('is_active', true)
-      .single()
+      .maybeSingle()
 
     const { error } = await supabase
       .from('classes')
       .insert({
-        name,
+        name: normalizedName,
         grade,
         section,
         academic_year_id: yearData?.id || null,
@@ -754,6 +768,7 @@ async function generateBillsForBillType(billTypeId: string, month: string, year:
 
 async function generateBillsForStudent(studentId: string, className: string): Promise<{ count: number }> {
   try {
+    const normalizedClassName = normalizeClassName(className)
     const now = new Date()
     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
     const monthLabel = `${monthNames[now.getMonth()]} ${now.getFullYear()}`
@@ -761,7 +776,7 @@ async function generateBillsForStudent(studentId: string, className: string): Pr
 
     const [{ data: billTypes }, { data: yearData }] = await Promise.all([
       supabase.from('bill_types').select('*'),
-      supabase.from('academic_years').select('id').eq('is_active', true).single(),
+      supabase.from('academic_years').select('id').eq('is_active', true).maybeSingle(),
     ])
 
     if (!billTypes || !yearData) return { count: 0 }
@@ -769,7 +784,7 @@ async function generateBillsForStudent(studentId: string, className: string): Pr
     const billsToInsert = []
     for (const bt of billTypes) {
       const applicableClasses = (bt.berlaku_untuk_kelas || []) as string[]
-      if (applicableClasses.length > 0 && !applicableClasses.includes(className)) continue
+      if (applicableClasses.length > 0 && !applicableClasses.includes(normalizedClassName)) continue
 
       billsToInsert.push({
         student_id: studentId,

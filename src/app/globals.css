@@ -318,12 +318,13 @@ textarea:focus-visible {
   border: 1px solid rgba(43, 174, 118, 0.15);
   border-radius: 14px;
   padding: 14px 16px;
+  cursor: default;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .petunjuk-step:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(43, 174, 118, 0.12);
+  transform: none;
+  box-shadow: 0 4px 12px rgba(43, 174, 118, 0.08);
 }
 
 .petunjuk-step-icon {

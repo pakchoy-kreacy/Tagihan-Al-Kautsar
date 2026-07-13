@@ -31,7 +31,7 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
         .eq("email", user.email)
         .maybeSingle()
 
-      setRole((data as { role: AdminRole } | null)?.role || "admin")
+      setRole((data as { role: AdminRole } | null)?.role || null)
       setLoading(false)
     }
 
