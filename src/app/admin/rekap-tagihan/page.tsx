@@ -69,10 +69,12 @@ export default function RekapTagihanPage() {
 
       const studentMap = new Map<string, { name: string; nisn: string; className: string }>()
       for (const s of students || []) {
+        const classesArray = s.classes as { name: string }[] | null
+        const className = classesArray && classesArray.length > 0 ? classesArray[0].name : "N/A"
         studentMap.set(s.id, {
           name: s.name,
           nisn: s.nisn,
-          className: (s.classes as unknown as { name: string })?.name || "N/A",
+          className,
         })
       }
 

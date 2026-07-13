@@ -56,8 +56,9 @@ function SiswaContent() {
       const [siswa, kelas] = await Promise.all([getAllStudentsWithBills(), getAllClasses()])
       setSiswaList(siswa)
       setKelasList(kelas)
-    } catch {
-      // Silent fail - data will remain empty
+    } catch (error) {
+      console.error('Error fetching siswa data:', error)
+      showToast("Gagal memuat data siswa", "error")
     } finally { setLoading(false) }
   }
 
@@ -72,6 +73,7 @@ function SiswaContent() {
       clearInterval(interval)
       document.removeEventListener("visibilitychange", onVisible)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function openAdd() {

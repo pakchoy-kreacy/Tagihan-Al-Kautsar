@@ -52,8 +52,8 @@ export default function AdminPembayaranPage() {
               </tr>
             </thead>
             <tbody>
-              {payments.map((p, i) => (
-                <tr key={i}>
+              {payments.map((p) => (
+                <tr key={p.id}>
                   <td>{p.nama}</td>
                   <td>{p.kelas}</td>
                   <td>{p.bulan}</td>
