@@ -11,16 +11,18 @@ export default function AdminLoginPage() {
   const redirecting = useRef(false)
 
   useEffect(() => {
-    // Only redirect on fresh SIGNED_IN event, not existing sessions
+    // Check existing session on mount - redirect if already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && !redirecting.current) {
+        redirecting.current = true
+        window.location.href = "/admin"
+      }
+    })
+
+    // Listen for fresh sign-in events only
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session && !redirecting.current) {
         redirecting.current = true
-        try {
-          localStorage.setItem("espp_admin_session", JSON.stringify({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          }))
-        } catch { /* ignore */ }
         window.location.href = "/admin"
       }
     })

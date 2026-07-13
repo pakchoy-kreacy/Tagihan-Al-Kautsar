@@ -29,46 +29,32 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // 2) Fallback: restore session from tokens + query admin_users
-      for (let i = 0; i < 10; i++) {
-        const raw = localStorage.getItem("espp_supabase_auth") || localStorage.getItem("espp_admin_session")
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw)
-            if (parsed.access_token) {
-              await supabase.auth.setSession({
-                access_token: parsed.access_token,
-                refresh_token: parsed.refresh_token || "",
-              })
-            }
-          } catch { /* ignore */ }
-        }
-
-        if (!mounted.current) return
-
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user?.email) {
-          const { data } = await supabase
-            .from("admin_users")
-            .select("role")
-            .eq("email", session.user.email)
-            .maybeSingle()
-          const r = (data as { role: AdminRole } | null)?.role
-          if (r) {
-            localStorage.setItem("espp_role", r)
-            setRole(r)
-            setLoading(false)
-            return
-          }
-        }
-
-        await new Promise(r => setTimeout(r, 300))
+      // 2) Get current session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.email) {
+        // No session → redirect to login
+        setLoading(false)
+        window.location.href = "/admin/login"
+        return
       }
 
-      // No session after retries → redirect to login
-      if (!mounted.current) return
+      // 3) Query role from admin_users (single attempt, no retry)
+      const { data } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", session.user.email)
+        .maybeSingle()
+      
+      const r = (data as { role: AdminRole } | null)?.role
+      if (r) {
+        localStorage.setItem("espp_role", r)
+        setRole(r)
+        setLoading(false)
+        return
+      }
+
+      // 4) Role not found → redirect to login
       setLoading(false)
-      setRole(null)
       window.location.href = "/admin/login"
     }
 
