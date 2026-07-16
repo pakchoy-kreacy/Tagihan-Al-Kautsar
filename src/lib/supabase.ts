@@ -19,14 +19,6 @@ export const supabase = supabaseUrl && supabaseAnonKey
         detectSessionInUrl: true,
         storageKey: 'espp_supabase_auth',
       },
-      global: {
-        fetch: (url, options) => {
-          return fetch(url, {
-            ...options,
-            keepalive: true,
-          })
-        },
-      },
       realtime: {
         params: {
           eventsPerSecond: 2,

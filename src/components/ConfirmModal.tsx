@@ -7,6 +7,7 @@ interface ConfirmModalProps {
   confirmLabel?: string
   cancelLabel?: string
   danger?: boolean
+  pending?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -18,6 +19,7 @@ export function ConfirmModal({
   confirmLabel = "Konfirmasi",
   cancelLabel = "Batal",
   danger = false,
+  pending = false,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -25,20 +27,21 @@ export function ConfirmModal({
 
   return (
     <>
-      <div className="admin-overlay" onClick={onCancel} />
+      <div className="admin-overlay" onClick={() => { if (!pending) onCancel() }} />
       <div className="admin-modal" style={{ maxWidth: 400 }}>
         <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: "#212121" }}>{title}</h3>
         <p style={{ fontSize: 14, color: "#5f6f63", marginBottom: 20, lineHeight: 1.6 }}>{message}</p>
         <div className="admin-modal-actions">
-          <button type="button" className="admin-btn admin-btn-outline" onClick={onCancel}>
+          <button type="button" className="admin-btn admin-btn-outline" onClick={onCancel} disabled={pending}>
             {cancelLabel}
           </button>
           <button
             type="button"
             className={`admin-btn ${danger ? "admin-btn-danger" : ""}`}
             onClick={onConfirm}
+            disabled={pending}
           >
-            {confirmLabel}
+            {pending ? "Memuat..." : confirmLabel}
           </button>
         </div>
       </div>

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
 import { Footer } from "@/components/Footer"
+import { useNavigationState } from "@/hooks/useNavigationState"
 
 interface DetailClientProps {
   siswa: Siswa | null
@@ -13,7 +14,7 @@ interface DetailClientProps {
 }
 
 export function DetailClient({ siswa, id }: DetailClientProps) {
-  const [navigating, setNavigating] = useState(false)
+  const { navigatingTo, startNavigation } = useNavigationState()
   const [filterStatus, setFilterStatus] = useState<'all' | 'lunas' | 'belum' | 'menunggu'>('all')
   
   interface PaymentDetail {
@@ -33,8 +34,13 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
   
   const [selectedPayment, setSelectedPayment] = useState<PaymentDetail | null>(null)
   const [loadingPayment, setLoadingPayment] = useState(false)
+  const [openBillId, setOpenBillId] = useState<string | null>(null)
+  const paymentRequestRef = useRef(0)
   
   async function fetchPaymentDetail(billId: string) {
+    const requestId = ++paymentRequestRef.current
+    setOpenBillId(billId)
+    setSelectedPayment(null)
     setLoadingPayment(true)
     try {
       const { data, error } = await supabase
@@ -71,6 +77,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
         const billType = bill.bill_types
         const studentClass = student?.classes
         
+        if (paymentRequestRef.current !== requestId) return
         setSelectedPayment({
           payment_id: data.id,
           bill_id: data.bill_id,
@@ -89,13 +96,21 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     } catch (error) {
       console.error('Error fetching payment detail:', error)
     } finally {
-      setLoadingPayment(false)
+      if (paymentRequestRef.current === requestId) setLoadingPayment(false)
     }
+  }
+
+  function closePaymentDetail() {
+    paymentRequestRef.current += 1
+    setOpenBillId(null)
+    setSelectedPayment(null)
+    setLoadingPayment(false)
   }
   
   async function handleDownloadBukti(url: string, filename: string) {
     try {
       const response = await fetch(url)
+      if (!response.ok) throw new Error(`Download gagal (${response.status})`)
       const blob = await response.blob()
       const blobUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -104,13 +119,14 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      window.URL.revokeObjectURL(blobUrl)
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0)
     } catch (error) {
       console.error('Download error:', error)
     }
   }
   
   const activeBills = useMemo(() => siswa?.riwayat.filter((r) => r.status !== "lunas") || [], [siswa])
+  const payableBills = useMemo(() => activeBills.filter((bill) => bill.status === "belum"), [activeBills])
   const allHistory = useMemo(() => siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu") || [], [siswa])
   
   const filteredHistory = useMemo(() => {
@@ -211,10 +227,19 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
               <span className="value amount" style={{ fontSize: 20 }}>{formatRupiah(totalUnpaid)}</span>
             </div>
 
-            <a href={`/siswa/${id}/bayar`} className="bill-btn" style={{ textDecoration: "none", marginTop: 16 }} onClick={() => setNavigating(true)}>
-              <Wallet size={18} />
-              {navigating ? "Memuat..." : "Bayar Sekarang"}
-            </a>
+            {payableBills.length > 0 && (
+              <a
+                href={`/siswa/${id}/bayar`}
+                className="bill-btn"
+                style={{ textDecoration: "none", marginTop: 16 }}
+                onClick={(event) => startNavigation("bayar", event)}
+                aria-busy={navigatingTo === "bayar"}
+                aria-disabled={navigatingTo !== null}
+              >
+                <Wallet size={18} />
+                {navigatingTo === "bayar" ? "Memuat..." : "Bayar Sekarang"}
+              </a>
+            )}
           </div>
         ) : (
           <div className="bill-card">
@@ -288,14 +313,14 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
       </main>
       
       {/* PAYMENT DETAIL MODAL */}
-      {selectedPayment && (
+      {openBillId && (
         <>
-          <div className="modal-overlay" onClick={() => setSelectedPayment(null)}>
+          <div className="modal-overlay" onClick={closePaymentDetail}>
             <div className="modal-content" style={{ maxWidth: 600, width: '100%' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-public">
               <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Detail Pembayaran</h3>
               <button 
-                onClick={() => setSelectedPayment(null)}
+                onClick={closePaymentDetail}
                 style={{ 
                   background: 'none', 
                   border: 'none', 
@@ -309,7 +334,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
               </button>
             </div>
 
-            {loadingPayment ? (
+            {loadingPayment || !selectedPayment ? (
               <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--neutral)' }}>
                 Memuat detail pembayaran...
               </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, Suspense, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { getAllStudentsWithBills, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses, markBillAsPaid } from "@/lib/db"
 import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
@@ -9,6 +9,7 @@ import { ConfirmModal } from "@/components/ConfirmModal"
 import { supabase } from "@/lib/supabase"
 import { useAdminRole } from "@/context/AdminRoleContext"
 import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox, FileSpreadsheet, Eye } from "lucide-react"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
 function SiswaContent() {
@@ -48,33 +49,20 @@ function SiswaContent() {
   
   const [selectedPayment, setSelectedPayment] = useState<PaymentDetail | null>(null)
   const [loadingPayment, setLoadingPayment] = useState(false)
+  const paymentRequestRef = useRef(0)
   const [confirmStatusChange, setConfirmStatusChange] = useState<{ billId: string; billName: string } | null>(null)
 
-  async function fetchData() {
-    setLoading(true)
+  const refreshData = usePageRefresh(async (isCurrent) => {
     try {
       const [siswa, kelas] = await Promise.all([getAllStudentsWithBills(), getAllClasses()])
+      if (!isCurrent()) return
       setSiswaList(siswa)
       setKelasList(kelas)
     } catch (error) {
       console.error('Error fetching siswa data:', error)
       showToast("Gagal memuat data siswa", "error")
-    } finally { setLoading(false) }
-  }
-
-  useEffect(() => {
-    const timer = setTimeout(() => fetchData(), 0)
-    const interval = setInterval(fetchData, 30000)
-    const onVisible = () => { if (!document.hidden) fetchData() }
-    document.addEventListener("visibilitychange", onVisible)
-
-    return () => {
-      clearTimeout(timer)
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    } finally { if (isCurrent()) setLoading(false) }
+  }, { refreshKey: "admin-students" })
 
   function openAdd() {
     setEditId(null); setFormNisn(""); setFormNama(""); setFormKelas("")
@@ -95,14 +83,14 @@ function SiswaContent() {
         return
       }
       const ok = await updateSiswa(editId, { nisn: formNisn, name: formNama, class_id: classData?.id })
-      if (ok) { setShowModal(false); showToast("Siswa diperbarui!"); await fetchData() }
+      if (ok) { setShowModal(false); showToast("Siswa diperbarui!"); await refreshData() }
       else showToast("Gagal memperbarui!", "error")
     } else {
       const result = await addSiswaDetailed(formNisn, formNama, formKelas)
       if (result.success) {
         setShowModal(false)
         showToast("Siswa ditambahkan!")
-        await fetchData()
+        await refreshData()
       } else {
         showToast(result.error || "Gagal menambah siswa!", "error")
       }
@@ -112,7 +100,7 @@ function SiswaContent() {
   async function handleDelete() {
     if (!deleteTarget) return
     const ok = await deleteSiswa(deleteTarget.id)
-    if (ok) { showToast("Siswa dihapus!"); await fetchData() }
+    if (ok) { showToast("Siswa dihapus!"); await refreshData() }
     else showToast("Gagal menghapus!", "error")
     setDeleteTarget(null)
   }
@@ -192,7 +180,7 @@ function SiswaContent() {
 
         // Errors are already shown to user via toast, no need to log
 
-        await fetchData()
+        await refreshData()
       } catch {
         showToast("Gagal membaca file! Pastikan format benar.", "error")
       } finally {
@@ -222,6 +210,8 @@ function SiswaContent() {
   }
   
   async function fetchPaymentDetail(billId: string) {
+    const requestId = ++paymentRequestRef.current
+    setSelectedPayment(null)
     setLoadingPayment(true)
     try {
       const { data, error } = await supabase
@@ -256,6 +246,7 @@ function SiswaContent() {
         const billType = bill.bill_types
         const studentClass = student?.classes
         
+        if (paymentRequestRef.current !== requestId) return
         setSelectedPayment({
           payment_id: data.id,
           bill_id: data.bill_id,
@@ -274,7 +265,7 @@ function SiswaContent() {
     } catch {
       showToast('Gagal memuat detail pembayaran', 'error')
     } finally {
-      setLoadingPayment(false)
+      if (paymentRequestRef.current === requestId) setLoadingPayment(false)
     }
   }
   
@@ -520,7 +511,7 @@ function SiswaContent() {
                             showToast(`${okCount} dari ${unpaid.length} tagihan berhasil ditandai lunas`, "error")
                           }
                           setDetailSiswa(null)
-                          await fetchData()
+                          await refreshData()
                         }}
                       >
                         Tandai Semua Lunas
@@ -566,7 +557,7 @@ function SiswaContent() {
                             if (ok) {
                               showToast("Tagihan ditandai lunas!")
                               setDetailSiswa(null)
-                              await fetchData()
+                              await refreshData()
                             } else {
                               showToast("Gagal menandai lunas!", "error")
                             }
@@ -748,7 +739,7 @@ function SiswaContent() {
           if (!error) {
             showToast("Status diubah ke Belum Bayar!")
             setDetailSiswa(null)
-            await fetchData()
+            await refreshData()
           } else {
             showToast("Gagal mengubah status!", "error")
           }

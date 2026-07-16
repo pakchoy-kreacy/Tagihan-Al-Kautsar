@@ -8,6 +8,7 @@ import { formatRupiah } from "@/lib/db"
 import type { AdminStats } from "@/lib/admin-db"
 import type { RekapSummaryItem } from "@/lib/admin-db"
 import { Users, Building2, CircleCheck, Hourglass, Clock, Heart, Bell, ClipboardList, Settings, Receipt, FileSpreadsheet } from "lucide-react"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -15,48 +16,36 @@ export default function AdminDashboardPage() {
   const [rekap, setRekap] = useState<RekapSummaryItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let mounted = true
-
-    async function fetchData() {
+  const refreshData = usePageRefresh(async (isCurrent) => {
       try {
         const [statsData, payments, rekapData] = await Promise.all([
           getAdminStats(),
           getPendingPayments(5),
           getRekapSummary(),
         ])
-        if (!mounted) return
+        if (!isCurrent()) return
         setStats(statsData)
         setPendingPayments(payments)
         setRekap(rekapData)
       } catch {
         // Silent fail - data will remain null/empty
       } finally {
-        if (mounted) setLoading(false)
+        if (isCurrent()) setLoading(false)
       }
-    }
+  }, { refreshKey: "admin-dashboard" })
 
-    fetchData()
-    const interval = setInterval(fetchData, 30000)
-
-    // Re-fetch on tab visibility change
-    const onVisible = () => { if (!document.hidden) fetchData() }
-    document.addEventListener("visibilitychange", onVisible)
-
+  useEffect(() => {
     // Realtime: update stats & pending list when payments table changes
     const channel = supabase
       .channel("dashboard-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { fetchData() })
-      .on("postgres_changes", { event: "*", schema: "public", table: "bills" }, () => { fetchData() })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { void refreshData() })
+      .on("postgres_changes", { event: "*", schema: "public", table: "bills" }, () => { void refreshData() })
       .subscribe()
 
     return () => {
-      mounted = false
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [refreshData])
 
   if (loading) {
     return (

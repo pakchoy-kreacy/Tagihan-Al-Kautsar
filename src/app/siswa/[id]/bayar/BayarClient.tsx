@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useMemo } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import { formatRupiah, type Siswa } from "@/lib/db"
 import { submitPayment, uploadBukti } from "@/lib/payments-db"
@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast"
 import { ArrowLeft, Home, Banknote, QrCode, Copy, Upload, X, Check } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
 import { Footer } from "@/components/Footer"
+import { useFilePreview } from "@/hooks/useFilePreview"
 
 interface BayarClientProps {
   siswa: Siswa
@@ -25,7 +26,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
   const [method, setMethod] = useState<"transfer" | "qris">("transfer")
 
-  const unpaidBills = siswa.riwayat.filter((r) => r.status !== "lunas")
+  const unpaidBills = siswa.riwayat.filter((r) => r.status === "belum")
   const firstUnpaid = unpaidBills[0]
   const [selectedBill, setSelectedBill] = useState<string>(firstUnpaid?.id || "")
 
@@ -37,11 +38,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  const previewUrl = useMemo(() => {
-    if (!file) return null
-    return URL.createObjectURL(file)
-  }, [file])
+  const submittingRef = useRef(false)
+  const previewUrl = useFilePreview(file)
 
   function validateFile(f: File): string | null {
     const maxSize = 5 * 1024 * 1024
@@ -52,20 +50,26 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
   }
 
   async function handleSubmit() {
+    if (submittingRef.current) return
     setError("")
     if (!file) return setError("Pilih file bukti transfer!")
     const fileErr = validateFile(file)
     if (fileErr) return setError(fileErr)
     if (!form.nama_pengirim) return setError("Isi nama pengirim!")
     if (!form.jumlah_transfer) return setError("Isi jumlah transfer!")
-    if (!selectedBill) return setError("Pilih tagihan yang ingin dibayar!")
+    const selectedBillData = unpaidBills.find((bill) => bill.id === selectedBill) || unpaidBills[0]
+    if (!selectedBillData) return setError("Pilih tagihan yang ingin dibayar!")
+    if (!unpaidBills.some((bill) => bill.id === selectedBillData.id)) {
+      return setError("Tagihan sudah berubah. Pilih tagihan aktif kembali.")
+    }
 
+    submittingRef.current = true
     setSubmitting(true)
     try {
       const bukti_url = await uploadBukti(file, id)
       const result = await submitPayment({
         student_id: id,
-        bill_id: selectedBill,
+        bill_id: selectedBillData.id,
         nama_pengirim: form.nama_pengirim,
         jumlah_transfer: parseInt(form.jumlah_transfer),
         catatan: form.catatan,
@@ -76,6 +80,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal upload. Coba lagi.")
     } finally {
+      submittingRef.current = false
       setSubmitting(false)
     }
   }
@@ -92,6 +97,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
   async function downloadQris(url: string) {
     try {
       const res = await fetch(url)
+      if (!res.ok) throw new Error(`Download gagal (${res.status})`)
       const blob = await res.blob()
       const blobUrl = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
@@ -100,7 +106,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
       document.body.appendChild(a)
       a.click()
       a.remove()
-      window.URL.revokeObjectURL(blobUrl)
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0)
       showToast("QRIS berhasil di-download!", "success")
     } catch {
       showToast("Gagal download QRIS", "error")
@@ -134,7 +140,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     )
   }
 
-  const selectedBillData = unpaidBills.find((b) => b.id === selectedBill)
+  const selectedBillData = unpaidBills.find((b) => b.id === selectedBill) || unpaidBills[0]
+  const effectiveSelectedBill = selectedBillData?.id || ""
   const billName = selectedBillData
     ? (selectedBillData.bill_type_name || selectedBillData.bulan)
     : siswa.tagihan || "-"
@@ -163,7 +170,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
             <div className="card-title">Pilih Tagihan</div>
             <select
               className="form-input"
-              value={selectedBill}
+              value={effectiveSelectedBill}
               onChange={(e) => {
                 setSelectedBill(e.target.value)
                 const bill = unpaidBills.find((b) => b.id === e.target.value)

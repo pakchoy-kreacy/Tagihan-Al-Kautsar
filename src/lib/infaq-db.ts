@@ -143,16 +143,17 @@ export async function getBankInfoByType(type: 'payment' | 'infaq'): Promise<Bank
       if (raw) {
         const cached = JSON.parse(raw) as BankInfoSettings
         // Return cache, refresh di background
-        refreshBankInfo(type, cacheKey)
+        refreshBankInfo(type)
         return cached
       }
     } catch { /* ignore */ }
   }
 
-  return refreshBankInfo(type, cacheKey)
+  return refreshBankInfo(type)
 }
 
-async function refreshBankInfo(type: 'payment' | 'infaq', cacheKey: string): Promise<BankInfoSettings | null> {
+export async function refreshBankInfo(type: 'payment' | 'infaq'): Promise<BankInfoSettings | null> {
+  const cacheKey = `${BANK_CACHE_KEY_PREFIX}${type}`
   try {
     const { data, error } = await supabase
       .from('bank_info')
@@ -180,6 +181,10 @@ export async function updateBankInfo(id: string, data: Partial<BankInfoSettings>
       .update(data)
       .eq('id', id)
     if (error) throw error
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`${BANK_CACHE_KEY_PREFIX}payment`)
+      localStorage.removeItem(`${BANK_CACHE_KEY_PREFIX}infaq`)
+    }
     return true
   } catch (error) {
     console.error('Error updating bank info:', error)
@@ -209,7 +214,7 @@ export async function getSchoolSettings(): Promise<SchoolSettings | null> {
   return refreshSchoolSettings()
 }
 
-async function refreshSchoolSettings(): Promise<SchoolSettings | null> {
+export async function refreshSchoolSettings(): Promise<SchoolSettings | null> {
   try {
     const { data, error } = await supabase
       .from('school_settings')

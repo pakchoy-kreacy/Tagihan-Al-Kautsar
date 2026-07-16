@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useMemo } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import { submitDonasi, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
@@ -9,6 +9,7 @@ import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { Check, Download, Copy, X, Upload } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
 import { Footer } from "@/components/Footer"
+import { useFilePreview } from "@/hooks/useFilePreview"
 
 interface InfaqClientProps {
   bank: BankInfoSettings | null
@@ -25,11 +26,8 @@ export function InfaqClient({ bank }: InfaqClientProps) {
   const [pesan, setPesan] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  const previewUrl = useMemo(() => {
-    if (!file) return null
-    return URL.createObjectURL(file)
-  }, [file])
+  const submittingRef = useRef(false)
+  const previewUrl = useFilePreview(file)
 
   function validateFile(f: File): string | null {
     const maxSize = 5 * 1024 * 1024
@@ -40,6 +38,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
   }
 
   async function handleSubmit() {
+    if (submittingRef.current) return
     setError("")
     if (!nama) return setError("Isi nama donatur!")
     if (!nominal) return setError("Isi nominal infaq!")
@@ -47,6 +46,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
     const fileErr = validateFile(file)
     if (fileErr) return setError(fileErr)
 
+    submittingRef.current = true
     setSubmitting(true)
     try {
       const bukti_url = await uploadBuktiInfaq(file)
@@ -56,6 +56,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal upload!")
     } finally {
+      submittingRef.current = false
       setSubmitting(false)
     }
   }
@@ -72,6 +73,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
   async function downloadQris(url: string) {
     try {
       const res = await fetch(url)
+      if (!res.ok) throw new Error(`Download gagal (${res.status})`)
       const blob = await res.blob()
       const blobUrl = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
@@ -80,7 +82,7 @@ export function InfaqClient({ bank }: InfaqClientProps) {
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      window.URL.revokeObjectURL(blobUrl)
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0)
       showToast("QRIS berhasil diunduh!", "success")
     } catch {
       showToast("Gagal mengunduh QRIS", "error")

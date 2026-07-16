@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useState, useRef, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useState, useRef, type ReactNode } from "react"
 
 type ToastType = "success" | "error" | "info"
 
@@ -17,13 +17,34 @@ const ToastContext = createContext<{
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const idCounter = useRef(0)
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>())
+
+  const clearToasts = useCallback(() => {
+    for (const timer of timers.current) clearTimeout(timer)
+    timers.current.clear()
+    setToasts([])
+  }, [])
+
+  useEffect(() => {
+    const activeTimers = timers.current
+    window.addEventListener("pagehide", clearToasts)
+    window.addEventListener("pageshow", clearToasts)
+    return () => {
+      window.removeEventListener("pagehide", clearToasts)
+      window.removeEventListener("pageshow", clearToasts)
+      for (const timer of activeTimers) clearTimeout(timer)
+      activeTimers.clear()
+    }
+  }, [clearToasts])
 
   const showToast = useCallback((message: string, type: ToastType = "success") => {
     const id = ++idCounter.current
     setToasts((prev) => [...prev, { id, message, type }])
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
+      timers.current.delete(timer)
     }, 3000)
+    timers.current.add(timer)
   }, [])
 
   return (

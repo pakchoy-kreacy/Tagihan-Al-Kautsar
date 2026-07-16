@@ -46,12 +46,12 @@ interface Bill {
 const CLASSES_CACHE_KEY = "espp_classes"
 let classesCache: KelasData[] | null = null
 
-export async function getAllClasses(): Promise<KelasData[]> {
+export async function getAllClasses(forceRefresh = false): Promise<KelasData[]> {
   // Return cache langsung kalau ada (instant)
-  if (classesCache) return classesCache
+  if (!forceRefresh && classesCache) return classesCache
 
   // Coba localStorage cache
-  if (typeof window !== "undefined") {
+  if (!forceRefresh && typeof window !== "undefined") {
     try {
       const raw = localStorage.getItem(CLASSES_CACHE_KEY)
       if (raw) {
@@ -474,6 +474,8 @@ export async function addKelas(name: string): Promise<boolean> {
       })
 
     if (error) throw error
+    classesCache = null
+    if (typeof window !== "undefined") localStorage.removeItem(CLASSES_CACHE_KEY)
     return true
   } catch (error) {
     console.error('Error adding class:', error)
@@ -489,6 +491,8 @@ export async function deleteKelas(id: string): Promise<boolean> {
       .eq('id', id)
 
     if (error) throw error
+    classesCache = null
+    if (typeof window !== "undefined") localStorage.removeItem(CLASSES_CACHE_KEY)
     return true
   } catch (error) {
     console.error('Error deleting class:', error)

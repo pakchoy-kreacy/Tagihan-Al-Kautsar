@@ -32,6 +32,7 @@ export default function AdminError({
   useEffect(() => {
     console.error(error)
     const message = error?.message || "(tidak ada detail error)"
+    let redirectTimer: ReturnType<typeof setTimeout> | null = null
 
     if (message.includes('Failed to load chunk') || message.includes('Loading chunk')) {
       const KEY = '__espp_chunk_reload_count'
@@ -39,10 +40,14 @@ export default function AdminError({
       if (count < 3) {
         sessionStorage.setItem(KEY, String(count + 1))
         const sep = window.location.search ? '&' : '?'
-        setTimeout(() => {
+        redirectTimer = setTimeout(() => {
           window.location.href = '/admin' + sep + '_cb=' + Date.now()
         }, 600)
       }
+    }
+
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer)
     }
   }, [error])
 

@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { getAllBillTypes, getAllClasses, updateBillType, deleteBillType, formatRupiah, type BillType, type KelasData } from "@/lib/db"
 import { createBillTypeWithGeneration } from "@/lib/db-enhanced"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { useAdminRole } from "@/context/AdminRoleContext"
 import { Plus, Pencil, Trash2, X, RefreshCw, Package, Inbox, CalendarDays } from "lucide-react"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 export default function AdminTagihanPage() {
   const { showToast } = useToast()
@@ -26,7 +27,6 @@ export default function AdminTagihanPage() {
   const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual'>('manual')
   const [formYear, setFormYear] = useState(2024)
   const [manualMonth, setManualMonth] = useState('Januari')
-  const [mounted, setMounted] = useState(false)
   
   const MONTHS = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -34,37 +34,19 @@ export default function AdminTagihanPage() {
   ]
   const YEARS = Array.from({ length: 14 }, (_, i) => 2024 - 2 + i)
 
-  useEffect(() => {
-    setMounted(true)
-    setFormYear(new Date().getFullYear())
-  }, [])
-
-  async function fetchData() {
-    setLoading(true)
+  const refreshData = usePageRefresh(async (isCurrent) => {
     const [data, kelas] = await Promise.all([getAllBillTypes(), getAllClasses()])
+    if (!isCurrent()) return
     setBillTypes(data)
     setKelasList(kelas)
     setLoading(false)
-  }
-
-  useEffect(() => {
-    const timer = setTimeout(() => fetchData(), 0)
-    const interval = setInterval(fetchData, 30000)
-    const onVisible = () => { if (!document.hidden) fetchData() }
-    document.addEventListener("visibilitychange", onVisible)
-
-    return () => {
-      clearTimeout(timer)
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
-    }
-  }, [])
+  }, { refreshKey: "admin-bill-types" })
 
   function openAdd() {
     setEditId(null); setFormName(""); setFormDesc(""); setFormAmount("250000")
     setFormBatasWaktu(""); setFormBerlakuKelas([])
     setAssignmentMode('manual'); setManualMonth('Januari')
-    if (mounted) setFormYear(new Date().getFullYear())
+    setFormYear(new Date().getFullYear())
     setShowModal(true)
   }
 
@@ -98,7 +80,7 @@ export default function AdminTagihanPage() {
       if (formBerlakuKelas.length > 0) payload.berlaku_untuk_kelas = formBerlakuKelas
       
       const ok = await updateBillType(editId, payload)
-      if (ok) { setShowModal(false); showToast("Tagihan diperbarui!"); await fetchData() }
+      if (ok) { setShowModal(false); showToast("Tagihan diperbarui!"); await refreshData() }
       else showToast("Gagal memperbarui!", "error")
     } else if (assignmentMode === 'auto') {
       if (!formYear) return showToast("Pilih tahun!", "error")
@@ -127,7 +109,7 @@ export default function AdminTagihanPage() {
       } else {
         showToast("Gagal membuat tagihan!", "error")
       }
-      await fetchData()
+      await refreshData()
     } else {
       if (!manualMonth) return showToast("Pilih bulan!", "error")
       if (!formYear) return showToast("Pilih tahun!", "error")
@@ -152,7 +134,7 @@ export default function AdminTagihanPage() {
             ? `Tagihan ditambahkan! ${result.billsGenerated} tagihan siswa dibuat.`
             : (result.message || "Tagihan ditambahkan!")
         )
-        await fetchData()
+        await refreshData()
       } else {
         showToast(result.error || "Gagal menambah tagihan!", "error")
       }
@@ -162,7 +144,7 @@ export default function AdminTagihanPage() {
   async function handleDelete() {
     if (!deleteTarget) return
     const ok = await deleteBillType(deleteTarget.id)
-    if (ok) { showToast("Tagihan dihapus!"); await fetchData() }
+    if (ok) { showToast("Tagihan dihapus!"); await refreshData() }
     else showToast("Gagal menghapus!", "error")
     setDeleteTarget(null)
   }

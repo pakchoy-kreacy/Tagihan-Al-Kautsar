@@ -17,14 +17,43 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let active = true
+
+    async function checkSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!active) return
+        if (session?.user) {
+          setRole("admin")
+        } else {
+          window.location.href = "/admin/login"
+        }
+      } catch {
+        if (active) window.location.href = "/admin/login"
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void checkSession()
+    const onPageShow = () => void checkSession()
+    window.addEventListener("pageshow", onPageShow)
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return
       if (session?.user) {
         setRole("admin")
+        setLoading(false)
       } else {
         window.location.href = "/admin/login"
       }
-      setLoading(false)
     })
+
+    return () => {
+      active = false
+      window.removeEventListener("pageshow", onPageShow)
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Don't render children until auth check is complete

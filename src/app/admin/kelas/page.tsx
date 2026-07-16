@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useRef } from "react"
 
 import { getKelasWithStats } from "@/lib/admin-db"
 import { addKelas, deleteKelas } from "@/lib/db"
@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { useAdminRole } from "@/context/AdminRoleContext"
 import { Building2, Users, Plus, Inbox, Trash2 } from "lucide-react"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 export default function AdminKelasPage() {
   const { showToast } = useToast()
@@ -17,40 +18,42 @@ export default function AdminKelasPage() {
   const [loading, setLoading] = useState(true)
   const [formName, setFormName] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<KelasWithStats | null>(null)
+  const [actionLoading, setActionLoading] = useState(false)
+  const actionLock = useRef(false)
 
-  async function fetchKelas() {
-    setLoading(true)
+  const refreshKelas = usePageRefresh(async (isCurrent) => {
     const data = await getKelasWithStats()
-    setKelasList(data); setLoading(false)
-  }
-
-  useEffect(() => {
-    const timer = setTimeout(() => fetchKelas(), 0)
-    const interval = setInterval(fetchKelas, 30000)
-
-    const onVisible = () => { if (!document.hidden) fetchKelas() }
-    document.addEventListener("visibilitychange", onVisible)
-
-    return () => {
-      clearTimeout(timer)
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
-    }
-  }, [])
+    if (isCurrent()) { setKelasList(data); setLoading(false) }
+  }, { refreshKey: "admin-classes" })
 
   async function handleAdd() {
+    if (actionLock.current) return
     if (!formName.trim()) return showToast("Isi nama kelas!", "error")
-    const ok = await addKelas(formName.trim().toUpperCase())
-    if (ok) { setFormName(""); showToast("Kelas ditambahkan!"); await fetchKelas() }
-    else showToast("Gagal! Kelas mungkin sudah ada.", "error")
+    actionLock.current = true
+    setActionLoading(true)
+    try {
+      const ok = await addKelas(formName.trim().toUpperCase())
+      if (ok) { setFormName(""); showToast("Kelas ditambahkan!"); await refreshKelas() }
+      else showToast("Gagal! Kelas mungkin sudah ada.", "error")
+    } finally {
+      actionLock.current = false
+      setActionLoading(false)
+    }
   }
 
   async function handleDelete() {
-    if (!deleteTarget) return
-    const ok = await deleteKelas(deleteTarget.id)
-    if (ok) { showToast("Kelas dihapus!"); await fetchKelas() }
-    else showToast("Gagal menghapus!", "error")
-    setDeleteTarget(null)
+    if (!deleteTarget || actionLock.current) return
+    actionLock.current = true
+    setActionLoading(true)
+    try {
+      const ok = await deleteKelas(deleteTarget.id)
+      if (ok) { showToast("Kelas dihapus!"); await refreshKelas() }
+      else showToast("Gagal menghapus!", "error")
+      setDeleteTarget(null)
+    } finally {
+      actionLock.current = false
+      setActionLoading(false)
+    }
   }
 
   const deleteMessage = deleteTarget
@@ -75,8 +78,8 @@ export default function AdminKelasPage() {
               onChange={e => setFormName(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === "Enter" && handleAdd()}
             />
-            <button className="admin-btn card-add-btn" onClick={handleAdd}>
-              <Plus size={15} /> Tambah
+            <button className="admin-btn card-add-btn" onClick={handleAdd} disabled={actionLoading}>
+              <Plus size={15} /> {actionLoading ? "Memuat..." : "Tambah"}
             </button>
           </div>
         </div>
@@ -136,6 +139,7 @@ export default function AdminKelasPage() {
         message={deleteMessage}
         confirmLabel="Hapus"
         danger
+        pending={actionLoading}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

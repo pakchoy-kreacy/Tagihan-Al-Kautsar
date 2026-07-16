@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { updateSchoolSettings, updateBankInfo, uploadBuktiInfaq } from "@/lib/infaq-db"
 import type { SchoolSettings, BankInfoSettings } from "@/lib/infaq-db"

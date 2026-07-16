@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { useAdminRole } from "@/context/AdminRoleContext"
 import { Check, X } from "lucide-react"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 export default function AdminVerifikasiPage() {
   const { showToast } = useToast()
@@ -21,45 +22,27 @@ export default function AdminVerifikasiPage() {
   const [rejectModal, setRejectModal] = useState<{ id: string; ket: string } | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  async function fetchPayments() {
-    setLoading(true)
+  const refreshPayments = usePageRefresh(async (isCurrent) => {
     const data = await getPayments(filter === "all" ? undefined : filter)
-    setPayments(data)
-    setLoading(false)
-  }
+    if (isCurrent()) { setPayments(data); setLoading(false) }
+  }, { intervalMs: 15000, refreshKey: `admin-verification:${filter}` })
 
   useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      const data = await getPayments(filter === "all" ? undefined : filter)
-      if (mounted) { setPayments(data); setLoading(false) }
-    }
-
-    load()
-    const interval = setInterval(load, 15000)
-
-    const onVisible = () => { if (!document.hidden) load() }
-    document.addEventListener("visibilitychange", onVisible)
-
     const channel = supabase
       .channel("verifikasi-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { load() })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => { void refreshPayments() })
       .subscribe()
 
     return () => {
-      mounted = false
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
       supabase.removeChannel(channel)
     }
-  }, [filter])
+  }, [filter, refreshPayments])
 
   async function handleApprove() {
     if (!approveTarget) return
     setActionLoading(approveTarget.id)
     const ok = await approvePayment(approveTarget.id, approveTarget.bill_id || "")
-    if (ok) { showToast("Pembayaran disetujui!"); await fetchPayments() }
+    if (ok) { showToast("Pembayaran disetujui!"); await refreshPayments() }
     else showToast("Gagal approve!", "error")
     setActionLoading(null)
     setApproveTarget(null)
@@ -70,7 +53,7 @@ export default function AdminVerifikasiPage() {
     setActionLoading(paymentId)
     const payment = payments.find(p => p.id === paymentId)
     const ok = await rejectPayment(paymentId, payment?.bill_id || "", ket)
-    if (ok) { showToast("Pembayaran ditolak"); await fetchPayments() }
+    if (ok) { showToast("Pembayaran ditolak"); await refreshPayments() }
     else showToast("Gagal reject!", "error")
     setActionLoading(null)
   }

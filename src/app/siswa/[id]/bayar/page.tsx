@@ -1,42 +1,31 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { ArrowLeft, Home } from "lucide-react"
 import { getSiswaById, type Siswa } from "@/lib/db"
 import { useSchoolSettings } from "@/components/SchoolSettingsProvider"
 import { BayarClient } from "./BayarClient"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 export default function BayarPage() {
   const params = useParams()
   const id = params.id as string
   const [siswa, setSiswa] = useState<Siswa | null>(null)
-  const { bankPayment, bankInfaq } = useSchoolSettings()
-  const bank = bankPayment || bankInfaq
+  const [loadedId, setLoadedId] = useState("")
+  const { bankPayment } = useSchoolSettings()
+  const bank = bankPayment
 
-  useEffect(() => {
+  usePageRefresh(async (isCurrent) => {
     if (!id) return
-    let mounted = true
+    const nextSiswa = await getSiswaById(id)
+    if (!isCurrent()) return
+    setSiswa(nextSiswa || null)
+    setLoadedId(id)
+  }, { refreshKey: id })
 
-    async function fetchData() {
-      const s = await getSiswaById(id)
-      if (mounted) setSiswa(s || null)
-    }
-
-    fetchData()
-    const interval = setInterval(fetchData, 30000)
-    const onVisible = () => { if (!document.hidden) fetchData() }
-    document.addEventListener("visibilitychange", onVisible)
-
-    return () => {
-      mounted = false
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
-    }
-  }, [id])
-
-  if (!siswa) {
+  if (!siswa || loadedId !== id) {
     return (
       <div className="app-shell">
         <header className="public-header">

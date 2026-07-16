@@ -1,38 +1,31 @@
 ﻿"use client"
 
-import { useEffect, useState, useCallback, Suspense } from "react"
+import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { SiswaClient } from "./SiswaClient"
-import { getStudentsByClass, getActiveYear, type Siswa } from "@/lib/db"
+import { getStudentsByClass, getActiveYear, type Siswa, type StatusBayar } from "@/lib/db"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 function DaftarSiswaContent() {
   const searchParams = useSearchParams()
   const kelas = searchParams.get("kelas") || ""
+  const initialBillType = searchParams.get("billType") || "all"
+  const initialStatus = (searchParams.get("status") as StatusBayar | "all") || "all"
   const [allSiswa, setAllSiswa] = useState<Siswa[]>([])
   const [tahunAjaran, setTahunAjaran] = useState("")
+  const [loadedKelas, setLoadedKelas] = useState("")
 
-  const fetchData = useCallback(async () => {
+  usePageRefresh(async (isCurrent) => {
     if (!kelas) return
     const [siswa, tahun] = await Promise.all([
       getStudentsByClass(kelas),
       getActiveYear(),
     ])
+    if (!isCurrent()) return
     setAllSiswa(siswa)
     setTahunAjaran(tahun)
-  }, [kelas])
-
-  useEffect(() => {
-    const timer = setTimeout(() => fetchData(), 0)
-    const interval = setInterval(fetchData, 30000)
-    const onVisible = () => { if (!document.hidden) fetchData() }
-    document.addEventListener("visibilitychange", onVisible)
-
-    return () => {
-      clearTimeout(timer)
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
-    }
-  }, [fetchData])
+    setLoadedKelas(kelas)
+  }, { refreshKey: kelas })
 
   if (!kelas) {
     return (
@@ -48,7 +41,16 @@ function DaftarSiswaContent() {
     )
   }
 
-  return <SiswaClient kelas={kelas} tahunAjaran={tahunAjaran} allSiswa={allSiswa} />
+  return (
+    <SiswaClient
+      key={`${kelas}:${initialBillType}:${initialStatus}`}
+      kelas={kelas}
+      tahunAjaran={tahunAjaran}
+      allSiswa={loadedKelas === kelas ? allSiswa : []}
+      initialBillType={initialBillType}
+      initialStatus={initialStatus}
+    />
+  )
 }
 
 export default function DaftarSiswaPage() {

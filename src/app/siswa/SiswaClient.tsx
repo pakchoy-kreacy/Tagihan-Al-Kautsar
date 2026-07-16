@@ -10,23 +10,14 @@ interface SiswaClientProps {
   kelas: string
   tahunAjaran: string
   allSiswa: Siswa[]
+  initialBillType: string
+  initialStatus: StatusBayar | "all"
 }
 
-export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) {
+export function SiswaClient({ kelas, tahunAjaran, allSiswa, initialBillType, initialStatus }: SiswaClientProps) {
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<StatusBayar | "all">("all")
-  const [filterBillType, setFilterBillType] = useState<string>("all")
-  const [mounted, setMounted] = useState(false)
-
-  // Read initial filters from URL after mount (client-only)
-  useEffect(() => {
-    setMounted(true)
-    const params = new URLSearchParams(window.location.search)
-    const billType = params.get('billType') || 'all'
-    const status = (params.get('status') as StatusBayar | 'all') || 'all'
-    setFilterBillType(billType)
-    setFilter(status)
-  }, [])
+  const [filter, setFilter] = useState<StatusBayar | "all">(initialStatus)
+  const [filterBillType, setFilterBillType] = useState<string>(initialBillType)
 
   // Extract unique bill types from all siswa
   const availableBillTypes = useMemo(() => {
@@ -59,7 +50,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa }: SiswaClientProps) 
       params.delete('status')
     }
     
-    window.history.replaceState({}, '', `?${params.toString()}`)
+    window.history.replaceState(window.history.state, '', `?${params.toString()}`)
   }, [kelas, filterBillType, filter])
 
   const siswaList = useMemo(() => {

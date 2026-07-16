@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { formatRupiah, updateBillStatus, getAllClasses } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox } from "lucide-react"
+import { usePageRefresh } from "@/hooks/usePageRefresh"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
 interface BillType {
@@ -45,7 +46,7 @@ export default function RekapTagihanPage() {
   const { showToast } = useToast()
   const [rekap, setRekap] = useState<RekapItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedBillType, setSelectedBillType] = useState<RekapItem | null>(null)
+  const [selectedBillTypeId, setSelectedBillTypeId] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [editingBillId, setEditingBillId] = useState<string | null>(null)
   const [filterKelas, setFilterKelas] = useState<string>("all")
@@ -53,8 +54,7 @@ export default function RekapTagihanPage() {
   const [showExportModal, setShowExportModal] = useState(false)
   const [exportTarget, setExportTarget] = useState<RekapItem | null>(null)
 
-  async function fetchData() {
-    setLoading(true)
+  const refreshData = usePageRefresh(async (isCurrent) => {
     try {
       const [{ data: billTypes }, { data: students }, { data: bills }, classes] = await Promise.all([
         supabase.from("bill_types").select("*").order("batas_waktu", { ascending: true, nullsFirst: false }).order("name"),
@@ -63,6 +63,7 @@ export default function RekapTagihanPage() {
         getAllClasses(),
       ])
       
+      if (!isCurrent()) return
       setKelasList(classes.map(c => c.name))
 
       if (!billTypes) return
@@ -114,28 +115,16 @@ export default function RekapTagihanPage() {
         }
       })
 
-      setRekap(rekapItems)
+      if (isCurrent()) setRekap(rekapItems)
     } catch (error) {
       console.error("Error fetching rekap:", error)
       showToast("Gagal memuat data rekap!", "error")
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
-  }
+  }, { refreshKey: "admin-bill-recap" })
 
-  useEffect(() => {
-    const timer = setTimeout(() => fetchData(), 0)
-    const interval = setInterval(fetchData, 30000)
-    const onVisible = () => { if (!document.hidden) fetchData() }
-    document.addEventListener("visibilitychange", onVisible)
-
-    return () => {
-      clearTimeout(timer)
-      clearInterval(interval)
-      document.removeEventListener("visibilitychange", onVisible)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const selectedBillType = rekap.find(item => item.billType.id === selectedBillTypeId) || null
 
   async function handleExportExcel() {
     const XLSX = await import("xlsx")
@@ -286,7 +275,7 @@ export default function RekapTagihanPage() {
             <div
               key={item.billType.id}
               className="rekap-card"
-              onClick={() => setSelectedBillType(item)}
+              onClick={() => setSelectedBillTypeId(item.billType.id)}
               style={{ cursor: "pointer" }}
             >
               <div className="rekap-card-header">
@@ -346,11 +335,11 @@ export default function RekapTagihanPage() {
       {/* DETAIL MODAL */}
       {selectedBillType && (
         <>
-          <div className="admin-overlay" onClick={() => { setSelectedBillType(null); setFilterStatus("all") }} />
+          <div className="admin-overlay" onClick={() => { setSelectedBillTypeId(null); setFilterStatus("all") }} />
           <div className="admin-modal" style={{ maxWidth: 700, maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
             <div className="modal-header">
               <h3>{selectedBillType.billType.name}</h3>
-              <button className="modal-close" onClick={() => { setSelectedBillType(null); setFilterStatus("all") }}><X size={18} /></button>
+              <button className="modal-close" onClick={() => { setSelectedBillTypeId(null); setFilterStatus("all") }}><X size={18} /></button>
             </div>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", flexShrink: 0 }}>
@@ -420,11 +409,7 @@ export default function RekapTagihanPage() {
                                   if (ok) {
                                     showToast("Status diperbarui!")
                                     setEditingBillId(null)
-                                    await fetchData()
-                                    if (selectedBillType) {
-                                      const updated = rekap.find(r => r.billType.id === selectedBillType.billType.id)
-                                      if (updated) setSelectedBillType(updated)
-                                    }
+                                    await refreshData()
                                   } else {
                                     showToast("Gagal update status!", "error")
                                   }

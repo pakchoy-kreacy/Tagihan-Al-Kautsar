@@ -7,6 +7,7 @@ import type { SchoolSettings } from "@/lib/infaq-db"
 import type { KelasData } from "@/lib/db"
 import { ContactAduan } from "@/components/ContactAduan"
 import { Footer } from "@/components/Footer"
+import { useNavigationState } from "@/hooks/useNavigationState"
 
 interface HomeClientProps {
   settings: SchoolSettings | null
@@ -16,8 +17,7 @@ interface HomeClientProps {
 export function HomeClient({ settings, kelasList }: HomeClientProps) {
   const [selectedKelas, setSelectedKelas] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [navigatingSiswa, setNavigatingSiswa] = useState(false)
-  const [navigatingInfaq, setNavigatingInfaq] = useState(false)
+  const { navigatingTo, startNavigation } = useNavigationState()
 
   const logoUrl = settings?.logo_url
   const bannerUrl = settings?.banner_url
@@ -139,10 +139,12 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
                 href={`/siswa?kelas=${selectedKelas}`} 
                 className="btn btn-primary" 
                 style={{ textDecoration: "none" }}
-                onClick={() => setNavigatingSiswa(true)}
+                onClick={(event) => startNavigation("siswa", event)}
+                aria-busy={navigatingTo === "siswa"}
+                aria-disabled={navigatingTo !== null}
               >
                 <Users size={18} />
-                {navigatingSiswa ? "Memuat..." : "Lihat Data Siswa"}
+                {navigatingTo === "siswa" ? "Memuat..." : "Lihat Data Siswa"}
               </a>
             ) : (
               <button type="button" className="btn btn-primary" disabled>
@@ -155,10 +157,12 @@ export function HomeClient({ settings, kelasList }: HomeClientProps) {
               href="/infaq" 
               className="btn btn-secondary" 
               style={{ textDecoration: "none" }}
-              onClick={() => setNavigatingInfaq(true)}
+              onClick={(event) => startNavigation("infaq", event)}
+              aria-busy={navigatingTo === "infaq"}
+              aria-disabled={navigatingTo !== null}
             >
               <Heart size={18} />
-              {navigatingInfaq ? "Memuat..." : "Infaq Sekolah"}
+              {navigatingTo === "infaq" ? "Memuat..." : "Infaq Sekolah"}
             </a>
           </div>
 
