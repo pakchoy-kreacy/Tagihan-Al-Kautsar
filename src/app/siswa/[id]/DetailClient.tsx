@@ -2,6 +2,16 @@
 
 import { useState, useMemo, useRef } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
+
+const MONTH_ORDER: Record<string, number> = {
+  Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6,
+  Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12
+}
+function sortBills(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
+  const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
+  if (ay !== by) return ay - by
+  return (MONTH_ORDER[a.bulan] || 0) - (MONTH_ORDER[b.bulan] || 0)
+}
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
@@ -125,9 +135,9 @@ function closePaymentDetail() {
     }
   }
   
-  const activeBills = useMemo(() => siswa?.riwayat.filter((r) => r.status !== "lunas") || [], [siswa])
+  const activeBills = useMemo(() => (siswa?.riwayat.filter((r) => r.status !== "lunas") || []).sort(sortBills), [siswa])
   const payableBills = useMemo(() => activeBills.filter((bill) => bill.status === "belum"), [activeBills])
-  const allHistory = useMemo(() => siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu") || [], [siswa])
+  const allHistory = useMemo(() => (siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu") || []).sort(sortBills), [siswa])
   
   const filteredHistory = useMemo(() => {
     if (filterStatus === 'all') return allHistory
