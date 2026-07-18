@@ -67,6 +67,9 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa, initialBillType, ini
           })
       
       return matchSearch && matchBillAndStatus
+    }).sort((a, b) => {
+      if (a.kelas !== b.kelas) return a.kelas.localeCompare(b.kelas)
+      return a.nama.localeCompare(b.nama)
     })
   }, [allSiswa, search, filter, filterBillType])
 

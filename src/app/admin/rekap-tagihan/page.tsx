@@ -8,6 +8,8 @@ import { Download, X, Inbox } from "lucide-react"
 import { usePageRefresh } from "@/hooks/usePageRefresh"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
+const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6, Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12 }
+
 interface BillType {
   id: string
   name: string
@@ -99,6 +101,10 @@ export default function RekapTagihanPage() {
               status: b.status,
               paid_date: b.paid_date,
             }
+          })
+          .sort((a, b) => {
+            if (a.year !== b.year) return b.year - a.year
+            return (MONTH_ORDER[b.month] || 0) - (MONTH_ORDER[a.month] || 0)
           })
 
         const lunas = btBills.filter(b => b.status === "lunas")
@@ -376,7 +382,10 @@ export default function RekapTagihanPage() {
             </div>
 
             {(() => {
-              const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu, ...selectedBillType.dicicil]
+              const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu, ...selectedBillType.dicicil].sort((a, b) => {
+              if (a.year !== b.year) return b.year - a.year
+              return (MONTH_ORDER[b.month] || 0) - (MONTH_ORDER[a.month] || 0)
+            })
               const filtered = filterStatus === "all" ? allBills : allBills.filter(b => b.status === filterStatus)
 
               if (filtered.length === 0) {

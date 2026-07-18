@@ -29,8 +29,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 const unpaidBills = (siswa.riwayat.filter((r) => r.status !== "lunas") || []).sort((a, b) => {
   const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6, Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12 }
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-  if (ay !== by) return ay - by
-  return (MONTH_ORDER[a.bulan] || 0) - (MONTH_ORDER[b.bulan] || 0)
+  if (ay !== by) return by - ay
+  return (MONTH_ORDER[b.bulan] || 0) - (MONTH_ORDER[a.bulan] || 0)
 })
   const firstUnpaid = unpaidBills[0]
   const [selectedBill, setSelectedBill] = useState<string>(firstUnpaid?.id || "")
