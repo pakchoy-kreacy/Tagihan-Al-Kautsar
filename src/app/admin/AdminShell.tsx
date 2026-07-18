@@ -5,11 +5,10 @@ import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { AdminRoleProvider, useAdminRole } from "@/context/AdminRoleContext"
-import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, FileSpreadsheet, Eye, Home } from "lucide-react"
+import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, FileSpreadsheet, Eye } from "lucide-react"
 import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 const navItems = [
-  { href: "/", label: "Beranda", icon: Home },
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/siswa", label: "Siswa", icon: Users },
   { href: "/admin/kelas", label: "Kelas", icon: Building2 },

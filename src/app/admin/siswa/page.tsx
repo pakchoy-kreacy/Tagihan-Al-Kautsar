@@ -523,10 +523,10 @@ function SiswaContent() {
                   const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6, Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12 }
                   const getMN = (m: string) => MONTH_ORDER[m] || 999
                   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-                  if (ay !== by) return by - ay
-                  return getMN(b.bulan) - getMN(a.bulan)
+                  if (ay !== by) return ay - by
+                  return getMN(a.bulan) - getMN(b.bulan)
                 }).map(r => {
-                  const isClickable = r.status === 'lunas' || r.status === 'menunggu'
+                  const isClickable = r.status === 'lunas' || r.status === 'menunggu' || r.status === 'dicicil'
                   return (
                   <div 
                     key={r.id} 

@@ -30,8 +30,8 @@ const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3,
 const getMonthNum = (b: string) => MONTH_ORDER[b] || 999
 const unpaidBills = (siswa.riwayat.filter((r) => r.status !== "lunas") || []).sort((a, b) => {
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-  if (ay !== by) return by - ay
-  return getMonthNum(b.bulan) - getMonthNum(a.bulan)
+  if (ay !== by) return ay - by
+  return getMonthNum(a.bulan) - getMonthNum(b.bulan)
 })
   const firstUnpaid = unpaidBills[0]
   const [selectedBill, setSelectedBill] = useState<string>(firstUnpaid?.id || "")
@@ -215,10 +215,10 @@ const selectedBillData = unpaidBills.find((b) => b.id === selectedBill) || unpai
             >
               {unpaidBills.map((b) => {
                 const sisa = b.nominal - (b.total_paid || 0)
-                const countInfo = b.payment_count ? ` (${b.payment_count}/5)` : ""
+                const paidInfo = (b.total_paid || 0) > 0 ? ` | Terbayar ${formatRupiah(b.total_paid || 0)}` : ""
                 return (
                   <option key={b.id} value={b.id}>
-                    {b.bill_type_name || b.bulan} — {formatRupiah(b.nominal)} | Sisa {formatRupiah(sisa)}{countInfo}
+                    {b.bill_type_name || b.bulan} — {formatRupiah(b.nominal)}{paidInfo} | Sisa {formatRupiah(sisa)}
                   </option>
                 )
               })}

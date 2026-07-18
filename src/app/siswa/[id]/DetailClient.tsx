@@ -2,27 +2,22 @@
 
 import { useState, useMemo, useRef } from "react"
 import { formatRupiah, type Siswa } from "@/lib/db"
+import { supabase } from "@/lib/supabase"
+import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
+import { ContactAduan } from "@/components/ContactAduan"
+import { Footer } from "@/components/Footer"
+import { useNavigationState } from "@/hooks/useNavigationState"
 
 const MONTH_ORDER: Record<string, number> = {
   Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6,
   Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12
 }
 function getMonthNum(bulan: string) { return MONTH_ORDER[bulan] || 999 }
-function sortBillsDesc(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
-  const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-  if (ay !== by) return by - ay
-  return getMonthNum(b.bulan) - getMonthNum(a.bulan)
-}
 function sortBillsAsc(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
   if (ay !== by) return ay - by
   return getMonthNum(a.bulan) - getMonthNum(b.bulan)
 }
-import { supabase } from "@/lib/supabase"
-import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
-import { ContactAduan } from "@/components/ContactAduan"
-import { Footer } from "@/components/Footer"
-import { useNavigationState } from "@/hooks/useNavigationState"
 
 interface DetailClientProps {
   siswa: Siswa | null
@@ -141,9 +136,9 @@ function closePaymentDetail() {
     }
   }
   
-  const activeBills = useMemo(() => (siswa?.riwayat.filter((r) => r.status !== "lunas") || []).sort(sortBillsDesc), [siswa])
+const activeBills = useMemo(() => (siswa?.riwayat.filter((r) => r.status !== "lunas") || []).sort(sortBillsAsc), [siswa])
   const payableBills = useMemo(() => activeBills.filter((bill) => bill.status === "belum"), [activeBills])
-  const allHistory = useMemo(() => (siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu") || []).sort(sortBillsAsc), [siswa])
+  const allHistory = useMemo(() => (siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu" || r.status === "dicicil") || []).sort(sortBillsAsc), [siswa])
   
   const filteredHistory = useMemo(() => {
     if (filterStatus === 'all') return allHistory
@@ -309,7 +304,7 @@ function closePaymentDetail() {
           ) : (
             filteredHistory.map((item) => {
               const cfg = statusConfig[item.status] || statusConfig.lunas
-              const isClickable = item.status === 'lunas' || item.status === 'menunggu'
+              const isClickable = item.status === 'lunas' || item.status === 'menunggu' || item.status === 'dicicil'
               return (
                 <div 
                   key={item.id} 

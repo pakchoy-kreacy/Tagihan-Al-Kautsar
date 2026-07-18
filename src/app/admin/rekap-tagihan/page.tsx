@@ -104,8 +104,8 @@ export default function RekapTagihanPage() {
             }
           })
           .sort((a, b) => {
-            if (a.year !== b.year) return b.year - a.year
-            return getMonthNum(b.month) - getMonthNum(a.month)
+            if (a.year !== b.year) return a.year - b.year
+            return getMonthNum(a.month) - getMonthNum(b.month)
           })
 
         const lunas = btBills.filter(b => b.status === "lunas")
@@ -125,7 +125,17 @@ export default function RekapTagihanPage() {
         }
       })
 
-      if (isCurrent()) setRekap(rekapItems)
+      if (isCurrent()) {
+        rekapItems.sort((a, b) => {
+          const aBill = a.belum[0] || a.menunggu[0] || a.dicicil[0] || a.lunas[0]
+          const bBill = b.belum[0] || b.menunggu[0] || b.dicicil[0] || b.lunas[0]
+          if (!aBill || !bBill) return 0
+          const ay = aBill.year, by = bBill.year
+          if (ay !== by) return ay - by
+          return getMonthNum(aBill.month) - getMonthNum(bBill.month)
+        })
+        setRekap(rekapItems)
+      }
     } catch (error) {
       console.error("Error fetching rekap:", error)
       showToast("Gagal memuat data rekap!", "error")
@@ -384,8 +394,8 @@ export default function RekapTagihanPage() {
 
             {(() => {
               const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu, ...selectedBillType.dicicil].sort((a, b) => {
-              if (a.year !== b.year) return b.year - a.year
-              return getMonthNum(b.month) - getMonthNum(a.month)
+              if (a.year !== b.year) return a.year - b.year
+              return getMonthNum(a.month) - getMonthNum(b.month)
             })
               const filtered = filterStatus === "all" ? allBills : allBills.filter(b => b.status === filterStatus)
 
