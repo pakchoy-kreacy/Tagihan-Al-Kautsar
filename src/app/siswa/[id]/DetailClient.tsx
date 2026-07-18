@@ -7,15 +7,16 @@ const MONTH_ORDER: Record<string, number> = {
   Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6,
   Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12
 }
+function getMonthNum(bulan: string) { return MONTH_ORDER[bulan] || 999 }
 function sortBillsDesc(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
   if (ay !== by) return by - ay
-  return (MONTH_ORDER[b.bulan] || 0) - (MONTH_ORDER[a.bulan] || 0)
+  return getMonthNum(b.bulan) - getMonthNum(a.bulan)
 }
 function sortBillsAsc(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
   if (ay !== by) return ay - by
-  return (MONTH_ORDER[a.bulan] || 0) - (MONTH_ORDER[b.bulan] || 0)
+  return getMonthNum(a.bulan) - getMonthNum(b.bulan)
 }
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"

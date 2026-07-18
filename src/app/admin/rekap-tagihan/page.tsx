@@ -9,6 +9,7 @@ import { usePageRefresh } from "@/hooks/usePageRefresh"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
 const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6, Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12 }
+const getMonthNum = (m: string) => MONTH_ORDER[m] || 999
 
 interface BillType {
   id: string
@@ -104,7 +105,7 @@ export default function RekapTagihanPage() {
           })
           .sort((a, b) => {
             if (a.year !== b.year) return b.year - a.year
-            return (MONTH_ORDER[b.month] || 0) - (MONTH_ORDER[a.month] || 0)
+            return getMonthNum(b.month) - getMonthNum(a.month)
           })
 
         const lunas = btBills.filter(b => b.status === "lunas")
@@ -384,7 +385,7 @@ export default function RekapTagihanPage() {
             {(() => {
               const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu, ...selectedBillType.dicicil].sort((a, b) => {
               if (a.year !== b.year) return b.year - a.year
-              return (MONTH_ORDER[b.month] || 0) - (MONTH_ORDER[a.month] || 0)
+              return getMonthNum(b.month) - getMonthNum(a.month)
             })
               const filtered = filterStatus === "all" ? allBills : allBills.filter(b => b.status === filterStatus)
 
