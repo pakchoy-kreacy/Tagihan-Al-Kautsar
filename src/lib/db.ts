@@ -2,6 +2,33 @@ import { supabase } from './supabase'
 
 export type StatusBayar = 'lunas' | 'belum' | 'menunggu' | 'dicicil' | 'tidak_ada_tagihan'
 
+const MONTH_NAMES_ID: Record<string, number> = {
+  januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6,
+  juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12
+}
+
+export function getBulanNumber(bulan: string): number {
+  if (!bulan) return 999
+  const trimmed = bulan.trim()
+
+  // Try as Indonesian month name (any case)
+  const lower = trimmed.toLowerCase()
+  if (MONTH_NAMES_ID[lower]) return MONTH_NAMES_ID[lower]
+
+  // Try extracting month name from bill_type name like "SPP Oktober 2026"
+  const words = trimmed.split(/\s+/)
+  for (const w of words) {
+    const wl = w.toLowerCase()
+    if (MONTH_NAMES_ID[wl]) return MONTH_NAMES_ID[wl]
+  }
+
+  // Try as number (1-12)
+  const num = parseInt(trimmed, 10)
+  if (num >= 1 && num <= 12) return num
+
+  return 999
+}
+
 export interface RiwayatPembayaran {
   id: string
   bulan: string

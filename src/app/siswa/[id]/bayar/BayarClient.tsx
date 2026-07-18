@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { formatRupiah, type Siswa } from "@/lib/db"
+import { formatRupiah, getBulanNumber, type Siswa } from "@/lib/db"
 import { submitPayment, uploadBukti } from "@/lib/payments-db"
 import type { BankInfoSettings } from "@/lib/infaq-db"
 import { useToast } from "@/components/Toast"
@@ -26,12 +26,10 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
   const [method, setMethod] = useState<"transfer" | "qris">("transfer")
 
-const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6, Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12 }
-const getMonthNum = (b: string) => MONTH_ORDER[b] || 999
 const unpaidBills = (siswa.riwayat.filter((r) => r.status !== "lunas") || []).sort((a, b) => {
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
   if (ay !== by) return ay - by
-  return getMonthNum(a.bulan) - getMonthNum(b.bulan)
+  return getBulanNumber(a.bulan) - getBulanNumber(b.bulan)
 })
   const firstUnpaid = unpaidBills[0]
   const [selectedBill, setSelectedBill] = useState<string>(firstUnpaid?.id || "")

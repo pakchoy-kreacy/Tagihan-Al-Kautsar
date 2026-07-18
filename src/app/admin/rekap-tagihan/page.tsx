@@ -2,14 +2,10 @@
 
 import { useState } from "react"
 import { supabase } from "@/lib/supabase"
-import { formatRupiah, updateBillStatus, getAllClasses } from "@/lib/db"
+import { formatRupiah, updateBillStatus, getAllClasses, getBulanNumber } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { Download, X, Inbox } from "lucide-react"
 import { usePageRefresh } from "@/hooks/usePageRefresh"
-// XLSX di-import dynamic untuk mengurangi bundle size
-
-const MONTH_ORDER: Record<string, number> = { Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6, Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12 }
-const getMonthNum = (m: string) => MONTH_ORDER[m] || 999
 
 interface BillType {
   id: string
@@ -105,7 +101,7 @@ export default function RekapTagihanPage() {
           })
           .sort((a, b) => {
             if (a.year !== b.year) return a.year - b.year
-            return getMonthNum(a.month) - getMonthNum(b.month)
+            return getBulanNumber(a.month) - getBulanNumber(b.month)
           })
 
         const lunas = btBills.filter(b => b.status === "lunas")
@@ -132,7 +128,7 @@ export default function RekapTagihanPage() {
           if (!aBill || !bBill) return 0
           const ay = aBill.year, by = bBill.year
           if (ay !== by) return ay - by
-          return getMonthNum(aBill.month) - getMonthNum(bBill.month)
+          return getBulanNumber(aBill.month) - getBulanNumber(bBill.month)
         })
         setRekap(rekapItems)
       }
@@ -395,7 +391,7 @@ export default function RekapTagihanPage() {
             {(() => {
               const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu, ...selectedBillType.dicicil].sort((a, b) => {
               if (a.year !== b.year) return a.year - b.year
-              return getMonthNum(a.month) - getMonthNum(b.month)
+              return getBulanNumber(a.month) - getBulanNumber(b.month)
             })
               const filtered = filterStatus === "all" ? allBills : allBills.filter(b => b.status === filterStatus)
 

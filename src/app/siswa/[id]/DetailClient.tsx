@@ -1,22 +1,17 @@
 "use client"
 
 import { useState, useMemo, useRef } from "react"
-import { formatRupiah, type Siswa } from "@/lib/db"
+import { formatRupiah, getBulanNumber, type Siswa } from "@/lib/db"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
 import { Footer } from "@/components/Footer"
 import { useNavigationState } from "@/hooks/useNavigationState"
 
-const MONTH_ORDER: Record<string, number> = {
-  Januari: 1, Februari: 2, Maret: 3, April: 4, Mei: 5, Juni: 6,
-  Juli: 7, Agustus: 8, September: 9, Oktober: 10, November: 11, Desember: 12
-}
-function getMonthNum(bulan: string) { return MONTH_ORDER[bulan] || 999 }
 function sortBillsAsc(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
   const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
   if (ay !== by) return ay - by
-  return getMonthNum(a.bulan) - getMonthNum(b.bulan)
+  return getBulanNumber(a.bulan) - getBulanNumber(b.bulan)
 }
 
 interface DetailClientProps {
