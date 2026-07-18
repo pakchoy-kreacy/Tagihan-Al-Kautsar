@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export type StatusBayar = 'lunas' | 'belum' | 'menunggu' | 'tidak_ada_tagihan'
+export type StatusBayar = 'lunas' | 'belum' | 'menunggu' | 'dicicil' | 'tidak_ada_tagihan'
 
 export interface RiwayatPembayaran {
   id: string
@@ -8,6 +8,8 @@ export interface RiwayatPembayaran {
   tahun: string
   tanggal: string
   nominal: number
+  total_paid: number
+  payment_count: number
   status: StatusBayar
   batas_waktu: string | null
   bill_type_name: string | null
@@ -37,6 +39,7 @@ interface Bill {
   month: string
   year: number
   amount: number
+  total_paid: number
   status: string
   paid_date: string | null
   bill_types?: { name: string; batas_waktu: string | null }
@@ -174,6 +177,8 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
           tahun: b.year.toString(),
           tanggal: b.paid_date || 'Belum dibayar',
           nominal: b.amount,
+          total_paid: b.total_paid || 0,
+          payment_count: 0,
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
@@ -208,6 +213,20 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
     if (billsError) throw billsError
 
     const typedBills = (bills || []) as Bill[]
+
+    // Fetch payment counts per bill
+    const billIds = typedBills.map(b => b.id)
+    const paymentCounts: Map<string, number> = new Map()
+    if (billIds.length > 0) {
+      const { data: paymentData } = await supabase
+        .from('payments')
+        .select('bill_id')
+        .in('bill_id', billIds)
+      for (const p of (paymentData || []) as { bill_id: string }[]) {
+        paymentCounts.set(p.bill_id, (paymentCounts.get(p.bill_id) || 0) + 1)
+      }
+    }
+
     const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
     let status: StatusBayar
     if (typedBills.length === 0) {
@@ -227,16 +246,18 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       status,
         tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: typedBills.map((b: Bill) => ({
-        id: b.id,
-        bulan: b.month,
-        tahun: b.year.toString(),
-        tanggal: b.paid_date || 'Belum dibayar',
-        nominal: b.amount,
-        status: b.status as StatusBayar,
-        batas_waktu: b.bill_types?.batas_waktu || null,
-        bill_type_name: b.bill_types?.name || null,
-      })),
+riwayat: typedBills.map((b: Bill) => ({
+          id: b.id,
+          bulan: b.month,
+          tahun: b.year.toString(),
+          tanggal: b.paid_date || 'Belum dibayar',
+          nominal: b.amount,
+          total_paid: b.total_paid || 0,
+          payment_count: paymentCounts.get(b.id) || 0,
+          status: b.status as StatusBayar,
+          batas_waktu: b.bill_types?.batas_waktu || null,
+          bill_type_name: b.bill_types?.name || null,
+        })),
     }
   } catch (error) {
     console.error('Error fetching student by ID:', error)
@@ -260,8 +281,9 @@ export function getStatKelas(siswaList: Siswa[]) {
   const lunas = siswaList.filter((s: Siswa) => s.status === 'lunas').length
   const belum = siswaList.filter((s: Siswa) => s.status === 'belum').length
   const menunggu = siswaList.filter((s: Siswa) => s.status === 'menunggu').length
+  const dicicil = siswaList.filter((s: Siswa) => s.status === 'dicicil').length
   const tidakAdaTagihan = siswaList.filter((s: Siswa) => s.status === 'tidak_ada_tagihan').length
-  return { total, lunas, belum, menunggu, tidakAdaTagihan }
+  return { total, lunas, belum, menunggu, dicicil, tidakAdaTagihan }
 }
 
 // ============================================
@@ -556,6 +578,8 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
           tahun: b.year.toString(),
           tanggal: b.paid_date || 'Belum dibayar',
           nominal: b.amount,
+          total_paid: b.total_paid || 0,
+          payment_count: 0,
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,

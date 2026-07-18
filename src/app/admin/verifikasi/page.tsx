@@ -157,7 +157,7 @@ export default function AdminVerifikasiPage() {
       <ConfirmModal
         open={!!approveTarget}
         title="Setujui Pembayaran"
-        message={`Setujui pembayaran dari ${approveTarget?.nama} sebesar ${approveTarget ? formatRupiah(approveTarget.jumlah_transfer) : ""}? Tagihan akan ditandai lunas.`}
+        message={`Setujui pembayaran dari ${approveTarget?.nama} sebesar ${approveTarget ? formatRupiah(approveTarget.jumlah_transfer) : ""}? Tagihan akan diperbarui otomatis (lunas jika total tercapai, dicicil jika belum).`}
         confirmLabel="Setujui"
         onConfirm={handleApprove}
         onCancel={() => setApproveTarget(null)}

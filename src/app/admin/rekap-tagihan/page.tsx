@@ -37,6 +37,7 @@ interface RekapItem {
   lunas: StudentBill[]
   belum: StudentBill[]
   menunggu: StudentBill[]
+  dicicil: StudentBill[]
   totalNominal: number
   lunasNominal: number
   belumNominal: number
@@ -103,12 +104,14 @@ export default function RekapTagihanPage() {
         const lunas = btBills.filter(b => b.status === "lunas")
         const belum = btBills.filter(b => b.status === "belum")
         const menunggu = btBills.filter(b => b.status === "menunggu")
+        const dicicil = btBills.filter(b => b.status === "dicicil")
 
         return {
           billType: bt,
           lunas,
           belum,
           menunggu,
+          dicicil,
           totalNominal: btBills.reduce((sum, b) => sum + b.amount, 0),
           lunasNominal: lunas.reduce((sum, b) => sum + b.amount, 0),
           belumNominal: belum.reduce((sum, b) => sum + b.amount, 0),
@@ -140,7 +143,7 @@ export default function RekapTagihanPage() {
           "Kelas": bill.class_name,
           "Bulan": bill.month,
           "Nominal": bill.amount,
-          "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
+"Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : bill.status === "dicicil" ? "Dicicil" : "Menunggu",
           "Tanggal Bayar": bill.paid_date || "-",
         })
       }
@@ -169,7 +172,7 @@ export default function RekapTagihanPage() {
     if (!exportTarget) return
     const XLSX = await import("xlsx")
 
-    let allBills = [...exportTarget.lunas, ...exportTarget.belum, ...exportTarget.menunggu]
+    let allBills = [...exportTarget.lunas, ...exportTarget.belum, ...exportTarget.menunggu, ...exportTarget.dicicil]
     
     // Apply class filter
     if (filterKelas !== "all") {
@@ -317,7 +320,11 @@ export default function RekapTagihanPage() {
                   <div className="rekap-stat-label">Menunggu</div>
                 </div>
                 <div className="rekap-stat">
-                  <div className="rekap-stat-num" style={{ color: "var(--ink)" }}>{item.lunas.length + item.belum.length + item.menunggu.length}</div>
+                  <div className="rekap-stat-num" style={{ color: "#E67E22" }}>{item.dicicil.length}</div>
+                  <div className="rekap-stat-label">Dicicil</div>
+                </div>
+                <div className="rekap-stat">
+                  <div className="rekap-stat-num" style={{ color: "var(--ink)" }}>{item.lunas.length + item.belum.length + item.menunggu.length + item.dicicil.length}</div>
                   <div className="rekap-stat-label">Total</div>
                 </div>
               </div>
@@ -347,6 +354,7 @@ export default function RekapTagihanPage() {
                 { value: "all", label: "Semua" },
                 { value: "belum", label: "Belum Bayar" },
                 { value: "menunggu", label: "Menunggu" },
+                { value: "dicicil", label: "Dicicil" },
                 { value: "lunas", label: "Lunas" },
               ].map(tab => (
                 <button
@@ -368,7 +376,7 @@ export default function RekapTagihanPage() {
             </div>
 
             {(() => {
-              const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu]
+              const allBills = [...selectedBillType.lunas, ...selectedBillType.belum, ...selectedBillType.menunggu, ...selectedBillType.dicicil]
               const filtered = filterStatus === "all" ? allBills : allBills.filter(b => b.status === filterStatus)
 
               if (filtered.length === 0) {
@@ -418,6 +426,7 @@ export default function RekapTagihanPage() {
                               >
                                 <option value="belum">Belum</option>
                                 <option value="menunggu">Menunggu</option>
+                                <option value="dicicil">Dicicil</option>
                                 <option value="lunas">Lunas</option>
                               </select>
                             ) : (
@@ -427,7 +436,7 @@ export default function RekapTagihanPage() {
                                 onClick={() => setEditingBillId(bill.bill_id)}
                                 title="Klik untuk edit status"
                               >
-                                {bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum" : "Menunggu"}
+                                {bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum" : bill.status === "dicicil" ? "Dicicil" : "Menunggu"}
                               </span>
                             )}
                           </td>

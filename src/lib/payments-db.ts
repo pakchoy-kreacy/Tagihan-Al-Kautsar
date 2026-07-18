@@ -89,25 +89,14 @@ export async function submitPayment(data: {
   bukti_url: string
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data: existing } = await supabase
+    // Cek maksimal 5 cicilan per tagihan
+    const { count } = await supabase
       .from('payments')
-      .select('id')
+      .select('*', { count: 'exact', head: true })
       .eq('bill_id', data.bill_id)
-      .eq('status', 'pending')
-      .maybeSingle()
 
-    if (existing) {
-      return { success: false, error: 'Pembayaran untuk tagihan ini sudah menunggu verifikasi.' }
-    }
-
-    const { data: bill } = await supabase
-      .from('bills')
-      .select('amount')
-      .eq('id', data.bill_id)
-      .single()
-
-    if (bill && data.jumlah_transfer < (bill as { amount: number }).amount) {
-      return { success: false, error: 'Jumlah transfer kurang dari nominal tagihan.' }
+    if (count && count >= 5) {
+      return { success: false, error: 'Maksimal 5 kali cicilan per tagihan.' }
     }
 
     const { error } = await supabase.from('payments').insert({
@@ -198,9 +187,37 @@ export async function approvePayment(paymentId: string, billId: string): Promise
 
     if (payError) throw payError
 
+    // Hitung total approved untuk tagihan ini
+    const { data: agg } = await supabase
+      .from('payments')
+      .select('jumlah_transfer')
+      .eq('bill_id', billId)
+      .eq('status', 'approved')
+
+    const totalPaid = (agg || []).reduce((sum, p) => sum + (p as { jumlah_transfer: number }).jumlah_transfer, 0)
+
+    // Cek apakah bill sudah lunas
+    const { data: bill } = await supabase
+      .from('bills')
+      .select('amount')
+      .eq('id', billId)
+      .single()
+
+    const billAmount = (bill as { amount: number }).amount
+
+    let newStatus: string
+    let paidDate: string | null = null
+
+    if (totalPaid >= billAmount) {
+      newStatus = 'lunas'
+      paidDate = new Date().toISOString().split('T')[0]
+    } else {
+      newStatus = 'dicicil'
+    }
+
     const { error: billError } = await supabase
       .from('bills')
-      .update({ status: 'lunas', paid_date: new Date().toISOString().split('T')[0] })
+      .update({ status: newStatus, total_paid: totalPaid, paid_date: paidDate })
       .eq('id', billId)
 
     if (billError) throw billError
@@ -224,10 +241,42 @@ export async function rejectPayment(paymentId: string, billId: string, keteranga
 
     if (error) throw error
 
-    // Kembalikan status tagihan jadi belum bayar
+    // Hitung status tagihan berdasarkan sisa payments
+    const { data: remaining } = await supabase
+      .from('payments')
+      .select('status, jumlah_transfer')
+      .eq('bill_id', billId)
+
+    const hasPending = (remaining || []).some(p => (p as { status: string }).status === 'pending')
+    const approvedTotal = (remaining || [])
+      .filter(p => (p as { status: string }).status === 'approved')
+      .reduce((sum, p) => sum + (p as { jumlah_transfer: number }).jumlah_transfer, 0)
+
+    const { data: bill } = await supabase
+      .from('bills')
+      .select('amount')
+      .eq('id', billId)
+      .single()
+
+    const billAmount = (bill as { amount: number }).amount
+
+    let newStatus: string
+    let paidDate: string | null = null
+
+    if (approvedTotal >= billAmount) {
+      newStatus = 'lunas'
+      paidDate = new Date().toISOString().split('T')[0]
+    } else if (hasPending) {
+      newStatus = 'menunggu'
+    } else if (approvedTotal > 0) {
+      newStatus = 'dicicil'
+    } else {
+      newStatus = 'belum'
+    }
+
     const { error: billError } = await supabase
       .from('bills')
-      .update({ status: 'belum' })
+      .update({ status: newStatus, total_paid: approvedTotal, paid_date: paidDate })
       .eq('id', billId)
 
     if (billError) throw billError

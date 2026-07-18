@@ -32,7 +32,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     status: string
   }
   
-  const [selectedPayment, setSelectedPayment] = useState<PaymentDetail | null>(null)
+const [selectedPayment, setSelectedPayment] = useState<PaymentDetail[]>([])
   const [loadingPayment, setLoadingPayment] = useState(false)
   const [openBillId, setOpenBillId] = useState<string | null>(null)
   const paymentRequestRef = useRef(0)
@@ -40,7 +40,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
   async function fetchPaymentDetail(billId: string) {
     const requestId = ++paymentRequestRef.current
     setOpenBillId(billId)
-    setSelectedPayment(null)
+    setSelectedPayment([])
     setLoadingPayment(true)
     try {
       const { data, error } = await supabase
@@ -65,34 +65,34 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
         .eq('bill_id', billId)
         .in('status', ['approved', 'pending'])
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
       
       if (error) throw error
       
-      if (data && data.bills) {
-        const billData = data.bills as unknown
-        const bill = billData as { id: string; amount: number; paid_date: string | null; bill_types?: { name: string }; students?: { name: string; nisn: string; classes?: { name: string } } }
-        const student = bill.students
-        const billType = bill.bill_types
-        const studentClass = student?.classes
+      if (paymentRequestRef.current !== requestId) return
+      
+      const payments = (data || []).map((item: Record<string, unknown>) => {
+        const billData = item.bills as Record<string, unknown>
+        const student = billData?.students as Record<string, unknown> | undefined
+        const billType = billData?.bill_types as Record<string, unknown> | undefined
+        const studentClass = student?.classes as Record<string, unknown> | undefined
         
-        if (paymentRequestRef.current !== requestId) return
-        setSelectedPayment({
-          payment_id: data.id,
-          bill_id: data.bill_id,
-          bill_name: billType?.name || '-',
-          student_name: student?.name || '-',
-          kelas: studentClass?.name || '-',
-          nominal: bill.amount || 0,
-          tanggal_bayar: bill.paid_date || '-',
-          nama_pengirim: data.nama_pengirim || '-',
-          jumlah_transfer: data.jumlah_transfer || 0,
-          catatan: data.catatan || '-',
-          bukti_url: data.bukti_url || '',
-          status: data.status,
-        })
-      }
+        return {
+          payment_id: item.id as string,
+          bill_id: item.bill_id as string,
+          bill_name: billType?.name as string || '-',
+          student_name: student?.name as string || '-',
+          kelas: studentClass?.name as string || '-',
+          nominal: billData?.amount as number || 0,
+          tanggal_bayar: billData?.paid_date as string || '-',
+          nama_pengirim: item.nama_pengirim as string || '-',
+          jumlah_transfer: item.jumlah_transfer as number || 0,
+          catatan: item.catatan as string || '-',
+          bukti_url: item.bukti_url as string || '',
+          status: item.status as string,
+        }
+      })
+      
+      setSelectedPayment(payments)
     } catch (error) {
       console.error('Error fetching payment detail:', error)
     } finally {
@@ -100,10 +100,10 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     }
   }
 
-  function closePaymentDetail() {
+function closePaymentDetail() {
     paymentRequestRef.current += 1
     setOpenBillId(null)
-    setSelectedPayment(null)
+    setSelectedPayment([])
     setLoadingPayment(false)
   }
   
@@ -176,6 +176,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
     lunas: { label: "LUNAS", className: "lunas" },
     belum: { label: "BELUM BAYAR", className: "belum" },
     menunggu: { label: "MENUNGGU", className: "menunggu" },
+    dicicil: { label: "DICICIL", className: "menunggu" },
     tidak_ada_tagihan: { label: "TIDAK ADA", className: "lunas" },
   }
 
@@ -208,6 +209,7 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
 
             {activeBills.map((bill) => {
               const status = statusConfig[bill.status] || statusConfig.belum
+              const sisa = bill.nominal - (bill.total_paid || 0)
               return (
                 <div key={bill.id} style={{ padding: "12px 0", borderBottom: activeBills.length > 1 ? "1px solid var(--sand)" : "none" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -218,6 +220,12 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
                     <div style={{ fontSize: 12, color: "var(--neutral)", marginBottom: 4 }}>Jatuh tempo: {deadlineText(bill)}</div>
                   )}
                   <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{formatRupiah(bill.nominal)}</div>
+                  {(bill.total_paid || 0) > 0 && (
+                    <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>
+                      Terbayar: {formatRupiah(bill.total_paid || 0)} · Sisa: {formatRupiah(sisa)}
+                      {bill.payment_count ? ` · Cicilan ke-${bill.payment_count}/5` : ""}
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -334,118 +342,106 @@ export function DetailClient({ siswa, id }: DetailClientProps) {
               </button>
             </div>
 
-            {loadingPayment || !selectedPayment ? (
+{loadingPayment ? (
               <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--neutral)' }}>
                 Memuat detail pembayaran...
+              </div>
+            ) : selectedPayment.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--neutral)' }}>
+                Tidak ada data pembayaran
               </div>
             ) : (
               <>
                 {/* Student Info */}
                 <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--sand)' }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
-                    {selectedPayment.student_name}
+                    {selectedPayment[0].student_name}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--neutral)' }}>
-                    Kelas {selectedPayment.kelas}
+                    Kelas {selectedPayment[0].kelas} · {selectedPayment[0].bill_name}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--emerald)', marginTop: 4 }}>
+                    Total Tagihan: {formatRupiah(selectedPayment[0].nominal)} · Total Terbayar: {formatRupiah(selectedPayment.filter(p => p.status === 'approved').reduce((s, p) => s + p.jumlah_transfer, 0))}
                   </div>
                 </div>
 
-                {/* Payment Info */}
-                <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
-                  <div>
-                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Jenis Tagihan</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
-                      {selectedPayment.bill_name}
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Nominal Tagihan</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--emerald)' }}>
-                        {formatRupiah(selectedPayment.nominal)}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Jumlah Transfer</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
-                        {formatRupiah(selectedPayment.jumlah_transfer)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Tanggal Bayar</div>
-                    <div style={{ fontSize: 14, color: 'var(--ink)' }}>
-                      {selectedPayment.tanggal_bayar !== '-' ? new Date(selectedPayment.tanggal_bayar).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      }) : '-'}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Nama Pengirim</div>
-                    <div style={{ fontSize: 14, color: 'var(--ink)' }}>{selectedPayment.nama_pengirim}</div>
-                  </div>
-
-                  {selectedPayment.catatan && selectedPayment.catatan !== '-' && (
-                    <div>
-                      <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 4 }}>Catatan</div>
-                      <div style={{ fontSize: 14, color: 'var(--ink)' }}>{selectedPayment.catatan}</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bukti Transfer */}
-                {selectedPayment.bukti_url && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, color: 'var(--neutral)', marginBottom: 8 }}>Bukti Transfer</div>
-                    <div style={{
+                {selectedPayment.map((payment, idx) => {
+                  const statusCfg = statusConfig[payment.status] || statusConfig.lunas
+                  return (
+                    <div key={payment.payment_id} style={{
+                      marginBottom: 16,
+                      padding: 14,
                       border: '1px solid var(--sand)',
                       borderRadius: 12,
-                      overflow: 'hidden',
-                      backgroundColor: '#f8f8f8'
+                      background: payment.status === 'approved' ? 'var(--emerald-soft)' : 'var(--gold-soft)'
                     }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={selectedPayment.bukti_url}
-                        alt="Bukti Transfer"
-                        style={{
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: 400,
-                          objectFit: 'contain',
-                          display: 'block'
-                        }}
-                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Cicilan ke-{selectedPayment.length - idx}</span>
+                        <span className={`bill-status-badge ${statusCfg.className}`} style={{ fontSize: 10 }}>{statusCfg.label}</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13 }}>
+                        <div>
+                          <span style={{ color: 'var(--neutral)' }}>Jumlah Transfer: </span>
+                          <span style={{ fontWeight: 600 }}>{formatRupiah(payment.jumlah_transfer)}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: 'var(--neutral)' }}>Pengirim: </span>
+                          <span style={{ fontWeight: 600 }}>{payment.nama_pengirim}</span>
+                        </div>
+                        {payment.catatan && payment.catatan !== '-' && (
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <span style={{ color: 'var(--neutral)' }}>Catatan: </span>
+                            <span>{payment.catatan}</span>
+                          </div>
+                        )}
+                      </div>
+                      {payment.bukti_url && (
+                        <div style={{ marginTop: 10 }}>
+                          <div style={{
+                            border: '1px solid var(--sand)',
+                            borderRadius: 8,
+                            overflow: 'hidden',
+                            backgroundColor: '#f8f8f8'
+                          }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={payment.bukti_url}
+                              alt="Bukti Transfer"
+                              style={{
+                                width: '100%',
+                                height: 'auto',
+                                maxHeight: 200,
+                                objectFit: 'contain',
+                                display: 'block'
+                              }}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                            <a
+                              href={payment.bukti_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-outline"
+                              style={{ flex: 1, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', fontSize: 13 }}
+                            >
+                              <Eye size={14} /> Lihat
+                            </a>
+                            <button
+                              className="btn btn-primary"
+                              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', fontSize: 13 }}
+                              onClick={() => handleDownloadBukti(
+                                payment.bukti_url,
+                                `Bukti_${payment.student_name}_${payment.bill_name}_${idx + 1}.jpg`
+                              )}
+                            >
+                              <Download size={14} /> Download
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <a
-                    href={selectedPayment.bukti_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-outline"
-                    style={{ flex: 1, minWidth: 140, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                  >
-                    <Eye size={16} /> Lihat Bukti
-                  </a>
-                  <button
-                    className="btn btn-primary"
-                    style={{ flex: 1, minWidth: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                    onClick={() => handleDownloadBukti(
-                      selectedPayment.bukti_url,
-                      `Bukti_${selectedPayment.student_name}_${selectedPayment.bill_name}_${selectedPayment.tanggal_bayar}.jpg`
-                    )}
-                  >
-                    <Download size={16} /> Download
-                  </button>
-                </div>
+                  )
+                })}
               </>
             )}
             </div>

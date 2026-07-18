@@ -79,6 +79,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa, initialBillType, ini
       { label: "Lunas", value: "lunas", color: "green" },
       { label: "Belum Bayar", value: "belum", color: "red" },
       { label: "Menunggu", value: "menunggu", color: "yellow" },
+      { label: "Dicicil", value: "dicicil", color: "yellow" },
     ]
     
     // Only show "Tidak Ada Tagihan" when viewing all bills
@@ -97,6 +98,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa, initialBillType, ini
     lunas: "Lunas",
     belum: "Belum Bayar",
     menunggu: "Menunggu",
+    dicicil: "Dicicil",
     tidak_ada_tagihan: "Tidak Ada Tagihan",
   }
 
@@ -169,7 +171,7 @@ export function SiswaClient({ kelas, tahunAjaran, allSiswa, initialBillType, ini
                 <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Lunas</div>
               </div>
               <div style={{ background: "#f8fbf8", borderRadius: 14, padding: 16, textAlign: "center", border: "1px solid #e5ece5" }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--terracotta)", fontVariantNumeric: "tabular-nums" }}>{stat.belum + stat.menunggu}</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--terracotta)", fontVariantNumeric: "tabular-nums" }}>{stat.belum + stat.menunggu + stat.dicicil}</div>
                 <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 4 }}>Perlu Dibayar</div>
               </div>
             </div>

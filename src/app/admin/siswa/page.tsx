@@ -299,6 +299,7 @@ function SiswaContent() {
     lunas: "Lunas",
     belum: "Belum Bayar",
     menunggu: "Menunggu",
+    dicicil: "Dicicil",
     tidak_ada_tagihan: "Tidak Ada Tagihan",
   }
 

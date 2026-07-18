@@ -6,6 +6,7 @@ export interface AdminStats {
   lunas: number
   belum: number
   menunggu: number
+  dicicil: number
   totalInfaq: number
 }
 
@@ -85,16 +86,18 @@ export async function getAdminStats(): Promise<AdminStats> {
     const totalKelas = classIds.length
 
     // Count bills by status for these students
-    let lunas = 0, belum = 0, menunggu = 0
+    let lunas = 0, belum = 0, menunggu = 0, dicicil = 0
     if (studentIds.length > 0) {
-      const [lRes, bRes, mRes] = await Promise.all([
+      const [lRes, bRes, mRes, dRes] = await Promise.all([
         supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'lunas').in('student_id', studentIds),
         supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'belum').in('student_id', studentIds),
         supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'menunggu').in('student_id', studentIds),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('status', 'dicicil').in('student_id', studentIds),
       ])
       lunas = lRes.count || 0
       belum = bRes.count || 0
       menunggu = mRes.count || 0
+      dicicil = dRes.count || 0
     }
 
     // Count ALL donations (no status filter - infaq is auto-approved)
@@ -102,10 +105,10 @@ export async function getAdminStats(): Promise<AdminStats> {
       .from('donations').select('nominal')
     const totalInfaq = infaqData?.reduce((sum, d) => sum + (d.nominal || 0), 0) || 0
 
-    return { totalSiswa, totalKelas, lunas, belum, menunggu, totalInfaq }
+    return { totalSiswa, totalKelas, lunas, belum, menunggu, dicicil, totalInfaq }
   } catch (error) {
     console.error('Error fetching admin stats:', error)
-    return { totalSiswa: 0, totalKelas: 0, lunas: 0, belum: 0, menunggu: 0, totalInfaq: 0 }
+    return { totalSiswa: 0, totalKelas: 0, lunas: 0, belum: 0, menunggu: 0, dicicil: 0, totalInfaq: 0 }
   }
 }
 
@@ -141,7 +144,7 @@ export async function getKelasWithStats(): Promise<KelasWithStats[]> {
 
         const { count } = await supabase
           .from('bills').select('*', { count: 'exact', head: true })
-          .in('status', ['belum', 'menunggu'])
+.in('status', ['belum', 'menunggu', 'dicicil'])
           .in('student_id', studentIds)
         return { id: c.id, count: count || 0 }
       })
@@ -265,7 +268,7 @@ export async function getUnpaidStudents(): Promise<UnpaidStudent[]> {
         students!inner(id, nisn, name),
         classes!inner(name)
       `)
-      .in('status', ['belum', 'menunggu'])
+      .in('status', ['belum', 'menunggu', 'dicicil'])
       .order('status', { ascending: true })
 
     if (error) throw error
@@ -303,6 +306,7 @@ export interface RekapSummaryItem {
   lunas: number
   belum: number
   menunggu: number
+  dicicil: number
   total: number
 }
 
@@ -322,17 +326,18 @@ export async function getRekapSummary(): Promise<RekapSummaryItem[]> {
 
     if (bError) throw bError
 
-    const billsByType = new Map<string, { lunas: number; belum: number; menunggu: number }>()
+    const billsByType = new Map<string, { lunas: number; belum: number; menunggu: number; dicicil: number }>()
     for (const bill of bills || []) {
-      const existing = billsByType.get(bill.bill_type_id) || { lunas: 0, belum: 0, menunggu: 0 }
+      const existing = billsByType.get(bill.bill_type_id) || { lunas: 0, belum: 0, menunggu: 0, dicicil: 0 }
       if (bill.status === 'lunas') existing.lunas++
       else if (bill.status === 'belum') existing.belum++
       else if (bill.status === 'menunggu') existing.menunggu++
+      else if (bill.status === 'dicicil') existing.dicicil++
       billsByType.set(bill.bill_type_id, existing)
     }
 
     return billTypes.map(bt => {
-      const counts = billsByType.get(bt.id) || { lunas: 0, belum: 0, menunggu: 0 }
+      const counts = billsByType.get(bt.id) || { lunas: 0, belum: 0, menunggu: 0, dicicil: 0 }
       return {
         id: bt.id,
         name: bt.name,
@@ -342,7 +347,8 @@ export async function getRekapSummary(): Promise<RekapSummaryItem[]> {
         lunas: counts.lunas,
         belum: counts.belum,
         menunggu: counts.menunggu,
-        total: counts.lunas + counts.belum + counts.menunggu,
+        dicicil: counts.dicicil,
+        total: counts.lunas + counts.belum + counts.menunggu + counts.dicicil,
       }
     })
   } catch (error) {

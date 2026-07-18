@@ -26,13 +26,13 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
 
   const [method, setMethod] = useState<"transfer" | "qris">("transfer")
 
-  const unpaidBills = siswa.riwayat.filter((r) => r.status === "belum")
+const unpaidBills = siswa.riwayat.filter((r) => r.status !== "lunas")
   const firstUnpaid = unpaidBills[0]
   const [selectedBill, setSelectedBill] = useState<string>(firstUnpaid?.id || "")
 
   const [form, setForm] = useState({
     nama_pengirim: "",
-    jumlah_transfer: firstUnpaid?.nominal.toString() || "",
+    jumlah_transfer: firstUnpaid ? String(Math.max(0, firstUnpaid.nominal - (firstUnpaid.total_paid || 0))) : "",
     catatan: "",
   })
 
@@ -49,7 +49,7 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     return null
   }
 
-  async function handleSubmit() {
+async function handleSubmit() {
     if (submittingRef.current) return
     setError("")
     if (!file) return setError("Pilih file bukti transfer!")
@@ -61,6 +61,13 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     if (!selectedBillData) return setError("Pilih tagihan yang ingin dibayar!")
     if (!unpaidBills.some((bill) => bill.id === selectedBillData.id)) {
       return setError("Tagihan sudah berubah. Pilih tagihan aktif kembali.")
+    }
+    if ((selectedBillData.payment_count || 0) >= 5) {
+      return setError("Maksimal 5 kali cicilan per tagihan.")
+    }
+    const sisa = selectedBillData.nominal - (selectedBillData.total_paid || 0)
+    if (parseInt(form.jumlah_transfer) > sisa) {
+      return setError(`Jumlah transfer melebihi sisa tagihan (${formatRupiah(sisa)}).`)
     }
 
     submittingRef.current = true
@@ -140,12 +147,16 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
     )
   }
 
-  const selectedBillData = unpaidBills.find((b) => b.id === selectedBill) || unpaidBills[0]
+const selectedBillData = unpaidBills.find((b) => b.id === selectedBill) || unpaidBills[0]
   const effectiveSelectedBill = selectedBillData?.id || ""
   const billName = selectedBillData
     ? (selectedBillData.bill_type_name || selectedBillData.bulan)
     : siswa.tagihan || "-"
   const billAmount = selectedBillData ? selectedBillData.nominal : siswa.nominalTagihan || 0
+  const billTotalPaid = selectedBillData?.total_paid || 0
+  const billSisa = Math.max(0, billAmount - billTotalPaid)
+  const billPaymentCount = selectedBillData?.payment_count || 0
+  const maxUploadReached = billPaymentCount >= 5
 
   return (
     <div className="app-shell">
@@ -162,7 +173,22 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
             <div className="name">{siswa.nama}</div>
             <div className="desc">{billName}</div>
           </div>
-          <div className="amount">{formatRupiah(billAmount)}</div>
+          <div className="amount" style={{ textAlign: "right" }}>
+            <div>{formatRupiah(billAmount)}</div>
+            {billTotalPaid > 0 && (
+              <div style={{ fontSize: 12, color: "var(--neutral)", marginTop: 2 }}>
+                Terbayar: {formatRupiah(billTotalPaid)}
+              </div>
+            )}
+            <div style={{ fontSize: 12, color: "var(--emerald)", fontWeight: 600, marginTop: 2 }}>
+              Sisa: {formatRupiah(billSisa)}
+            </div>
+            {billPaymentCount > 0 && (
+              <div style={{ fontSize: 11, color: "var(--neutral)", marginTop: 2 }}>
+                Upload ke-{billPaymentCount} dari 5
+              </div>
+            )}
+          </div>
         </div>
 
         {unpaidBills.length > 1 && (
@@ -174,15 +200,22 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
               onChange={(e) => {
                 setSelectedBill(e.target.value)
                 const bill = unpaidBills.find((b) => b.id === e.target.value)
-                if (bill) setForm((f) => ({ ...f, jumlah_transfer: bill.nominal.toString() }))
+                if (bill) {
+                  const sisa = bill.nominal - (bill.total_paid || 0)
+                  setForm((f) => ({ ...f, jumlah_transfer: String(Math.max(0, sisa)) }))
+                }
               }}
               style={{ marginBottom: 0 }}
             >
-              {unpaidBills.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.bill_type_name || b.bulan} — {formatRupiah(b.nominal)}
-                </option>
-              ))}
+              {unpaidBills.map((b) => {
+                const sisa = b.nominal - (b.total_paid || 0)
+                const countInfo = b.payment_count ? ` (${b.payment_count}/5)` : ""
+                return (
+                  <option key={b.id} value={b.id}>
+                    {b.bill_type_name || b.bulan} — {formatRupiah(b.nominal)} | Sisa {formatRupiah(sisa)}{countInfo}
+                  </option>
+                )
+              })}
             </select>
           </div>
         )}
@@ -296,8 +329,8 @@ export function BayarClient({ siswa, bank, id }: BayarClientProps) {
       </main>
 
       <div className="bottom-btn">
-        <button onClick={handleSubmit} disabled={submitting || !file}>
-          {submitting ? "Mengirim..." : "Konfirmasi & Upload Bukti"}
+        <button onClick={handleSubmit} disabled={submitting || !file || maxUploadReached}>
+          {submitting ? "Mengirim..." : maxUploadReached ? "Maksimal 5 Cicilan" : "Konfirmasi & Upload Bukti"}
         </button>
       </div>
     </div>

@@ -7,7 +7,7 @@ import { getAdminStats, getPendingPayments, getRekapSummary, type PendingPayment
 import { formatRupiah } from "@/lib/db"
 import type { AdminStats } from "@/lib/admin-db"
 import type { RekapSummaryItem } from "@/lib/admin-db"
-import { Users, Building2, CircleCheck, Hourglass, Clock, Heart, Bell, ClipboardList, Settings, Receipt, FileSpreadsheet } from "lucide-react"
+import { Users, Building2, CircleCheck, Hourglass, Clock, Heart, Bell, ClipboardList, Settings, Receipt, FileSpreadsheet, Wallet } from "lucide-react"
 import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 export default function AdminDashboardPage() {
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
         <p className="page-subtitle">Ringkasan data sekolah dan aktivitas terbaru</p>
       </div>
 
-      {/* 6 STAT CARDS */}
+      {/* 7 STAT CARDS */}
       <div className="stats-grid">
         <div className="stat-card stat-total">
           <div className="stat-icon"><Users size={24} color="var(--emerald)" /></div>
@@ -100,6 +100,13 @@ export default function AdminDashboardPage() {
           <div className="stat-content">
             <div className="stat-number">{stats?.menunggu || 0}</div>
             <div className="stat-label">Menunggu</div>
+          </div>
+        </div>
+        <div className="stat-card stat-dicicil">
+          <div className="stat-icon"><Wallet size={24} color="#E67E22" /></div>
+          <div className="stat-content">
+            <div className="stat-number">{stats?.dicicil || 0}</div>
+            <div className="stat-label">Dicicil</div>
           </div>
         </div>
         <div className="stat-card stat-infaq">
@@ -162,6 +169,10 @@ export default function AdminDashboardPage() {
                   <div className="rekap-stat">
                     <div className="rekap-stat-num" style={{ color: "var(--gold)" }}>{item.menunggu}</div>
                     <div className="rekap-stat-label">Menunggu</div>
+                  </div>
+                  <div className="rekap-stat">
+                    <div className="rekap-stat-num" style={{ color: "#E67E22" }}>{item.dicicil}</div>
+                    <div className="rekap-stat-label">Dicicil</div>
                   </div>
                   <div className="rekap-stat">
                     <div className="rekap-stat-num" style={{ color: "var(--ink)" }}>{item.total}</div>
