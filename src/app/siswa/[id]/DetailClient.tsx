@@ -136,9 +136,22 @@ function closePaymentDetail() {
     }
   }
   
-const activeBills = useMemo(() => (siswa?.riwayat.filter((r) => r.status !== "lunas") || []).sort(sortBillsAsc), [siswa])
-  const payableBills = useMemo(() => activeBills.filter((bill) => bill.status === "belum"), [activeBills])
-  const allHistory = useMemo(() => (siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu" || r.status === "dicicil") || []).sort(sortBillsAsc), [siswa])
+  console.log('--- DetailClient Debug ---');
+  console.log('Original siswa.riwayat:', siswa?.riwayat);
+
+  const activeBills = useMemo(() => {
+    const filtered = (siswa?.riwayat.filter((r) => r.status !== "lunas") || []);
+    const sorted = [...filtered].sort(sortBillsAsc);
+    console.log('Active Bills (filtered & sorted):', sorted);
+    return sorted;
+  }, [siswa]);
+  const payableBills = useMemo(() => activeBills.filter((bill) => bill.status === "belum"), [activeBills]);
+  const allHistory = useMemo(() => {
+    const filtered = (siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu" || r.status === "dicicil") || []);
+    const sorted = [...filtered].sort(sortBillsAsc);
+    console.log('All History (filtered & sorted):', sorted);
+    return sorted;
+  }, [siswa]);
   
   const filteredHistory = useMemo(() => {
     if (filterStatus === 'all') return allHistory
