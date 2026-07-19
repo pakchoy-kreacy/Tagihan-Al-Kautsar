@@ -703,11 +703,16 @@ export async function getAllBillTypes(): Promise<BillType[]> {
     const { data, error } = await supabase
       .from('bill_types')
       .select('*')
-      .order('batas_waktu', { ascending: true, nullsFirst: false })
-      .order('name', { ascending: true })
 
     if (error) throw error
-    return (data || []) as BillType[]
+    const list = (data || []) as BillType[]
+    list.sort((a, b) => {
+      const ya = parseInt(a.name.split(' ').pop() || '') || 9999
+      const yb = parseInt(b.name.split(' ').pop() || '') || 9999
+      if (ya !== yb) return ya - yb
+      return getBulanNumber(a.name) - getBulanNumber(b.name)
+    })
+    return list
   } catch (error) {
     console.error('Error fetching bill types:', error)
     return []

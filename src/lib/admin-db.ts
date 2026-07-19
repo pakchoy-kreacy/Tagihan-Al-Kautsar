@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getBulanNumber } from './db'
 
 export interface AdminStats {
   totalSiswa: number
@@ -310,12 +311,20 @@ export interface RekapSummaryItem {
   total: number
 }
 
+function sortNameChronological(a: { name: string }, b: { name: string }): number {
+  const partsA = a.name.split(' ')
+  const partsB = b.name.split(' ')
+  const yearA = parseInt(partsA[partsA.length - 1]) || 0
+  const yearB = parseInt(partsB[partsB.length - 1]) || 0
+  if (yearA !== yearB) return yearA - yearB
+  return getBulanNumber(a.name) - getBulanNumber(b.name)
+}
+
 export async function getRekapSummary(): Promise<RekapSummaryItem[]> {
   try {
     const { data: billTypes, error: btError } = await supabase
       .from('bill_types')
       .select('id, name, description, default_amount, is_recurring')
-      .order('name')
 
     if (btError) throw btError
     if (!billTypes || billTypes.length === 0) return []
@@ -336,21 +345,23 @@ export async function getRekapSummary(): Promise<RekapSummaryItem[]> {
       billsByType.set(bill.bill_type_id, existing)
     }
 
-    return billTypes.map(bt => {
-      const counts = billsByType.get(bt.id) || { lunas: 0, belum: 0, menunggu: 0, dicicil: 0 }
-      return {
-        id: bt.id,
-        name: bt.name,
-        description: bt.description || '',
-        default_amount: bt.default_amount,
-        is_recurring: bt.is_recurring,
-        lunas: counts.lunas,
-        belum: counts.belum,
-        menunggu: counts.menunggu,
-        dicicil: counts.dicicil,
-        total: counts.lunas + counts.belum + counts.menunggu + counts.dicicil,
-      }
-    })
+    return billTypes
+      .map(bt => {
+        const counts = billsByType.get(bt.id) || { lunas: 0, belum: 0, menunggu: 0, dicicil: 0 }
+        return {
+          id: bt.id,
+          name: bt.name,
+          description: bt.description || '',
+          default_amount: bt.default_amount,
+          is_recurring: bt.is_recurring,
+          lunas: counts.lunas,
+          belum: counts.belum,
+          menunggu: counts.menunggu,
+          dicicil: counts.dicicil,
+          total: counts.lunas + counts.belum + counts.menunggu + counts.dicicil,
+        }
+      })
+      .sort(sortNameChronological)
   } catch (error) {
     console.error('Error fetching rekap summary:', error)
     return []
