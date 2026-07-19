@@ -131,9 +131,17 @@ function closePaymentDetail() {
     }
   }
   
-  const activeBills = useMemo(() => (siswa?.riwayat.filter((r) => r.status !== "lunas") || []).sort(sortBillsAsc), [siswa]);
+  const activeBills = useMemo(() => {
+    if (!siswa?.riwayat) return []
+    const sorted = [...siswa.riwayat].sort(sortBillsAsc)
+    return sorted.filter((r) => r.status !== "lunas")
+  }, [siswa]);
   const payableBills = useMemo(() => activeBills.filter((bill) => bill.status === "belum"), [activeBills]);
-  const allHistory = useMemo(() => (siswa?.riwayat.filter((r) => r.status === "lunas" || r.status === "menunggu" || r.status === "dicicil") || []).sort(sortBillsAsc), [siswa]);
+  const allHistory = useMemo(() => {
+    if (!siswa?.riwayat) return []
+    const sorted = [...siswa.riwayat].sort(sortBillsAsc)
+    return sorted.filter((r) => r.status === "lunas" || r.status === "menunggu" || r.status === "dicicil")
+  }, [siswa]);
   
   const filteredHistory = useMemo(() => {
     if (filterStatus === 'all') return allHistory

@@ -29,14 +29,6 @@ export function getBulanNumber(bulan: string): number {
   return 999
 }
 
-function sortBillsChronological(riwayat: RiwayatPembayaran[]): RiwayatPembayaran[] {
-  return [...riwayat].sort((a, b) => {
-    const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-    if (ay !== by) return ay - by
-    return getBulanNumber(a.bulan) - getBulanNumber(b.bulan)
-  })
-}
-
 export interface RiwayatPembayaran {
   id: string
   bulan: string
@@ -174,8 +166,6 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
       .from('bills')
       .select('*, bill_types(name, batas_waktu)')
       .in('student_id', studentIds)
-      .order('year', { ascending: false })
-      .order('month', { ascending: false })
 
     if (billsError) throw billsError
 
@@ -187,7 +177,10 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
     }
 
     return students.map((student: { id: string; nisn: string; name: string }) => {
-      const typedBills = billsByStudent.get(student.id) || []
+      const typedBills = (billsByStudent.get(student.id) || []).sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year
+        return getBulanNumber(a.month) - getBulanNumber(b.month)
+      })
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
       let status: StatusBayar
       if (typedBills.length === 0) {
@@ -206,7 +199,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
         status,
         tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: sortBillsChronological(typedBills.map((b: Bill) => ({
+        riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
@@ -217,7 +210,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
-        }))),
+        })),
       }
     })
   } catch (error) {
@@ -242,12 +235,13 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       .from('bills')
       .select('*, bill_types(name, batas_waktu)')
       .eq('student_id', id)
-      .order('year', { ascending: false })
-      .order('month', { ascending: false })
 
     if (billsError) throw billsError
 
-    const typedBills = (bills || []) as Bill[]
+    const typedBills = ((bills || []) as Bill[]).sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year
+      return getBulanNumber(a.month) - getBulanNumber(b.month)
+    })
 
     // Fetch payment counts per bill
     const billIds = typedBills.map(b => b.id)
@@ -281,7 +275,7 @@ export async function getSiswaById(id: string): Promise<Siswa | undefined> {
       status,
         tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-riwayat: sortBillsChronological(typedBills.map((b: Bill) => ({
+riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
@@ -292,7 +286,7 @@ riwayat: sortBillsChronological(typedBills.map((b: Bill) => ({
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
-        }))),
+        })),
     }
   } catch (error) {
     console.error('Error fetching student by ID:', error)
@@ -574,8 +568,6 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
       .from('bills')
       .select('*, bill_types(name, batas_waktu)')
       .in('student_id', studentIds)
-      .order('year', { ascending: false })
-      .order('month', { ascending: false })
 
     if (billsError) throw billsError
 
@@ -587,7 +579,10 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
     }
 
     return students.map((student: { id: string; nisn: string; name: string; classes?: { name: string } | { name: string }[] }) => {
-      const typedBills = billsByStudent.get(student.id) || []
+      const typedBills = (billsByStudent.get(student.id) || []).sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year
+        return getBulanNumber(a.month) - getBulanNumber(b.month)
+      })
       const activeBill = typedBills.find((b: Bill) => b.status !== 'lunas')
       let status: StatusBayar
       if (typedBills.length === 0) {
@@ -607,7 +602,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
         status,
         tagihan: activeBill ? (activeBill as Bill).bill_types?.name || activeBill.month : 'Tidak Ada Tagihan',
         nominalTagihan: activeBill?.amount || 0,
-        riwayat: sortBillsChronological(typedBills.map((b: Bill) => ({
+        riwayat: typedBills.map((b: Bill) => ({
           id: b.id,
           bulan: b.month,
           tahun: b.year.toString(),
@@ -618,7 +613,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
-        }))),
+        })),
       }
     })
   } catch (error) {
