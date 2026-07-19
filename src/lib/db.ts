@@ -40,6 +40,7 @@ export interface RiwayatPembayaran {
   status: StatusBayar
   batas_waktu: string | null
   bill_type_name: string | null
+  sortKey: number
 }
 
 export interface Siswa {
@@ -210,6 +211,7 @@ export async function getStudentsByClass(className: string): Promise<Siswa[]> {
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
+          sortKey: b.year * 100 + getBulanNumber(b.month),
         })),
       }
     })
@@ -286,6 +288,7 @@ riwayat: typedBills.map((b: Bill) => ({
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
+          sortKey: b.year * 100 + getBulanNumber(b.month),
         })),
     }
   } catch (error) {
@@ -613,6 +616,7 @@ export async function getAllStudentsWithBills(): Promise<Siswa[]> {
           status: b.status as StatusBayar,
           batas_waktu: b.bill_types?.batas_waktu || null,
           bill_type_name: b.bill_types?.name || null,
+          sortKey: b.year * 100 + getBulanNumber(b.month),
         })),
       }
     })

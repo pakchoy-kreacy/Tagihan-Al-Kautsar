@@ -1,17 +1,15 @@
 "use client"
 
 import { useState, useMemo, useRef } from "react"
-import { formatRupiah, getBulanNumber, type Siswa } from "@/lib/db"
+import { formatRupiah, type Siswa } from "@/lib/db"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft, Home, User, Wallet, ChevronRight, Eye, Download, X, Filter } from "lucide-react"
 import { ContactAduan } from "@/components/ContactAduan"
 import { Footer } from "@/components/Footer"
 import { useNavigationState } from "@/hooks/useNavigationState"
 
-function sortBillsAsc(a: { bulan: string; tahun: string }, b: { bulan: string; tahun: string }) {
-  const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-  if (ay !== by) return ay - by
-  return getBulanNumber(a.bulan) - getBulanNumber(b.bulan)
+function sortBillsAsc(a: { sortKey: number }, b: { sortKey: number }) {
+  return a.sortKey - b.sortKey
 }
 
 interface DetailClientProps {

@@ -3,7 +3,7 @@
 import { useState, Suspense, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { getAllStudentsWithBills, addSiswaDetailed, updateSiswa, deleteSiswa, getAllClasses, markBillAsPaid } from "@/lib/db"
-import { formatRupiah, getBulanNumber, type Siswa, type KelasData } from "@/lib/db"
+import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { supabase } from "@/lib/supabase"
@@ -519,11 +519,7 @@ function SiswaContent() {
                       </button>
                     )}
                   </div>
-                {detailSiswa.riwayat.slice().sort((a, b) => {
-                  const ay = parseInt(a.tahun) || 0, by = parseInt(b.tahun) || 0
-                  if (ay !== by) return ay - by
-                  return getBulanNumber(a.bulan) - getBulanNumber(b.bulan)
-                }).map(r => {
+                {detailSiswa.riwayat.slice().sort((a, b) => a.sortKey - b.sortKey).map(r => {
                   const isClickable = r.status === 'lunas' || r.status === 'menunggu' || r.status === 'dicicil'
                   return (
                   <div 
