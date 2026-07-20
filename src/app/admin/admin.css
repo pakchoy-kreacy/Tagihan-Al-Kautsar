@@ -122,6 +122,20 @@
   color: #0f4d2e !important;
 }
 
+.admin-nav-home {
+  border-bottom: none;
+  margin-bottom: 4px;
+}
+.admin-nav-home:hover {
+  background: rgba(255,255,255,0.15);
+}
+.admin-nav-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  margin: 4px 10px 8px;
+  flex-shrink: 0;
+}
+
 .admin-nav-icon {
   font-size: 18px;
   width: 24px;
@@ -432,7 +446,9 @@ select.admin-input {
   padding: 24px;
   width: 90%;
   max-width: 400px;
+  max-height: 85vh;
   z-index: 200;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(43, 174, 118, 0.18);
 }
 

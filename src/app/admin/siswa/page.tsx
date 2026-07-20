@@ -238,8 +238,9 @@ function SiswaContent() {
           )
         `)
         .eq('bill_id', billId)
-        .eq('status', 'approved')
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
       
       if (error) throw error
       

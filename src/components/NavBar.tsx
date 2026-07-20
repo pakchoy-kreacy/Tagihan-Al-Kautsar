@@ -35,11 +35,6 @@ export function NavBar() {
         <span>ESPP MI</span>
       </a>
 
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/" className="nav-beranda-link" onClick={() => setOpen(false)} style={{ textDecoration: "none" }}>
-        Beranda
-      </a>
-
       <button
         type="button"
         className="app-nav-toggle"
@@ -51,6 +46,10 @@ export function NavBar() {
       </button>
 
       <div className={`app-nav-links ${open ? "open" : ""}`}>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/" className={`app-nav-link ${pathname === "/" ? "active" : ""}`} onClick={() => setOpen(false)} style={{ textDecoration: "none" }}>
+          Beranda
+        </a>
         {!pathname.startsWith("/admin/login") && (
           <a
             href="#"

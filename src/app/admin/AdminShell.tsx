@@ -113,6 +113,10 @@ function AdminShellContent({ children, sidebarOpen, setSidebarOpen, pendingCount
 
         <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
           <nav className="admin-nav">
+            <Link href="/" className="admin-nav-item admin-nav-home" onClick={() => setSidebarOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
+              <House size={18} /> Kembali ke Beranda
+            </Link>
+            <div className="admin-nav-divider" />
             {navItems.map((item) => {
               const isActive = item.href === "/admin"
                 ? pathname === "/admin"
@@ -135,9 +139,6 @@ function AdminShellContent({ children, sidebarOpen, setSidebarOpen, pendingCount
           </nav>
 
           <div className="admin-sidebar-footer">
-            <Link href="/" className="admin-back-link" onClick={() => setSidebarOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
-              <House size={14} /> Kembali ke Beranda
-            </Link>
             <button type="button" onClick={handleLogout} className="admin-logout-btn" disabled={loggingOut}>
               <LogOut size={16} /> {loggingOut ? "Memuat..." : "Logout"}
             </button>
