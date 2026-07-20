@@ -309,13 +309,18 @@ function SiswaContent() {
     else showToast("Gagal menghapus!", "error")
   }
 
-  const filtered = siswaList.filter(s => {
-    const matchKelas = !selectedKelas || s.kelas === selectedKelas
-    const matchSearch = !search ||
-      s.nama.toLowerCase().includes(search.toLowerCase()) ||
-      s.nisn.toLowerCase().includes(search.toLowerCase())
-    return matchKelas && matchSearch
-  })
+  const filtered = siswaList
+    .filter(s => {
+      const matchKelas = !selectedKelas || s.kelas === selectedKelas
+      const matchSearch = !search ||
+        s.nama.toLowerCase().includes(search.toLowerCase()) ||
+        s.nisn.toLowerCase().includes(search.toLowerCase())
+      return matchKelas && matchSearch
+    })
+    .sort((a, b) => {
+      if (a.kelas !== b.kelas) return a.kelas.localeCompare(b.kelas)
+      return a.nama.localeCompare(b.nama)
+    })
 
   const statusMap: Record<string, string> = {
     lunas: "Lunas",

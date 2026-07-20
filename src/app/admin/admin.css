@@ -122,20 +122,6 @@
   color: #0f4d2e !important;
 }
 
-.admin-nav-home {
-  border-bottom: none;
-  margin-bottom: 4px;
-}
-.admin-nav-home:hover {
-  background: rgba(255,255,255,0.15);
-}
-.admin-nav-divider {
-  height: 1px;
-  background: rgba(255,255,255,0.15);
-  margin: 4px 10px 8px;
-  flex-shrink: 0;
-}
-
 .admin-nav-icon {
   font-size: 18px;
   width: 24px;
