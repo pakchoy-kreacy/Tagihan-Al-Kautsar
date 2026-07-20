@@ -236,7 +236,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 90;
+  z-index: 190;
 }
 
 /* Stats Cards */
@@ -432,7 +432,7 @@ select.admin-input {
   padding: 24px;
   width: 90%;
   max-width: 400px;
-  z-index: 100;
+  z-index: 200;
   box-shadow: 0 20px 60px rgba(43, 174, 118, 0.18);
 }
 
@@ -2168,7 +2168,7 @@ select.admin-input {
   width: 90%;
   max-width: 600px;
   max-height: 85vh;
-  z-index: 100;
+  z-index: 200;
   box-shadow: 0 20px 60px rgba(43, 174, 118, 0.18);
   display: flex;
   flex-direction: column;

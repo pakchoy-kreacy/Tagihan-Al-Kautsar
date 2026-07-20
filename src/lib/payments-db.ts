@@ -287,3 +287,75 @@ export async function rejectPayment(paymentId: string, billId: string, keteranga
     return false
   }
 }
+
+// ============================================
+// ADMIN: UPDATE PAYMENT
+// ============================================
+export async function updatePayment(
+  paymentId: string,
+  data: { nama_pengirim?: string; jumlah_transfer?: number; catatan?: string }
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('payments')
+      .update(data)
+      .eq('id', paymentId)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error updating payment:', error)
+    return false
+  }
+}
+
+// ============================================
+// ADMIN: DELETE PAYMENT
+// ============================================
+export async function deletePayment(paymentId: string, billId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('payments').delete().eq('id', paymentId)
+    if (error) throw error
+
+    // Hitung ulang status tagihan
+    const { data: remaining } = await supabase
+      .from('payments')
+      .select('status, jumlah_transfer')
+      .eq('bill_id', billId)
+
+    const hasPending = (remaining || []).some(p => (p as { status: string }).status === 'pending')
+    const approvedTotal = (remaining || [])
+      .filter(p => (p as { status: string }).status === 'approved')
+      .reduce((sum, p) => sum + (p as { jumlah_transfer: number }).jumlah_transfer, 0)
+
+    const { data: bill } = await supabase
+      .from('bills')
+      .select('amount')
+      .eq('id', billId)
+      .single()
+
+    const billAmount = (bill as { amount: number }).amount
+    let newStatus: string
+    let paidDate: string | null = null
+
+    if (approvedTotal >= billAmount) {
+      newStatus = 'lunas'
+      paidDate = new Date().toISOString().split('T')[0]
+    } else if (hasPending) {
+      newStatus = 'menunggu'
+    } else if (approvedTotal > 0) {
+      newStatus = 'dicicil'
+    } else {
+      newStatus = 'belum'
+    }
+
+    await supabase
+      .from('bills')
+      .update({ status: newStatus, total_paid: approvedTotal, paid_date: paidDate })
+      .eq('id', billId)
+
+    return true
+  } catch (error) {
+    console.error('Error deleting payment:', error)
+    return false
+  }
+}

@@ -2,10 +2,11 @@
 import "./admin.css"
 import { useState, useEffect, useRef } from "react"
 
+import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { AdminRoleProvider, useAdminRole } from "@/context/AdminRoleContext"
-import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, FileSpreadsheet, Eye } from "lucide-react"
+import { LayoutDashboard, Building2, Users, Receipt, ClipboardList, Heart, Settings, LogOut, FileSpreadsheet, Eye, House } from "lucide-react"
 import { usePageRefresh } from "@/hooks/usePageRefresh"
 
 const navItems = [
@@ -134,6 +135,9 @@ function AdminShellContent({ children, sidebarOpen, setSidebarOpen, pendingCount
           </nav>
 
           <div className="admin-sidebar-footer">
+            <Link href="/" className="admin-back-link" onClick={() => setSidebarOpen(false)} style={{ textDecoration: "none", color: "inherit" }}>
+              <House size={14} /> Kembali ke Beranda
+            </Link>
             <button type="button" onClick={handleLogout} className="admin-logout-btn" disabled={loggingOut}>
               <LogOut size={16} /> {loggingOut ? "Memuat..." : "Logout"}
             </button>

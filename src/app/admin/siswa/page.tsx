@@ -7,8 +7,9 @@ import { formatRupiah, type Siswa, type KelasData } from "@/lib/db"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
 import { supabase } from "@/lib/supabase"
+import { updatePayment, deletePayment } from "@/lib/payments-db"
 import { useAdminRole } from "@/context/AdminRoleContext"
-import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox, FileSpreadsheet, Eye } from "lucide-react"
+import { Search, Upload, Download, Plus, X, Pencil, Trash2, Inbox, FileSpreadsheet } from "lucide-react"
 import { usePageRefresh } from "@/hooks/usePageRefresh"
 // XLSX di-import dynamic untuk mengurangi bundle size
 
@@ -51,6 +52,9 @@ function SiswaContent() {
   const [loadingPayment, setLoadingPayment] = useState(false)
   const paymentRequestRef = useRef(0)
   const [confirmStatusChange, setConfirmStatusChange] = useState<{ billId: string; billName: string } | null>(null)
+  const [editingPayment, setEditingPayment] = useState(false)
+  const [editForm, setEditForm] = useState({ nama_pengirim: "", jumlah_transfer: 0, catatan: "" })
+  const [confirmDeletePayment, setConfirmDeletePayment] = useState<string | null>(null)
 
   const refreshData = usePageRefresh(async (isCurrent) => {
     try {
@@ -268,23 +272,40 @@ function SiswaContent() {
       if (paymentRequestRef.current === requestId) setLoadingPayment(false)
     }
   }
-  
-  async function handleDownloadBukti(url: string, filename: string) {
-    try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      const blobUrl = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = blobUrl
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(blobUrl)
-      showToast('Bukti berhasil diunduh!', 'success')
-    } catch {
-      showToast('Gagal mengunduh bukti', 'error')
+
+  function startEditPayment() {
+    if (!selectedPayment) return
+    setEditForm({
+      nama_pengirim: selectedPayment.nama_pengirim,
+      jumlah_transfer: selectedPayment.jumlah_transfer,
+      catatan: selectedPayment.catatan,
+    })
+    setEditingPayment(true)
+  }
+
+  async function handleUpdatePayment() {
+    if (!selectedPayment) return
+    if (!editForm.nama_pengirim.trim()) { showToast("Nama pengirim wajib diisi!", "error"); return }
+    if (editForm.jumlah_transfer <= 0) { showToast("Jumlah transfer harus lebih dari 0!", "error"); return }
+    const ok = await updatePayment(selectedPayment.payment_id, {
+      nama_pengirim: editForm.nama_pengirim.trim(),
+      jumlah_transfer: editForm.jumlah_transfer,
+      catatan: editForm.catatan.trim(),
+    })
+    if (ok) {
+      showToast("Pembayaran diperbarui!")
+      setSelectedPayment({ ...selectedPayment, ...editForm })
+      setEditingPayment(false)
+    } else {
+      showToast("Gagal memperbarui!", "error")
     }
+  }
+
+  async function handleDeletePayment() {
+    if (!selectedPayment || !confirmDeletePayment) return
+    const ok = await deletePayment(selectedPayment.payment_id, selectedPayment.bill_id)
+    if (ok) { showToast("Pembayaran dihapus!"); setSelectedPayment(null); setConfirmDeletePayment(null) }
+    else showToast("Gagal menghapus!", "error")
   }
 
   const filtered = siswaList.filter(s => {
@@ -671,12 +692,14 @@ function SiswaContent() {
                       <img
                         src={selectedPayment.bukti_url}
                         alt="Bukti Transfer"
+                        onClick={() => window.open(selectedPayment.bukti_url, '_blank')}
                         style={{
                           width: '100%',
                           height: 'auto',
                           maxHeight: 400,
                           objectFit: 'contain',
-                          display: 'block'
+                          display: 'block',
+                          cursor: 'pointer',
                         }}
                       />
                     </div>
@@ -685,25 +708,35 @@ function SiswaContent() {
 
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <a
-                    href={selectedPayment.bukti_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="admin-btn admin-btn-outline"
-                    style={{ flex: 1, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                  >
-                    <Eye size={16} /> Lihat Bukti
-                  </a>
-                  <button
-                    className="admin-btn admin-btn-primary"
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                    onClick={() => handleDownloadBukti(
-                      selectedPayment.bukti_url,
-                      `Bukti_${selectedPayment.student_name}_${selectedPayment.bill_name}_${selectedPayment.tanggal_bayar}.jpg`
-                    )}
-                  >
-                    <Download size={16} /> Download Bukti
-                  </button>
+                  {editingPayment ? (
+                    <div style={{ width: '100%' }}>
+                      <label className="form-label">Nama Pengirim</label>
+                      <input className="admin-input" value={editForm.nama_pengirim}
+                        onChange={e => setEditForm(f => ({ ...f, nama_pengirim: e.target.value }))}
+                        style={{ marginBottom: 12 }} />
+                      <label className="form-label">Jumlah Transfer (Rp)</label>
+                      <input className="admin-input" type="number" value={editForm.jumlah_transfer}
+                        onChange={e => setEditForm(f => ({ ...f, jumlah_transfer: Number(e.target.value) }))}
+                        style={{ marginBottom: 12 }} />
+                      <label className="form-label">Catatan</label>
+                      <input className="admin-input" value={editForm.catatan}
+                        onChange={e => setEditForm(f => ({ ...f, catatan: e.target.value }))}
+                        style={{ marginBottom: 12 }} />
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="admin-btn admin-btn-outline" style={{ flex: 1 }} onClick={() => setEditingPayment(false)}>Batal</button>
+                        <button className="admin-btn" style={{ flex: 1 }} onClick={handleUpdatePayment}>Simpan</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <button className="admin-btn admin-btn-outline" style={{ flex: 1 }} onClick={startEditPayment}>
+                        <Pencil size={15} /> Edit
+                      </button>
+                      <button className="admin-btn admin-btn-danger" style={{ flex: 1 }} onClick={() => setConfirmDeletePayment(selectedPayment.payment_id)}>
+                        <Trash2 size={15} /> Hapus
+                      </button>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -747,6 +780,16 @@ function SiswaContent() {
           setConfirmStatusChange(null)
         }}
         onCancel={() => setConfirmStatusChange(null)}
+      />
+
+      <ConfirmModal
+        open={!!confirmDeletePayment}
+        title="Hapus Pembayaran"
+        message="Yakin hapus data pembayaran ini? Data tidak bisa dikembalikan."
+        confirmLabel="Hapus"
+        danger
+        onConfirm={handleDeletePayment}
+        onCancel={() => setConfirmDeletePayment(null)}
       />
     </div>
   )
