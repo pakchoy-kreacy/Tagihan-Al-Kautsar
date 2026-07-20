@@ -17,10 +17,6 @@ export function NavBar() {
   const schoolName = isDemo ? "Sekolah Demo" : (settings?.nama_sekolah || "MI Nurul Iman")
   const logoUrl = isDemo ? null : settings?.logo_url
 
-  const links = [
-    { href: "/", label: "Beranda" },
-  ]
-
   async function handleAdminClick(e: React.MouseEvent) {
     e.preventDefault()
     const { data: { session } } = await supabase.auth.getSession()
@@ -39,6 +35,11 @@ export function NavBar() {
         <span>ESPP MI</span>
       </a>
 
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/" className="nav-beranda-link" onClick={() => setOpen(false)} style={{ textDecoration: "none" }}>
+        Beranda
+      </a>
+
       <button
         type="button"
         className="app-nav-toggle"
@@ -50,17 +51,6 @@ export function NavBar() {
       </button>
 
       <div className={`app-nav-links ${open ? "open" : ""}`}>
-        {links.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            className={`app-nav-link ${pathname === link.href ? "active" : ""}`}
-            onClick={() => setOpen(false)}
-            style={{ textDecoration: "none" }}
-          >
-            {link.label}
-          </a>
-        ))}
         {!pathname.startsWith("/admin/login") && (
           <a
             href="#"
