@@ -921,6 +921,20 @@ export async function deleteBillType(id: string): Promise<boolean> {
 }
 
 // ============================================
+// BATCH DELETE BILL TYPES
+// ============================================
+export async function deleteBillTypes(ids: string[]): Promise<{ success: number; failed: number }> {
+  let success = 0
+  let failed = 0
+  for (const id of ids) {
+    const ok = await deleteBillType(id)
+    if (ok) success++
+    else failed++
+  }
+  return { success, failed }
+}
+
+// ============================================
 // GENERATE BILLS FROM BILL TYPES
 // ============================================
 export async function generateBills(month: string, year: number): Promise<{ success: boolean; count: number; error?: string }> {

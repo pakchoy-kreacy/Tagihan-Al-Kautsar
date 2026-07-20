@@ -1432,6 +1432,21 @@ select.admin-input {
 .tc-btn-delete { background: var(--terracotta-soft); }
 .tc-btn-delete:hover { background: #eccfcc; }
 
+.tc-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--neutral);
+  cursor: pointer;
+  user-select: none;
+}
+.tc-select input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .tc-name {
   font-size: 18px;
   font-weight: 700;

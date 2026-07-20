@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { getAllBillTypes, getAllClasses, updateBillType, deleteBillType, formatRupiah, type BillType, type KelasData } from "@/lib/db"
+import { getAllBillTypes, getAllClasses, updateBillType, deleteBillTypes, formatRupiah, type BillType, type KelasData } from "@/lib/db"
 import { createBillTypeWithGeneration } from "@/lib/db-enhanced"
 import { useToast } from "@/components/Toast"
 import { ConfirmModal } from "@/components/ConfirmModal"
@@ -23,6 +23,8 @@ export default function AdminTagihanPage() {
   const [formBatasWaktu, setFormBatasWaktu] = useState("")
   const [formBerlakuKelas, setFormBerlakuKelas] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<BillType | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [batchDeleting, setBatchDeleting] = useState(false)
   
   const [assignmentMode, setAssignmentMode] = useState<'auto' | 'manual'>('manual')
   const [formYear, setFormYear] = useState(2024)
@@ -141,12 +143,45 @@ export default function AdminTagihanPage() {
     }
   }
 
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === billTypes.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(billTypes.map(b => b.id)))
+    }
+  }
+
   async function handleDelete() {
     if (!deleteTarget) return
-    const ok = await deleteBillType(deleteTarget.id)
-    if (ok) { showToast("Tagihan dihapus!"); await refreshData() }
+    const ok = await deleteBillTypes([deleteTarget.id])
+    if (ok.success > 0) { showToast("Tagihan dihapus!"); await refreshData() }
     else showToast("Gagal menghapus!", "error")
     setDeleteTarget(null)
+  }
+
+  async function handleBatchDelete() {
+    if (selectedIds.size === 0) return
+    setBatchDeleting(true)
+    const result = await deleteBillTypes(Array.from(selectedIds))
+    setSelectedIds(new Set())
+    setBatchDeleting(false)
+    if (result.failed === 0) {
+      showToast(`${result.success} tagihan berhasil dihapus!`)
+    } else if (result.success === 0) {
+      showToast("Gagal menghapus!", "error")
+    } else {
+      showToast(`${result.success} berhasil, ${result.failed} gagal`, "error")
+    }
+    await refreshData()
   }
 
   function formatTanggal(tgl: string) {
@@ -169,6 +204,16 @@ export default function AdminTagihanPage() {
           <button className="admin-btn" onClick={openAdd}>
             <Plus size={15} /> Tambah Tagihan
           </button>
+          {billTypes.length > 0 && (
+            <button className="admin-btn admin-btn-outline" onClick={toggleSelectAll} style={{ marginLeft: 8 }}>
+              <Inbox size={15} /> {selectedIds.size === billTypes.length ? "Unselect All" : "Pilih Semua"}
+            </button>
+          )}
+          {selectedIds.size > 0 && (
+            <button className="admin-btn admin-btn-danger" onClick={handleBatchDelete} disabled={batchDeleting} style={{ marginLeft: 'auto' }}>
+              <Trash2 size={15} /> Hapus {selectedIds.size} Terpilih
+            </button>
+          )}
         </div>
       )}
 
@@ -198,6 +243,12 @@ export default function AdminTagihanPage() {
                   </div>
                 )}
               </div>
+              {role === 'admin' && (
+                <label className="tc-select" onClick={e => e.stopPropagation()}>
+                  <input type="checkbox" checked={selectedIds.has(b.id)} onChange={() => toggleSelect(b.id)} />
+                  <span>Pilih</span>
+                </label>
+              )}
               <div className="tc-name">{b.name}</div>
               {b.description && <div className="tc-desc">{b.description}</div>}
               <div className="tc-amount">{formatRupiah(b.default_amount)}</div>
