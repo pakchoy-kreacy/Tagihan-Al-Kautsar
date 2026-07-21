@@ -491,7 +491,7 @@ select.admin-input {
     position: fixed;
     left: -280px;
     top: 0;
-    z-index: 95;
+    z-index: 200;
     transition: left 0.3s ease;
     width: 280px;
     min-width: 280px;
@@ -2284,12 +2284,8 @@ select.admin-input {
    ============================================= */
 
 @media (max-width: 768px) {
-  .admin-sidebar.open {
-    z-index: 95;
-  }
-
   .admin-menu-btn {
-    z-index: 200;
+    z-index: 201;
   }
 
   .admin-sidebar-footer {
