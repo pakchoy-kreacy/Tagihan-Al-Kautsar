@@ -13,6 +13,9 @@ export function NavBar() {
   const [open, setOpen] = useState(false)
   const { settings } = useSchoolSettings()
 
+  // Jangan tampilkan NavBar publik di halaman admin
+  if (pathname.startsWith("/admin")) return null
+
   const isDemo = pathname.startsWith("/demo")
   const schoolName = isDemo ? "Sekolah Demo" : (settings?.nama_sekolah || "MI Nurul Iman")
   const logoUrl = isDemo ? null : settings?.logo_url
