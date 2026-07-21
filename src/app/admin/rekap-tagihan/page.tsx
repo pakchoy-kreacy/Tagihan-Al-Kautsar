@@ -58,7 +58,7 @@ export default function RekapTagihanPage() {
     try {
       const [{ data: billTypes }, { data: students }, { data: bills }, classes] = await Promise.all([
         supabase.from("bill_types").select("*").order("batas_waktu", { ascending: true, nullsFirst: false }).order("name"),
-        supabase.from("students").select("id, name, nisn, classes(name)"),
+        supabase.from("students").select("id, name, nisn, class_id"),
         supabase.from("bills").select("*").order("year", { ascending: false }).order("month"),
         getAllClasses(),
       ])
@@ -68,10 +68,12 @@ export default function RekapTagihanPage() {
 
       if (!billTypes) return
 
+      const classMap = new Map<string, string>()
+      for (const c of classes) classMap.set(c.id, c.name)
+
       const studentMap = new Map<string, { name: string; nisn: string; className: string }>()
       for (const s of students || []) {
-        const classesArray = s.classes as { name: string }[] | null
-        const className = classesArray && classesArray.length > 0 ? classesArray[0].name : "N/A"
+        const className = s.class_id ? classMap.get(s.class_id) || "N/A" : "N/A"
         studentMap.set(s.id, {
           name: s.name,
           nisn: s.nisn,
