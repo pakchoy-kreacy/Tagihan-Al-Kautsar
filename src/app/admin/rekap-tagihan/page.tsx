@@ -182,30 +182,30 @@ export default function RekapTagihanPage() {
   }
 
   async function handleExportPerBillType() {
-    if (!exportTarget) return
-    const XLSX = await import("xlsx")
+    try {
+      if (!exportTarget) return
+      const XLSX = await import("xlsx")
 
-    let allBills = [...exportTarget.lunas, ...exportTarget.belum, ...exportTarget.menunggu, ...exportTarget.dicicil]
-    
-    // Apply class filter
-    if (filterKelas !== "all") {
-      allBills = allBills.filter(b => b.class_name === filterKelas)
-    }
-    
-    if (allBills.length === 0) {
-      showToast("Tidak ada data untuk di-export!", "error")
-      return
-    }
-    
-    // Fetch all bills for tunggakan calculation
-    const studentIds = [...new Set(allBills.map(b => b.student_id))]
-    const { data: allStudentBills } = await supabase
-      .from('bills')
-      .select('student_id, amount, status, month, year, bill_types(name)')
-      .in('student_id', studentIds)
-      // Remove academic_year filter to include ALL unpaid bills
-      .in('status', ['belum', 'menunggu'])
-      .order('year', { ascending: true })
+      let allBills = [...exportTarget.lunas, ...exportTarget.belum, ...exportTarget.menunggu, ...exportTarget.dicicil]
+      
+      // Apply class filter
+      if (filterKelas !== "all") {
+        allBills = allBills.filter(b => b.class_name === filterKelas)
+      }
+      
+      if (allBills.length === 0) {
+        showToast("Tidak ada data untuk di-export!", "error")
+        return
+      }
+      
+      // Fetch all bills for tunggakan calculation
+      const studentIds = [...new Set(allBills.map(b => b.student_id))]
+      const { data: allStudentBills } = await supabase
+        .from('bills')
+        .select('student_id, amount, status, month, year, bill_types(name)')
+        .in('student_id', studentIds)
+        .in('status', ['belum', 'menunggu', 'dicicil'])
+        .order('year', { ascending: true })
     
     // Build student bills map
     const studentBillsMap = new Map<string, typeof allStudentBills>()
@@ -237,7 +237,7 @@ export default function RekapTagihanPage() {
         "NISN": bill.nisn,
         "Kelas": bill.class_name,
         "Nominal": bill.amount,
-        "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : "Menunggu",
+        "Status": bill.status === "lunas" ? "Lunas" : bill.status === "belum" ? "Belum Bayar" : bill.status === "dicicil" ? "Dicicil" : "Menunggu",
         "Tanggal Bayar": bill.paid_date || "-",
         "Bulan-Bulan Tunggakan": unpaidMonths || "-",
         "Total Tunggakan": totalTunggakan,
@@ -262,6 +262,10 @@ export default function RekapTagihanPage() {
     setShowExportModal(false)
     setExportTarget(null)
     setFilterKelas("all")
+    } catch (e) {
+      console.error("Export error:", e)
+      showToast("Gagal export! " + (e instanceof Error ? e.message : ""), "error")
+    }
   }
 
   return (
@@ -382,7 +386,10 @@ export default function RekapTagihanPage() {
               <button
                 className="admin-btn admin-btn-outline"
                 style={{ fontSize: 12, padding: "6px 14px", marginLeft: "auto" }}
-                onClick={handleExportPerBillType}
+                onClick={() => {
+                  setExportTarget(selectedBillType)
+                  setShowExportModal(true)
+                }}
               >
                 <Download size={13} /> Export
               </button>
