@@ -15,7 +15,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 200;
   background: linear-gradient(135deg, #1F8F5C 0%, #2BAE76 100%);
   color: white;
   border: none;
@@ -2289,7 +2289,7 @@ select.admin-input {
   }
 
   .admin-menu-btn {
-    z-index: 100;
+    z-index: 200;
   }
 
   .admin-sidebar-footer {
