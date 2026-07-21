@@ -85,6 +85,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+
+  verification: {
+    google: "CZULPC-A-k7S3Md0yJF8xtE8G3wDNRpWloWhSk-Z4cE",
+  },
 }
 
 const jsonLd = {
