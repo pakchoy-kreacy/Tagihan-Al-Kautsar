@@ -21,7 +21,7 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 })
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://iuran.espp-minuruliman.web.id'
 const SITE_NAME = "ESPP MI Nurul Iman"
 const TITLE = "Sistem Pembayaran SPP & Tagihan Sekolah | ESPP MI Nurul Iman"
 const DESCRIPTION = "Sistem pembayaran SPP dan tagihan sekolah MI Nurul Iman. Wali murid dapat melihat tagihan, melakukan pembayaran secara online, serta memantau riwayat pembayaran dengan mudah, cepat, dan aman."
