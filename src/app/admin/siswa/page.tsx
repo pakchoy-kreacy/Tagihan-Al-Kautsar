@@ -767,20 +767,21 @@ function SiswaContent() {
         confirmLabel="Ubah"
         danger
         onConfirm={async () => {
-          if (!confirmStatusChange) return
-          const { error } = await supabase
-            .from('bills')
-            .update({ 
-              status: 'belum',
-              paid_date: null 
-            })
-            .eq('id', confirmStatusChange.billId)
-          
-          if (!error) {
+          try {
+            if (!confirmStatusChange) return
+            const { error } = await supabase
+              .from('bills')
+              .update({ 
+                status: 'belum',
+                paid_date: null 
+              })
+              .eq('id', confirmStatusChange.billId)
+            
+            if (error) throw error
             showToast("Status diubah ke Belum Bayar!")
             setDetailSiswa(null)
             await refreshData()
-          } else {
+          } catch {
             showToast("Gagal mengubah status!", "error")
           }
           setConfirmStatusChange(null)

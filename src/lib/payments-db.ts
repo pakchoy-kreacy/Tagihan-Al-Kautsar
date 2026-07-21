@@ -90,12 +90,14 @@ export async function submitPayment(data: {
 }): Promise<{ success: boolean; error?: string }> {
   try {
     // Cek maksimal 5 cicilan per tagihan
-    const { count } = await supabase
+    const { count, error: countErr } = await supabase
       .from('payments')
       .select('*', { count: 'exact', head: true })
       .eq('bill_id', data.bill_id)
 
-    if (count && count >= 5) {
+    if (countErr) throw countErr
+
+    if ((count ?? 0) >= 5) {
       return { success: false, error: 'Maksimal 5 kali cicilan per tagihan.' }
     }
 

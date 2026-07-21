@@ -1,11 +1,18 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useSchoolSettings } from "./SchoolSettingsProvider"
+
 export function Footer({ schoolName }: { schoolName?: string }) {
-  const year = new Date().getFullYear()
+  const { settings } = useSchoolSettings()
+  const [year, setYear] = useState(new Date().getFullYear())
+  useEffect(() => { setYear(new Date().getFullYear()) }, [])
+
+  const name = schoolName || settings?.nama_sekolah || "MI Nurul Iman Kabo Jaya"
 
   return (
     <div className="app-footer">
-      © {year} {schoolName || "MI Nurul Iman Kabo Jaya"}
+      © {year} {name}
     </div>
   )
 }

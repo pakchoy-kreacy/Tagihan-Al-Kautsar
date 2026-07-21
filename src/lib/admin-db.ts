@@ -172,8 +172,7 @@ export async function getRecentPayments(limit = 10): Promise<RecentPayment[]> {
       .from('bills')
       .select(`
         id, month, amount, paid_date,
-        students!inner(name),
-        classes!inner(name)
+        students!inner(name, classes!inner(name))
       `)
       .eq('status', 'lunas')
       .not('paid_date', 'is', null)
@@ -182,14 +181,17 @@ export async function getRecentPayments(limit = 10): Promise<RecentPayment[]> {
 
     if (error) throw error
 
-    return (data || []).map((item: Record<string, unknown>) => ({
-      id: item.id as string,
-      nama: (item.students as Record<string, unknown>)?.name as string || '-',
-      kelas: (item.classes as Record<string, unknown>)?.name as string || '-',
-      bulan: item.month as string,
-      nominal: item.amount as number,
-      tanggal: item.paid_date as string || '-',
-    }))
+    return (data || []).map((item: Record<string, unknown>) => {
+      const student = item.students as Record<string, unknown> | undefined
+      return {
+        id: item.id as string,
+        nama: student?.name as string || '-',
+        kelas: (student?.classes as Record<string, unknown>)?.name as string || '-',
+        bulan: item.month as string,
+        nominal: item.amount as number,
+        tanggal: item.paid_date as string || '-',
+      }
+    })
   } catch (error) {
     console.error('Error fetching recent payments:', error)
     return []
@@ -266,8 +268,7 @@ export async function getUnpaidStudents(): Promise<UnpaidStudent[]> {
       .from('bills')
       .select(`
         id, month, amount, status,
-        students!inner(id, nisn, name),
-        classes!inner(name)
+        students!inner(id, nisn, name, classes!inner(name))
       `)
       .in('status', ['belum', 'menunggu', 'dicicil'])
       .order('status', { ascending: true })
@@ -276,14 +277,15 @@ export async function getUnpaidStudents(): Promise<UnpaidStudent[]> {
 
     const seen = new Set<string>()
     return (data || []).reduce((acc: UnpaidStudent[], item: Record<string, unknown>) => {
-      const studentId = ((item.students as Record<string, unknown>)?.id as string)
+      const student = item.students as Record<string, unknown> | undefined
+      const studentId = student?.id as string
       if (seen.has(studentId)) return acc
       seen.add(studentId)
       acc.push({
         id: studentId,
-        nisn: (item.students as Record<string, unknown>)?.nisn as string || '-',
-        nama: (item.students as Record<string, unknown>)?.name as string || '-',
-        kelas: (item.classes as Record<string, unknown>)?.name as string || '-',
+        nisn: student?.nisn as string || '-',
+        nama: student?.name as string || '-',
+        kelas: (student?.classes as Record<string, unknown>)?.name as string || '-',
         tagihan: item.month as string,
         nominalTagihan: item.amount as number,
       })

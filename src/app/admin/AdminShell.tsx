@@ -66,11 +66,16 @@ function AdminShellContent({ children, sidebarOpen, setSidebarOpen, pendingCount
   const loggingOutRef = useRef(false)
 
   const refreshPendingCount = usePageRefresh(async (isCurrent) => {
-    const { count } = await supabase
-        .from('payments')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
-    if (isCurrent()) setPendingCount(count || 0)
+    try {
+      const { count, error } = await supabase
+          .from('payments')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+      if (error) throw error
+      if (isCurrent()) setPendingCount(count || 0)
+    } catch {
+      if (isCurrent()) setPendingCount(0)
+    }
   }, { intervalMs: 10000, refreshKey: "pending-payments", enabled: !loading && role !== null })
 
   useEffect(() => {
